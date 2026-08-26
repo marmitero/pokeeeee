@@ -131,7 +131,7 @@ responde, com a API respondendo 200 normalmente via curl. Afeta só `next dev`.
 | **106 testes** (77 unit + 29 integração) | `src/**/*.test.ts` · `tests/integration/` |
 | Vitest | `vitest.config.mts` · `vitest.integration.config.mts` |
 | Banco de teste isolado | `tests/global-setup.ts` (cria/derruba `app_db_test`) |
-| **CI** com 5 jobs | `docs/ci.yml` — **pronto mas inativo** (ver §4.7) |
+| **CI** com 5 jobs | `.github/workflows/ci.yml` — **ativo e verificado** (5/5 success) |
 | **Migrations versionadas** | `drizzle/0000_*.sql` + `drizzle/0001_*.sql` (`npm run db:migrate`) |
 | **Rate limit compartilhado** | tabela `rate_limits` + `src/lib/rate-limit-store.ts` |
 | PostgreSQL local embutido | `npm run db:local` (dados em `.pgdata/`, gitignored) |
@@ -246,7 +246,7 @@ para o log. Derrubar o jogo por causa do rate limit seria pior.
 `drizzle/0001_useful_vin_gonzales.sql`. Antes só existia `db:push`, que não
 gera histórico — insuficiente para produção.
 
-#### 4. CI (`docs/ci.yml` — pronto, ainda inativo)
+#### 4. CI (`.github/workflows/ci.yml`) — ATIVO
 5 jobs: `lint`, `typecheck`, `unit`, `integration` (com serviço Postgres 18) e
 `build` (depende dos três primeiros).
 
@@ -326,16 +326,16 @@ set_role com papel inexistente   → 400 (testado)
 `GET /` 200 · `GET /admin` 200 · `health` 200 `{"ok":true}` · `db:set-role` ✔.
 
 ### 4.7 O que **não** foi validado
-1. **O CI não está ativo — e não depende do mantenedor habilitar nada.**
-   O push de `.github/workflows/ci.yml` foi rejeitado: a App
-   (`arena-ai-coding-agent[bot]`) não declara a permissão `workflows` no
-   manifesto, então **o toggle nem aparece** na tela de permissões do
-   repositório. Confirmado por `PUT .github/workflows/probe.yml` → `403
-   "Resource not accessible by integration"`.
-   O arquivo foi preservado em `docs/ci.yml`; `docs/CI.md` traz as três saídas
-   (criar o arquivo manualmente, token com escopo `workflow`, ou não usar CI).
-   Além disso ele nunca rodou — o YAML foi validado só estruturalmente, então a
-   primeira execução real pode revelar divergência de versão de action.
+1. ~~O CI não está ativo~~ — **RESOLVIDO em 2026-08-26.** O bot não consegue
+   escrever em `.github/workflows/` (a App não declara a permissão `workflows`,
+   e o toggle nem aparece na tela do repositório), então o **mantenedor criou o
+   arquivo manualmente** na branch (commit `e02bb30`). O primeiro run
+   [`#33020774659`](https://github.com/marmitero/pokeeeee/actions/runs/33020774659)
+   terminou com **5/5 jobs `success`**: Lint, Typecheck, Unit tests,
+   Integration tests (com Postgres 18 em container) e Build. O risco de
+   "divergência de versão de action" que eu havia apontado não se confirmou.
+   `docs/ci.yml` fica como cópia de referência; o que o GitHub lê é
+   `.github/workflows/ci.yml`.
 2. **A interface de `/admin` não foi aberta num navegador** (item 7 das
    pendências manuais). A API por trás está coberta por testes.
 3. **Store Redis** não existe — decisão documentada na seção 3.
@@ -381,6 +381,7 @@ decidido pelo servidor e visível para os dois.
 | 2026-08-26 | **Fase 3** — Consertar o que já estava construído | ✅ Concluída e validada | commit `212ea1d` |
 | 2026-08-26 | **Fase 2** — Motor de jogo no servidor | ✅ Concluída e validada | commit `003ef41` |
 | 2026-08-26 | **Fase 5** — Infraestrutura e qualidade | ✅ Concluída e validada | 106 testes + CI |
+| 2026-08-26 | **CI ativado** — mantenedor criou o workflow manualmente | ✅ 5/5 jobs success | commit `e02bb30`, run `#33020774659` |
 | — | **Fase 4** — PvP de verdade | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
