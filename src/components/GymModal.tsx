@@ -2,6 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
+import {
+  computeGymCounterDamage,
+  computeGymDamage,
+  rollCritical,
+} from "@/lib/battle";
 import { retroSfx } from "@/lib/sound";
 import { X, Trophy, Shield, Swords } from "lucide-react";
 import { GymPokemon } from "@/lib/seed-gym";
@@ -31,7 +36,6 @@ interface UserBadge {
 
 interface GymModalProps {
   gymLeaderId: number;
-  userId: number;
   playerParty: Array<{
     id: number; pokedexId: number; name: string; variant: string;
     level: number; hp: number; maxHp: number; attack: number;
@@ -45,7 +49,7 @@ interface GymModalProps {
 
 type BattlePhase = "intro" | "fighting" | "result";
 
-export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattleResult, onClose }: GymModalProps) {
+export function GymModal({ gymLeaderId, playerParty, userBadges, onBattleResult, onClose }: GymModalProps) {
   const [leader, setLeader] = useState<GymLeader | null>(null);
   const [loading, setLoading] = useState(true);
   const [phase, setPhase] = useState<BattlePhase>("intro");
@@ -68,10 +72,11 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
         if (found) {
           setLeader(found);
           setLeaderCurrentHp(found.team[0]?.hp ?? 0);
-          setPlayerCurrentHp(activePoke?.hp ?? 50);
         }
       })
       .finally(() => setLoading(false));
+    // O HP do jogador é definido em `handleStartBattle`; mantê-lo fora deste
+    // effect evita re-buscar o líder a cada mudança do time.
   }, [gymLeaderId]);
 
   const alreadyHasBadge = userBadges.some((b) => b.gymLeaderId === gymLeaderId);
@@ -99,11 +104,13 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
     retroSfx.playAttack("slash");
 
     // Player attacks
-    const isCrit = Math.random() < 0.15;
-    const atkMult = isCrit ? 1.6 : 1;
-    const playerDmg = Math.max(1, Math.floor(
-      ((activePoke.level * 2 + 10) / 250 * (activePoke.attack / leaderPoke.defense) + 2) * atkMult * (Math.random() * 0.15 + 0.925)
-    ));
+    const isCrit = rollCritical(0.15);
+    const playerDmg = computeGymDamage(
+      activePoke.level,
+      activePoke.attack,
+      leaderPoke.defense,
+      isCrit
+    );
 
     const newLeaderHp = Math.max(0, leaderCurrentHp - playerDmg);
     setLeaderCurrentHp(newLeaderHp);
@@ -127,10 +134,11 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
       } else {
         // Leader counter-attacks
         retroSfx.playAttack("beam");
-        const leaderDmg = Math.max(1, Math.floor(
-          ((leaderPoke.level * 2 + 10) / 250 * (leaderPoke.attack / (activePoke?.defense ?? 10)) + 2)
-          * (Math.random() * 0.15 + 0.925)
-        ));
+        const leaderDmg = computeGymCounterDamage(
+          leaderPoke.level,
+          leaderPoke.attack,
+          activePoke?.defense ?? 10
+        );
         const newPlayerHp = Math.max(0, playerCurrentHp - leaderDmg);
         setPlayerCurrentHp(newPlayerHp);
         addLog(`${leaderPoke.name} contra-atacou! Causou ${leaderDmg} de dano!`);
@@ -150,7 +158,7 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
       const res = await fetch("/api/gym", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "battle_result", userId, gymLeaderId, won }),
+        body: JSON.stringify({ action: "battle_result", gymLeaderId, won }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -218,7 +226,7 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
             </div>
 
             <div className="border-2 border-slate-700 bg-slate-950 px-6 py-4 max-w-md">
-              <p className="font-['VT323'] text-xl text-amber-300">"{leader.npcDialog}"</p>
+              <p className="font-['VT323'] text-xl text-amber-300">&ldquo;{leader.npcDialog}&rdquo;</p>
               <div className="mt-2 font-['IBM_Plex_Mono'] text-xs text-slate-400">
                 Recompensa: {leader.rewardMoney} Pk$ + {leader.badgeEmoji} {leader.badgeName}
               </div>
@@ -317,7 +325,7 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
                 <Trophy className="h-16 w-16 text-amber-400" />
                 <div className="font-['Press_Start_2P'] text-sm text-amber-400">VITÓRIA!</div>
                 <div className="border-2 border-amber-400/50 bg-amber-500/10 px-6 py-4">
-                  <p className="font-['VT323'] text-2xl text-amber-300">"{leader.winDialog}"</p>
+                  <p className="font-['VT323'] text-2xl text-amber-300">&ldquo;{leader.winDialog}&rdquo;</p>
                   {!alreadyHasBadge && (
                     <div className="mt-3 text-4xl">{leader.badgeEmoji}</div>
                   )}
@@ -330,7 +338,7 @@ export function GymModal({ gymLeaderId, userId, playerParty, userBadges, onBattl
               <>
                 <div className="text-5xl">💀</div>
                 <div className="font-['Press_Start_2P'] text-sm text-rose-400">DERROTA...</div>
-                <p className="font-['VT323'] text-xl text-slate-300">"{leader.defeatDialog}"</p>
+                <p className="font-['VT323'] text-xl text-slate-300">&ldquo;{leader.defeatDialog}&rdquo;</p>
                 <p className="font-['VT323'] text-lg text-rose-400">−300 Pk$ de penalidade</p>
               </>
             )}

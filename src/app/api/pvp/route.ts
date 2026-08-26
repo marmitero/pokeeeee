@@ -1,7 +1,30 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { pvpBattles, chatMessages, users } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { pvpBattles, chatMessages } from "@/db/schema";
+import { requireUser } from "@/lib/session";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import {   pvpActionSchema   } from "@/lib/validation";
+import {   parse, notFound, routeError   } from "@/lib/api";
+
+/**
+ * Arena PvP e chat global.
+ *
+ * Fase 1 — o que mudou:
+ *  - Escrita exige **sessão** (V2).
+ *  - `username` do chat e das salas vem da **sessão**, não do corpo. Antes
+ *    qualquer um postava no chat se passando por qualquer treinador.
+ *  - Mensagem limitada a 200 caracteres (antes sem limite algum).
+ *  - `roomCode` validado (3–32, A-Z0-9-).
+ *  - `player1Pokemon` validado por schema em vez de gravar JSON arbitrário.
+ *  - **Removido `action: "reward_win"`** (V5): ele fazia
+ *    `set({ money: 3500 + 750, wins: 1 })` — uma *atribuição* que apagava o
+ *    dinheiro e o histórico do jogador, e fixava o saldo em 4.250 Pk$.
+ *    Nenhuma parte do cliente o chamava: era código morto e explorável.
+ *
+ * ⚠️ Ainda pendente (Fase 4): não existe PvP de verdade — as salas são
+ * gravadas, mas nenhuma luta é resolvida. O `GET` segue público (leitura).
+ */
 
 const LEGENDARY_CHALLENGERS = [
   {
@@ -55,6 +78,7 @@ export async function GET() {
       .from(pvpBattles)
       .orderBy(desc(pvpBattles.createdAt))
       .limit(15);
+
     const chats = await db
       .select()
       .from(chatMessages)
@@ -67,58 +91,52 @@ export async function GET() {
       chatMessages: chats.reverse(),
     });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro ao carregar PvP";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "pvp:list", "Erro ao carregar a Arena.");
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { action, userId, username, message, roomCode, player1Pokemon } =
-      body;
+    const user = await requireUser(req);
+    enforceRateLimit(req, "pvp", 30, 60_000);
 
-    if (action === "chat") {
-      if (!message || !username) {
-        return NextResponse.json({ error: "Mensagem vazia" }, { status: 400 });
-      }
+    const input = parse(pvpActionSchema, await req.json().catch(() => ({})));
+
+    // ── CHAT ─────────────────────────────────────────────────────────────
+    if (input.action === "chat") {
       await db.insert(chatMessages).values({
-        userId: Number(userId || 1),
-        username,
-        message,
+        userId: user.id,
+        username: user.username, // da sessão: impossível se passar por outro
+        message: input.message,
         channel: "arena-global",
       });
+
       const chats = await db
         .select()
         .from(chatMessages)
         .orderBy(desc(chatMessages.createdAt))
         .limit(30);
+
       return NextResponse.json({ chatMessages: chats.reverse() });
     }
 
-    if (action === "create_room") {
+    // ── CREATE ROOM ──────────────────────────────────────────────────────
+    if (input.action === "create_room") {
       const code =
-        roomCode ||
-        `DLG-${Math.floor(1000 + Math.random() * 9000)}`;
+        input.roomCode || `DLG-${Math.floor(1000 + Math.random() * 9000)}`;
 
       const [newBattle] = await db
         .insert(pvpBattles)
         .values({
           roomCode: code,
-          player1Id: Number(userId),
-          player1Username: username,
+          player1Id: user.id,
+          player1Username: user.username,
           status: "WAITING",
-          currentTurnPlayerId: Number(userId),
+          currentTurnPlayerId: user.id,
           battleState: {
             turn: 1,
-            logs: [`${username} abriu a sala ${code} e aguarda um rival!`],
-            player1Pokemon: player1Pokemon || {
-              name: "Charizard",
-              variant: "Shiny",
-              level: 15,
-              hp: 68,
-              maxHp: 68,
-            },
+            logs: [`${user.username} abriu a sala ${code} e aguarda um rival!`],
+            player1Pokemon: input.player1Pokemon,
           },
         })
         .returning();
@@ -126,68 +144,43 @@ export async function POST(req: Request) {
       return NextResponse.json({ battle: newBattle });
     }
 
-    if (action === "join_room") {
-      const existing = await db
-        .select()
-        .from(pvpBattles)
-        .where(eq(pvpBattles.roomCode, roomCode));
-      if (!existing.length) {
-        return NextResponse.json(
-          { error: "Sala PvP não encontrada" },
-          { status: 404 }
-        );
-      }
+    // ── JOIN ROOM ────────────────────────────────────────────────────────
+    const existing = await db
+      .select()
+      .from(pvpBattles)
+      .where(eq(pvpBattles.roomCode, input.roomCode));
 
-      const battle = existing[0];
-      const state = (battle.battleState || {}) as {
-        logs?: string[];
-        player1Pokemon?: unknown;
-      };
+    if (existing.length === 0) throw notFound("Sala PvP não encontrada.");
 
-      const updatedLogs = [
-        ...(state.logs || []),
-        `⚡ ${username} entrou na arena e aceitou o duelo contra ${battle.player1Username}!`,
-      ];
+    const battle = existing[0];
+    const state = (battle.battleState || {}) as {
+      logs?: string[];
+      player1Pokemon?: unknown;
+    };
 
-      const [updated] = await db
-        .update(pvpBattles)
-        .set({
-          player2Id: Number(userId),
-          player2Username: username,
-          status: "ACTIVE",
-          battleState: {
-            ...state,
-            player2Pokemon: player1Pokemon || {
-              name: "Gengar",
-              variant: "Mystic",
-              level: 15,
-              hp: 64,
-              maxHp: 64,
-            },
-            logs: updatedLogs,
-          },
-          updatedAt: new Date(),
-        })
-        .where(eq(pvpBattles.id, battle.id))
-        .returning();
+    const [updated] = await db
+      .update(pvpBattles)
+      .set({
+        player2Id: user.id,
+        player2Username: user.username,
+        status: "ACTIVE",
+        battleState: {
+          ...state,
+          player2Pokemon: input.player1Pokemon,
+          logs: [
+            ...(state.logs || []),
+            `⚡ ${user.username} entrou na arena e aceitou o duelo contra ${battle.player1Username}!`,
+          ],
+        },
+        updatedAt: new Date(),
+      })
+      .where(eq(pvpBattles.id, battle.id))
+      .returning();
 
-      return NextResponse.json({ battle: updated });
-    }
-
-    if (action === "reward_win") {
-      await db
-        .update(users)
-        .set({
-          money: 3500 + 750,
-          wins: 1,
-        })
-        .where(eq(users.id, Number(userId)));
-      return NextResponse.json({ ok: true });
-    }
-
-    return NextResponse.json({ error: "Ação desconhecida" }, { status: 400 });
+    return NextResponse.json({ battle: updated });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro no PvP";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "pvp:action", "Erro na Arena PvP.");
   }
 }
+
+export const dynamic = "force-dynamic";

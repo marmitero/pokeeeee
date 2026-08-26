@@ -1,93 +1,117 @@
 import { NextResponse } from "next/server";
+import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { users, userPokemon } from "@/db/schema";
-import { eq, and, isNotNull } from "drizzle-orm";
 import { computeDelugeStats, getPokemonSpecies } from "@/lib/pokedex";
+import { requireUser } from "@/lib/session";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { catchSchema } from "@/lib/validation";
+import type { BALL_VALUES } from "@/lib/validation";
+import { parse, badRequest, routeError, publicUser } from "@/lib/api";
+
+/**
+ * Captura de Pokémon.
+ *
+ * Fase 1 — o que mudou:
+ *  - `userId` vem da **sessão**, não do corpo (V2).
+ *  - A bola é **verificada e debitada atomicamente** antes de gravar o
+ *    Pokémon. Antes o Pokémon era inserido e só depois a bola era
+ *    decrementada com `Math.max(0, n-1)` — dava para capturar sem possuir
+ *    nenhuma bola (V4).
+ *  - `level` limitado a 1–100 e `variant` restrito ao enum (V4).
+ *  - Débito + inserção dentro de uma transação.
+ *
+ * ⚠️ Ainda pendente (Fase 2): a **rolagem de captura** continua não existindo
+ * — `catchRate` segue sem ser lido e a captura sempre succeeds. E os status
+ * ainda são calculados como variante "Normal" (bug B4).
+ */
+
+const BALL_LABEL: Record<(typeof BALL_VALUES)[number], string> = {
+  pokeballs: "Pokébolas",
+  greatballs: "Great Balls",
+  ultraballs: "Ultra Balls",
+  masterballs: "Master Balls",
+};
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const {
-      userId,
-      pokedexId,
-      variant = "Normal",
-      level = 7,
-      ballUsed = "pokeballs",
-    } = body;
+    const user = await requireUser(req);
+    enforceRateLimit(req, "catch", 30, 60_000);
 
-    const userRows = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, Number(userId)));
+    const input = parse(catchSchema, await req.json().catch(() => ({})));
+    const ball = input.ballUsed;
 
-    if (!userRows.length) {
-      return NextResponse.json({ error: "Treinador não encontrado" }, { status: 404 });
+    if (user[ball] <= 0) {
+      throw badRequest(`Você não possui ${BALL_LABEL[ball]}.`);
     }
 
-    const u = userRows[0];
-    const species = getPokemonSpecies(Number(pokedexId));
-    const stats = computeDelugeStats(species, level, "Normal");
+    const species = getPokemonSpecies(input.pokedexId);
 
-    // Deduct ball
-    const ballField =
-      ballUsed === "masterballs"
-        ? "masterballs"
-        : ballUsed === "ultraballs"
-        ? "ultraballs"
-        : ballUsed === "greatballs"
-        ? "greatballs"
-        : "pokeballs";
+    // TODO(Fase 2): usar `input.variant` aqui. Manter "Normal" preserva o
+    // comportamento atual (bug B4) até o motor de jogo ir para o servidor.
+    const stats = computeDelugeStats(species, input.level, "Normal");
 
-    const currentCount = u[ballField as keyof typeof u] as number;
-    const newCount = Math.max(0, currentCount - 1);
+    await db.transaction(async (tx) => {
+      // Débito condicional: se outra request já gastou a última bola,
+      // nenhuma linha é atualizada e a captura é abortada.
+      const deducted = await tx
+        .update(users)
+        .set({ [ball]: sql`${users[ball]} - 1` })
+        .where(and(eq(users.id, user.id), sql`${users[ball]} > 0`))
+        .returning({ id: users.id });
 
-    // Count current party slots
-    const partyPokemon = await db
-      .select()
-      .from(userPokemon)
-      .where(and(eq(userPokemon.userId, u.id), isNotNull(userPokemon.partySlot)));
+      if (deducted.length === 0) {
+        throw badRequest(`Você não possui ${BALL_LABEL[ball]}.`);
+      }
 
-    const partyCount = partyPokemon.length;
-    const newPartySlot = partyCount < 6 ? partyCount + 1 : null;
+      const party = await tx
+        .select({ id: userPokemon.id })
+        .from(userPokemon)
+        .where(
+          and(eq(userPokemon.userId, user.id), isNotNull(userPokemon.partySlot))
+        );
 
-    await db.insert(userPokemon).values({
-      userId: u.id,
-      pokedexId: species.id,
-      name: species.name,
-      variant,
-      isPremiumSkin: false, // wild catches are always normal skin
-      level,
-      xp: level * 100,
-      xpToNextLevel: (level + 1) * 120,
-      hp: stats.hp,
-      maxHp: stats.maxHp,
-      attack: stats.attack,
-      defense: stats.defense,
-      spAttack: stats.spAttack,
-      spDefense: stats.spDefense,
-      speed: stats.speed,
-      move1: species.moves[0]?.name || "Investida",
-      move2: species.moves[1]?.name || "Ataque Rápido",
-      move3: species.moves[2]?.name || "Rosnado",
-      move4: species.moves[3]?.name || "Arranhão",
-      partySlot: newPartySlot,
-      isStarter: false,
+      const newPartySlot = party.length < 6 ? party.length + 1 : null;
+
+      await tx.insert(userPokemon).values({
+        userId: user.id,
+        pokedexId: species.id,
+        name: species.name,
+        variant: input.variant,
+        isPremiumSkin: false,
+        level: input.level,
+        xp: input.level * 100,
+        xpToNextLevel: (input.level + 1) * 120,
+        hp: stats.hp,
+        maxHp: stats.maxHp,
+        attack: stats.attack,
+        defense: stats.defense,
+        spAttack: stats.spAttack,
+        spDefense: stats.spDefense,
+        speed: stats.speed,
+        move1: species.moves[0]?.name || "Investida",
+        move2: species.moves[1]?.name || "Ataque Rápido",
+        move3: species.moves[2]?.name || "Rosnado",
+        move4: species.moves[3]?.name || "Arranhão",
+        partySlot: newPartySlot,
+        isStarter: false,
+      });
     });
 
-    await db
-      .update(users)
-      .set({ [ballField]: newCount })
-      .where(eq(users.id, u.id));
+    const [updatedUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, user.id));
 
-    const updatedUser = await db.select().from(users).where(eq(users.id, u.id));
-    const updatedParty = await db
+    const party = await db
       .select()
       .from(userPokemon)
-      .where(eq(userPokemon.userId, u.id));
+      .where(eq(userPokemon.userId, user.id));
 
-    return NextResponse.json({ user: updatedUser[0], party: updatedParty });
+    return NextResponse.json({ user: publicUser(updatedUser), party });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro ao capturar";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "pokemon:catch", "Erro ao capturar o Pokémon.");
   }
 }
+
+export const dynamic = "force-dynamic";

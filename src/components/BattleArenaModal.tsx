@@ -7,6 +7,11 @@ import {
   PokemonSpecies,
   getPokemonSpecies,
 } from "@/lib/pokedex";
+import {
+  computeWildCounterDamage,
+  computeWildDamage,
+  rollCritical,
+} from "@/lib/battle";
 import { retroSfx } from "@/lib/sound";
 import { Shield, Sparkles, Swords, Trophy, Send } from "lucide-react";
 
@@ -41,7 +46,7 @@ interface BattleArenaModalProps {
   mode: "WILD" | "PVP";
   wildTarget?: WildEncounterState;
   playerParty: PlayerPokemonState[];
-  userId: number;
+  /** Apenas para exibir o autor no eco local do chat — o servidor usa a sessão. */
   username: string;
   pokeballs: number;
   greatballs: number;
@@ -55,7 +60,6 @@ export function BattleArenaModal({
   mode,
   wildTarget,
   playerParty,
-  userId,
   username,
   pokeballs,
   greatballs,
@@ -140,10 +144,8 @@ export function BattleArenaModal({
     retroSfx.playAttack("flame");
     triggerShake();
 
-    const isCrit = Math.random() < 0.18;
-    const baseDmg = Math.floor(
-      (activePoke.level * 2.4 + 14) * (isCrit ? 1.5 : 1.0)
-    );
+    const isCrit = rollCritical(0.18);
+    const baseDmg = computeWildDamage(activePoke.level, isCrit);
     const newEnemyHp = Math.max(0, enemyHp - baseDmg);
     setEnemyHp(newEnemyHp);
 
@@ -164,9 +166,7 @@ export function BattleArenaModal({
     // Contra-ataque selvagem
     setTimeout(() => {
       retroSfx.playAttack("slash");
-      const enemyDmg = Math.floor(
-        Math.random() * 12 + initialOpponent.level * 0.85
-      );
+      const enemyDmg = computeWildCounterDamage(initialOpponent.level);
       setPlayerHp((prev) => Math.max(0, prev - enemyDmg));
       setLogs((prev) => [
         ...prev,
@@ -214,7 +214,6 @@ export function BattleArenaModal({
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              userId,
               pokedexId: opponentSpecies.id,
               variant: initialOpponent.variant,
               level: initialOpponent.level,
@@ -253,8 +252,6 @@ export function BattleArenaModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "chat",
-          userId,
-          username,
           message: newMsg.message,
         }),
       });
@@ -271,8 +268,6 @@ export function BattleArenaModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create_room",
-          userId,
-          username,
           roomCode: pvpRoomCode,
           player1Pokemon: activePoke,
         }),

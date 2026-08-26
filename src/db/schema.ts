@@ -42,6 +42,33 @@ export interface NpcDefinition {
   dialog: string;
 }
 
+// ─── PAPÉIS DE ACESSO ─────────────────────────────────────────────────────
+
+/**
+ * Hierarquia de papéis, da menor para a maior.
+ *
+ * Mantida como `text` no banco (e não `pgEnum`) de propósito: adicionar um
+ * papel novo vira uma linha de código em vez de uma migration de tipo.
+ * A validação de valor acontece na aplicação (`src/lib/session.ts`).
+ *
+ * - `player`    → joga; não altera nada do mundo compartilhado
+ * - `moderator` → modera a comunidade (chat); **não** edita mapas
+ * - `admin`     → tudo, incluindo o Editor de Mundos e a gestão de papéis
+ */
+export const ROLES = ["player", "moderator", "admin"] as const;
+export type Role = (typeof ROLES)[number];
+
+export const ROLE_LEVEL: Record<Role, number> = {
+  player: 0,
+  moderator: 1,
+  admin: 2,
+};
+
+/** Converte um valor vindo do banco em `Role`, falhando para o mais restritivo. */
+export function toRole(value: unknown): Role {
+  return ROLES.includes(value as Role) ? (value as Role) : "player";
+}
+
 // ─── USERS ────────────────────────────────────────────────────────────────
 
 export const users = pgTable("users", {
@@ -50,6 +77,8 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   passwordHash: text("password_hash").notNull(),
   avatarSprite: text("avatar_sprite").notNull().default("red"),
+  // autorização: "player" | "moderator" | "admin" — ver ROLES acima
+  role: text("role").notNull().default("player"),
   // currency
   money: integer("money").notNull().default(3000),
   // inventory – balls
@@ -134,6 +163,9 @@ export const gameMaps = pgTable("game_maps", {
   portals: jsonb("portals").notNull(),
   npcs: jsonb("npcs").notNull().default("[]"),
   creatorUsername: text("creator_username").notNull().default("GameMaster"),
+  // Dono do mapa (Fase 1): `null` = mapa de sistema/semente, editável por
+  // qualquer usuário autenticado; com valor = só o criador pode alterar.
+  creatorId: integer("creator_id"),
   isPublished: boolean("is_published").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

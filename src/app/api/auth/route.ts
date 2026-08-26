@@ -1,69 +1,127 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { users, userPokemon, sessions } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users, userPokemon } from "@/db/schema";
 import { computeDelugeStats, getPokemonSpecies } from "@/lib/pokedex";
 import { ensureDefaultMapsSeeded } from "@/lib/seed-maps";
-import { randomUUID } from "crypto";
+import {
+  hashPassword,
+  isLegacyPlaintext,
+  verifyPassword,
+} from "@/lib/password";
+import {
+  createSession,
+  destroySession,
+  getSessionUser,
+  revokeUserSessions,
+  withClearedSessionCookie,
+  withSessionCookie,
+} from "@/lib/session";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import {   authSchema   } from "@/lib/validation";
+import {   parse, badRequest, notFound, publicUser, routeError   } from "@/lib/api";
 
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+/**
+ * Autenticação.
+ *
+ * Fase 1 — mudanças em relação ao original:
+ *  - Senha guardada com **scrypt**, nunca em texto puro (V1).
+ *  - `passwordHash` **não** sai mais nas respostas (V1).
+ *  - Sessão em cookie `httpOnly`; o token não circula mais pelo corpo (V2).
+ *  - `GET /me` substitui o `action: "resume"` com token no body.
+ *  - `POST logout` revoga a sessão no banco (antes só apagava o localStorage).
+ *  - Rate limiting por IP em registro/login (V1).
+ *  - Erro interno vai para o log, cliente recebe mensagem genérica (V8).
+ */
 
-// Only the 3 classic starters are allowed at registration
+// Apenas os 3 iniciais clássicos são permitidos no registro.
 const ALLOWED_STARTER_IDS = [1, 4, 7]; // Bulbasaur, Charmander, Squirtle
+const DEFAULT_STARTER_ID = 4;
 
-export async function POST(req: Request) {
+// 10 tentativas por IP a cada 10 minutos, em registro e login.
+const AUTH_LIMIT = 10;
+const AUTH_WINDOW_MS = 10 * 60 * 1000;
+
+const GENERIC_AUTH_ERROR = "Falha na autenticação.";
+
+// ─── GET /api/auth — sessão atual ─────────────────────────────────────────
+
+export async function GET(req: Request) {
   try {
-    await ensureDefaultMapsSeeded();
-    const body = await req.json();
-    const { action, username, password, starterId, avatarSprite } = body;
-
-    if (!username || !password) {
-      return NextResponse.json(
-        { error: "Usuário e senha são obrigatórios." },
-        { status: 400 }
+    const user = await getSessionUser(req);
+    if (!user) {
+      return withClearedSessionCookie(
+        NextResponse.json({ error: "Não autenticado." }, { status: 401 })
       );
     }
 
-    if (action === "register") {
-      const existing = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, username.trim()));
-      if (existing.length > 0) {
-        return NextResponse.json(
-          { error: "Este nome de treinador já está registrado." },
-          { status: 409 }
-        );
+    const party = await db
+      .select()
+      .from(userPokemon)
+      .where(eq(userPokemon.userId, user.id));
+
+    return NextResponse.json({ user: publicUser(user), party });
+  } catch (err: unknown) {
+    return routeError(err, "auth:me", "Não foi possível restaurar a sessão.");
+  }
+}
+
+// ─── POST /api/auth — register | login | logout ───────────────────────────
+
+export async function POST(req: Request) {
+  try {
+    const body: unknown = await req.json().catch(() => ({}));
+    const action = (body as { action?: string })?.action;
+
+    // ── LOGOUT ───────────────────────────────────────────────────────────
+    if (action === "logout") {
+      const user = await getSessionUser(req);
+
+      // `?all=1` derruba todos os dispositivos; senão só a sessão atual.
+      const url = new URL(req.url);
+      if (user && url.searchParams.get("all") === "1") {
+        await revokeUserSessions(user.id);
+      } else {
+        await destroySession(req);
       }
 
-      const safeStarterId = ALLOWED_STARTER_IDS.includes(Number(starterId))
-        ? Number(starterId)
-        : 4;
+      return withClearedSessionCookie(NextResponse.json({ ok: true }));
+    }
+
+    const input = parse(authSchema, body);
+    enforceRateLimit(req, "auth", AUTH_LIMIT, AUTH_WINDOW_MS, input.action);
+
+    await ensureDefaultMapsSeeded();
+
+    // ── REGISTER ─────────────────────────────────────────────────────────
+    if (input.action === "register") {
+      const username = input.username;
+
+      const existing = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, username));
+
+      if (existing.length > 0) {
+        throw badRequest("Este nome de treinador já está registrado.");
+      }
+
+      const starterId = ALLOWED_STARTER_IDS.includes(Number(input.starterId))
+        ? Number(input.starterId)
+        : DEFAULT_STARTER_ID;
 
       const [newUser] = await db
         .insert(users)
         .values({
-          username: username.trim(),
-          email: `${username.trim().toLowerCase()}@delugerpg.net`,
-          passwordHash: password,
-          avatarSprite: avatarSprite || "red",
-          money: 3000,
-          pokeballs: 10,
-          greatballs: 5,
-          ultraballs: 2,
-          masterballs: 0,
-          potions: 3,
-          superPotions: 1,
-          maxPotions: 0,
-          revives: 1,
-          currentMapId: 1,
-          playerX: 8,
-          playerY: 12,
+          username,
+          email: `${username.toLowerCase()}@delugerpg.net`,
+          passwordHash: hashPassword(input.password),
+          avatarSprite: input.avatarSprite || "red",
         })
         .returning();
 
-      const species = getPokemonSpecies(safeStarterId);
-      // Starters always start as Normal variant (not premium)
+      const species = getPokemonSpecies(starterId);
+      // Iniciais sempre começam como variante Normal (não premium).
       const stats = computeDelugeStats(species, 5, "Normal");
 
       await db.insert(userPokemon).values({
@@ -90,82 +148,70 @@ export async function POST(req: Request) {
         isStarter: true,
       });
 
-      // Create session
-      const token = randomUUID();
-      const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-      await db.insert(sessions).values({ userId: newUser.id, token, expiresAt });
-
+      const token = await createSession(newUser.id);
       const party = await db
         .select()
         .from(userPokemon)
         .where(eq(userPokemon.userId, newUser.id));
 
-      return NextResponse.json({ user: newUser, party, token });
+      return withSessionCookie(
+        NextResponse.json({ user: publicUser(newUser), party }),
+        token
+      );
     }
 
-    if (action === "login") {
-      const found = await db
-        .select()
-        .from(users)
-        .where(eq(users.username, username.trim()));
-      if (found.length === 0 || found[0].passwordHash !== password) {
-        return NextResponse.json(
-          { error: "Treinador não encontrado ou senha inválida." },
-          { status: 401 }
-        );
+    // ── LOGIN ────────────────────────────────────────────────────────────
+    const found = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, input.username));
+
+    if (found.length === 0) {
+      // Mensagem idêntica à de senha errada: não revela se a conta existe.
+      throw badRequest(GENERIC_AUTH_ERROR);
+    }
+
+    const user = found[0];
+    const stored = user.passwordHash;
+
+    let passwordOk = verifyPassword(input.password, stored);
+
+    // Migração transparente: contas criadas antes da Fase 1 tinham a senha
+    // em texto puro. Confere no igual e já re-hash com scrypt.
+    if (!passwordOk && isLegacyPlaintext(stored)) {
+      passwordOk = stored === input.password;
+      if (passwordOk) {
+        await db
+          .update(users)
+          .set({ passwordHash: hashPassword(input.password) })
+          .where(eq(users.id, user.id));
+        console.info(`[auth] senha legada migrada para scrypt (user ${user.id})`);
       }
-      const u = found[0];
-
-      // Update lastOnlineAt
-      await db
-        .update(users)
-        .set({ lastOnlineAt: new Date() })
-        .where(eq(users.id, u.id));
-
-      // Create new session
-      const token = randomUUID();
-      const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-      await db.insert(sessions).values({ userId: u.id, token, expiresAt });
-
-      const party = await db
-        .select()
-        .from(userPokemon)
-        .where(eq(userPokemon.userId, u.id));
-
-      return NextResponse.json({ user: u, party, token });
     }
 
-    if (action === "resume") {
-      // Resume session from stored token
-      const { token } = body;
-      if (!token) return NextResponse.json({ error: "Token ausente" }, { status: 401 });
-
-      const sess = await db
-        .select()
-        .from(sessions)
-        .where(eq(sessions.token, token));
-
-      if (!sess.length || new Date(sess[0].expiresAt) < new Date()) {
-        return NextResponse.json({ error: "Sessão expirada" }, { status: 401 });
-      }
-
-      const u = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, sess[0].userId));
-      if (!u.length) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
-
-      const party = await db
-        .select()
-        .from(userPokemon)
-        .where(eq(userPokemon.userId, u[0].id));
-
-      return NextResponse.json({ user: u[0], party, token });
+    if (!passwordOk) {
+      throw badRequest(GENERIC_AUTH_ERROR);
     }
 
-    return NextResponse.json({ error: "Ação desconhecida" }, { status: 400 });
+    const token = await createSession(user.id);
+
+    await db
+      .update(users)
+      .set({ lastOnlineAt: new Date() })
+      .where(eq(users.id, user.id));
+
+    const party = await db
+      .select()
+      .from(userPokemon)
+      .where(eq(userPokemon.userId, user.id));
+
+    return withSessionCookie(
+      NextResponse.json({ user: publicUser(user), party }),
+      token
+    );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Erro no servidor";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return routeError(err, "auth", GENERIC_AUTH_ERROR);
   }
 }
+
+export const dynamic = "force-dynamic";

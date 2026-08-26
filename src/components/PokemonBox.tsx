@@ -30,7 +30,6 @@ export interface BoxPokemon {
 
 interface PokemonBoxProps {
   allPokemon: BoxPokemon[];
-  userId: number;
   userItems: { potions: number; superPotions: number; maxPotions: number; revives: number };
   onUpdated: (updatedPokemon: BoxPokemon[], updatedUser?: unknown) => void;
   onClose: () => void;
@@ -38,7 +37,7 @@ interface PokemonBoxProps {
 
 type ViewTab = "party" | "box";
 
-export function PokemonBox({ allPokemon, userId, userItems, onUpdated, onClose }: PokemonBoxProps) {
+export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: PokemonBoxProps) {
   const [tab, setTab] = useState<ViewTab>("party");
   const [selected, setSelected] = useState<BoxPokemon | null>(null);
   const [loading, setLoading] = useState(false);
@@ -56,7 +55,7 @@ export function PokemonBox({ allPokemon, userId, userItems, onUpdated, onClose }
       const res = await fetch("/api/pokemon/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, userId, pokemonId: selected.id, ...extra }),
+        body: JSON.stringify({ action, pokemonId: selected.id, ...extra }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -72,7 +71,7 @@ export function PokemonBox({ allPokemon, userId, userItems, onUpdated, onClose }
     }
   };
 
-  const useItem = async (item: string) => {
+  const applyItem = async (item: string) => {
     if (!selected) return;
     setLoading(true);
     retroSfx.playAttack("heal");
@@ -80,7 +79,7 @@ export function PokemonBox({ allPokemon, userId, userItems, onUpdated, onClose }
       const res = await fetch("/api/pokemon/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "use_item", userId, pokemonId: selected.id, item }),
+        body: JSON.stringify({ action: "use_item", pokemonId: selected.id, item }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -277,19 +276,19 @@ export function PokemonBox({ allPokemon, userId, userItems, onUpdated, onClose }
                 <div>
                   <div className="mb-2 font-['Press_Start_2P'] text-[9px] text-emerald-300">USAR ITEM:</div>
                   <div className="grid grid-cols-2 gap-2">
-                    <button onClick={() => useItem("potion")} disabled={loading || userItems.potions <= 0}
+                    <button onClick={() => applyItem("potion")} disabled={loading || userItems.potions <= 0}
                       className="flex items-center justify-center gap-1 border border-slate-600 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-200 hover:border-emerald-500 disabled:opacity-40">
                       🧪 Poção ×{userItems.potions}
                     </button>
-                    <button onClick={() => useItem("superPotion")} disabled={loading || userItems.superPotions <= 0}
+                    <button onClick={() => applyItem("superPotion")} disabled={loading || userItems.superPotions <= 0}
                       className="flex items-center justify-center gap-1 border border-slate-600 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-200 hover:border-emerald-500 disabled:opacity-40">
                       🧴 S.Poção ×{userItems.superPotions}
                     </button>
-                    <button onClick={() => useItem("maxPotion")} disabled={loading || userItems.maxPotions <= 0}
+                    <button onClick={() => applyItem("maxPotion")} disabled={loading || userItems.maxPotions <= 0}
                       className="flex items-center justify-center gap-1 border border-slate-600 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-200 hover:border-emerald-500 disabled:opacity-40">
                       💊 H.Poção ×{userItems.maxPotions}
                     </button>
-                    <button onClick={() => useItem("revive")} disabled={loading || userItems.revives <= 0 || selected.hp > 0}
+                    <button onClick={() => applyItem("revive")} disabled={loading || userItems.revives <= 0 || selected.hp > 0}
                       className="flex items-center justify-center gap-1 border border-slate-600 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-200 hover:border-amber-500 disabled:opacity-40">
                       ⚡ Reviver ×{userItems.revives}
                     </button>

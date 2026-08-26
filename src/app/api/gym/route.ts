@@ -1,97 +1,162 @@
 import { NextResponse } from "next/server";
+import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { gymLeaders, userBadges, users, userPokemon } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { gymLeaders, userBadges, users } from "@/db/schema";
 import { ensureGymSeeded } from "@/lib/seed-gym";
+import { getSessionUser, requireUser } from "@/lib/session";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import {   gymActionSchema, gymQuerySchema   } from "@/lib/validation";
+import {   parse, notFound, publicUser, routeError   } from "@/lib/api";
+
+/**
+ * Ginásios e insígnias.
+ *
+ * Fase 1 — o que mudou:
+ *  - `userId` vem da **sessão** (V2).
+ *  - O pré-requisito de insígnias (`requiredBadges`) agora é **verificado no
+ *    servidor**; antes só a interface checava, então bastava um curl para
+ *    enfrentar o Lance sem nenhuma insígnia.
+ *  - Dinheiro e contadores atualizados com incremento atômico
+ *    (antes era read-then-write, perdendo atualização em concorrência).
+ *  - Insígnia duplicada protegida por checagem prévia dentro da transação.
+ *
+ * ⚠️ Ainda pendente (Fase 2): `won` continua vindo do cliente. Enquanto a
+ * luta não for resolvida no servidor, a recompensa do ginásio segue
+ * "farmável" por curl — não há como blindar isso só com autenticação.
+ * O bug B1 (`GymModal` pede `?mapId=0`) é da Fase 3 e permanece.
+ */
+
+const LOSS_PENALTY = 300;
 
 export async function GET(req: Request) {
-  await ensureGymSeeded();
-  const { searchParams } = new URL(req.url);
-  const mapId = searchParams.get("mapId");
-  const userId = searchParams.get("userId");
+  try {
+    await ensureGymSeeded();
 
-  const leaders = mapId
-    ? await db.select().from(gymLeaders).where(eq(gymLeaders.mapId, Number(mapId)))
-    : await db.select().from(gymLeaders);
+    const { mapId } = parse(
+      gymQuerySchema,
+      Object.fromEntries(new URL(req.url).searchParams)
+    );
 
-  const badges = userId
-    ? await db.select().from(userBadges).where(eq(userBadges.userId, Number(userId)))
-    : [];
+    const leaders =
+      mapId !== undefined
+        ? await db.select().from(gymLeaders).where(eq(gymLeaders.mapId, mapId))
+        : await db.select().from(gymLeaders);
 
-  return NextResponse.json({ gymLeaders: leaders, badges });
+    // Insígnias só do usuário dono da sessão — nunca de um id vindo do cliente.
+    const sessionUser = await getSessionUser(req);
+    const badges = sessionUser
+      ? await db
+          .select()
+          .from(userBadges)
+          .where(eq(userBadges.userId, sessionUser.id))
+      : [];
+
+    return NextResponse.json({ gymLeaders: leaders, badges });
+  } catch (err: unknown) {
+    return routeError(err, "gym:list", "Erro ao carregar o Ginásio.");
+  }
 }
 
 export async function POST(req: Request) {
   try {
-    await ensureGymSeeded();
-    const body = await req.json();
-    const { action, userId, gymLeaderId } = body;
+    const user = await requireUser(req);
+    enforceRateLimit(req, "gym", 20, 60_000);
 
-    if (action === "battle_result") {
-      const { won } = body;
-      const uid = Number(userId);
-      const gid = Number(gymLeaderId);
+    const input = parse(gymActionSchema, await req.json().catch(() => ({})));
+    const uid = user.id;
 
-      const leader = await db.select().from(gymLeaders).where(eq(gymLeaders.id, gid));
-      if (!leader.length) return NextResponse.json({ error: "Gym leader não encontrado" }, { status: 404 });
+    const leaderRows = await db
+      .select()
+      .from(gymLeaders)
+      .where(eq(gymLeaders.id, input.gymLeaderId));
 
-      const gl = leader[0];
+    if (leaderRows.length === 0) throw notFound("Gym leader não encontrado.");
+    const gl = leaderRows[0];
 
-      // Check if already has badge
-      const existing = await db.select().from(userBadges).where(
-        and(eq(userBadges.userId, uid), eq(userBadges.gymLeaderId, gid))
+    const earned = await db
+      .select({ id: userBadges.id })
+      .from(userBadges)
+      .where(
+        and(eq(userBadges.userId, uid), eq(userBadges.gymLeaderId, gl.id))
       );
+    const alreadyHasBadge = earned.length > 0;
 
-      const uRows = await db.select().from(users).where(eq(users.id, uid));
-      if (!uRows.length) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
-      const u = uRows[0];
+    // Pré-requisito de insígnias, agora também no servidor.
+    const badgeCount = await db
+      .select({ id: userBadges.id })
+      .from(userBadges)
+      .where(eq(userBadges.userId, uid));
 
-      if (won) {
-        // Award badge if not already earned
-        if (!existing.length) {
-          await db.insert(userBadges).values({
-            userId: uid,
-            gymLeaderId: gid,
-            badgeName: gl.badgeName,
-            badgeEmoji: gl.badgeEmoji,
-          });
-        }
-
-        // Give reward money
-        await db.update(users).set({
-          money: u.money + gl.rewardMoney,
-          wins: u.wins + 1,
-        }).where(eq(users.id, uid));
-
-        const allBadges = await db.select().from(userBadges).where(eq(userBadges.userId, uid));
-        const updatedUser = await db.select().from(users).where(eq(users.id, uid));
-
-        return NextResponse.json({
-          user: updatedUser[0],
-          badges: allBadges,
-          newBadge: existing.length === 0 ? { name: gl.badgeName, emoji: gl.badgeEmoji } : null,
-          message: won
-            ? `Você derrotou ${gl.name} e ganhou a Insígnia ${gl.badgeName}! +${gl.rewardMoney} Pk$`
-            : `${gl.name} derrotou você...`,
-        });
-      } else {
-        // Lost - penalty
-        await db.update(users).set({
-          losses: u.losses + 1,
-          money: Math.max(0, u.money - 300),
-        }).where(eq(users.id, uid));
-
-        const updatedUser = await db.select().from(users).where(eq(users.id, uid));
-        return NextResponse.json({
-          user: updatedUser[0],
-          message: `${gl.name} derrotou você! Perdeu 300 Pk$.`,
-        });
-      }
+    if (badgeCount.length < gl.requiredBadges) {
+      return NextResponse.json(
+        {
+          error: `Você precisa de ${gl.requiredBadges} insígnia(s) para desafiar ${gl.name}. Você tem ${badgeCount.length}.`,
+        },
+        { status: 403 }
+      );
     }
 
-    return NextResponse.json({ error: "Ação inválida" }, { status: 400 });
+    // ── DERROTA ──────────────────────────────────────────────────────────
+    if (!input.won) {
+      await db
+        .update(users)
+        .set({
+          losses: sql`${users.losses} + 1`,
+          money: sql`GREATEST(0, ${users.money} - ${LOSS_PENALTY})`,
+        })
+        .where(eq(users.id, uid));
+
+      const [updatedUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, uid));
+
+      return NextResponse.json({
+        user: publicUser(updatedUser),
+        message: `${gl.name} derrotou você! Perdeu ${LOSS_PENALTY} Pk$.`,
+      });
+    }
+
+    // ── VITÓRIA ──────────────────────────────────────────────────────────
+    await db.transaction(async (tx) => {
+      if (!alreadyHasBadge) {
+        await tx.insert(userBadges).values({
+          userId: uid,
+          gymLeaderId: gl.id,
+          badgeName: gl.badgeName,
+          badgeEmoji: gl.badgeEmoji,
+        });
+      }
+
+      await tx
+        .update(users)
+        .set({
+          money: sql`${users.money} + ${gl.rewardMoney}`,
+          wins: sql`${users.wins} + 1`,
+        })
+        .where(eq(users.id, uid));
+    });
+
+    const badges = await db
+      .select()
+      .from(userBadges)
+      .where(eq(userBadges.userId, uid));
+    const [updatedUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, uid));
+
+    return NextResponse.json({
+      user: publicUser(updatedUser),
+      badges,
+      newBadge: alreadyHasBadge
+        ? null
+        : { name: gl.badgeName, emoji: gl.badgeEmoji },
+      message: `Você derrotou ${gl.name} e ganhou a Insígnia ${gl.badgeName}! +${gl.rewardMoney} Pk$`,
+    });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro no Ginásio";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "gym:battle", "Erro no Ginásio.");
   }
 }
+
+export const dynamic = "force-dynamic";

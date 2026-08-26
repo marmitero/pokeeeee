@@ -6,7 +6,7 @@ import { retroSfx } from "@/lib/sound";
 import { Shield, UserPlus, LogIn } from "lucide-react";
 
 interface AuthModalProps {
-  onSuccess: (user: unknown, party: unknown[], token: string) => void;
+  onSuccess: (user: unknown, party: unknown[]) => void;
 }
 
 // Only the 3 classic starters
@@ -40,6 +40,16 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
       setError("Preencha todos os campos.");
       return;
     }
+    // Espelha as regras validadas no servidor (src/lib/validation.ts),
+    // para o jogador ter o feedback antes da ida ao backend.
+    if (username.trim().length < 3 || username.trim().length > 20) {
+      setError("Nome de treinador deve ter entre 3 e 20 caracteres.");
+      return;
+    }
+    if (tab === "register" && password.length < 8) {
+      setError("A senha precisa de ao menos 8 caracteres.");
+      return;
+    }
     setError(null);
     setLoading(true);
     retroSfx.playStep();
@@ -53,8 +63,9 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao conectar");
       retroSfx.playCatchSuccess();
-      localStorage.setItem("deluge_token", data.token);
-      onSuccess(data.user, data.party || [], data.token);
+      // A sessão passa a viver num cookie httpOnly definido pelo servidor —
+      // nenhum token é guardado em JavaScript (Fase 1).
+      onSuccess(data.user, data.party || []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {

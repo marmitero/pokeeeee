@@ -1,8 +1,30 @@
 import { NextResponse } from "next/server";
+import { asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { gameMaps } from "@/db/schema";
 import { ensureDefaultMapsSeeded } from "@/lib/seed-maps";
-import { asc, eq } from "drizzle-orm";
+import { requireRole } from "@/lib/session";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import {   mapCreateSchema   } from "@/lib/validation";
+import type { PortalConnection } from "@/db/schema";
+import { parse, badRequest, routeError } from "@/lib/api";
+
+/**
+ * Mapas do mundo.
+ *
+ * Fase 1 — o que mudou:
+ *  - `GET` segue público (o mundo é visível a todos).
+ *  - `POST` agora **exige sessão**. Antes qualquer visitante anônimo podia
+ *    criar mapas e, pior, reescrever o `tileGrid` de um mapa existente via
+ *    `linkFromMapId` — era a V6 da auditoria.
+ *  - A grade é checada contra `width`/`height` declarados.
+ *  - Vincular um portal a um mapa existente exige permissão sobre ele.
+ *
+ * Complemento pós-Fase 1 — **criação de mapas é exclusiva de `admin`**.
+ * O mundo é um recurso compartilhado por todos os jogadores, então sua
+ * estrutura deixa de ser editável por jogadores comuns. O `creatorId` continua
+ * sendo gravado, mas agora serve de **autoria/auditoria**, não de autorização.
+ */
 
 export async function GET() {
   try {
@@ -10,112 +32,108 @@ export async function GET() {
     const maps = await db.select().from(gameMaps).orderBy(asc(gameMaps.id));
     return NextResponse.json({ maps });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro ao carregar mapas";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "maps:list", "Erro ao carregar os mapas.");
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const {
-      name,
-      slug,
-      description,
-      width = 16,
-      height = 16,
-      tileGrid,
-      encounterTable,
-      portals = [],
-      creatorUsername = "Treinador",
-      linkFromMapId,
-      linkFromX,
-      linkFromY,
-      linkTargetX = 7,
-      linkTargetY = 1,
-    } = body;
+    const user = await requireRole(req, "admin");
+    enforceRateLimit(req, "maps", 15, 60_000);
+
+    const input = parse(mapCreateSchema, await req.json().catch(() => ({})));
+
+    if (input.tileGrid.length !== input.height) {
+      throw badRequest(
+        `A grade tem ${input.tileGrid.length} linhas, mas a altura declarada é ${input.height}.`
+      );
+    }
+    if (input.tileGrid.some((row) => row.length !== input.width)) {
+      throw badRequest(
+        `Toda linha da grade deve ter ${input.width} colunas.`
+      );
+    }
 
     const safeSlug =
-      slug ||
-      `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
+      input.slug ||
+      `${input.name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")}-${Date.now()}`;
 
     const [createdMap] = await db
       .insert(gameMaps)
       .values({
-        name,
+        name: input.name,
         slug: safeSlug,
-        description: description || "Novo mapa criado no Editor de Mundos DelugeRPG.",
-        width,
-        height,
-        tileGrid,
-        encounterTable: encounterTable || [],
-        portals: portals || [],
-        creatorUsername,
+        description:
+          input.description || "Novo mapa criado no Editor de Mundos DelugeRPG.",
+        width: input.width,
+        height: input.height,
+        tileGrid: input.tileGrid,
+        encounterTable: input.encounterTable,
+        portals: input.portals,
+        npcs: input.npcs ?? [],
+        creatorUsername: user.username,
+        creatorId: user.id,
         isPublished: true,
       })
       .returning();
 
-    // Se o usuário solicitou vincular um tile de um mapa existente a este novo mapa:
-    if (linkFromMapId && typeof linkFromX === "number" && typeof linkFromY === "number") {
-      const sourceMapRows = await db
+    // Vincula um tile do mapa de origem a este novo mapa.
+    const { linkFromMapId, linkFromX, linkFromY, linkTargetX, linkTargetY } = input;
+
+    if (
+      linkFromMapId !== undefined &&
+      linkFromX !== undefined &&
+      linkFromY !== undefined
+    ) {
+      const sourceRows = await db
         .select()
         .from(gameMaps)
-        .where(eq(gameMaps.id, Number(linkFromMapId)));
+        .where(eq(gameMaps.id, linkFromMapId));
 
-      if (sourceMapRows.length > 0) {
-        const sourceMap = sourceMapRows[0];
-        const existingPortals = Array.isArray(sourceMap.portals)
-          ? (sourceMap.portals as Array<{
-              id: string;
-              sourceX: number;
-              sourceY: number;
-              targetMapId: number;
-              targetMapName?: string;
-              targetX: number;
-              targetY: number;
-              label?: string;
-            }>)
-          : [];
+      if (sourceRows.length === 0) throw badRequest("Mapa de origem não encontrado.");
+      const sourceMap = sourceRows[0];
 
-        // Atualiza o tileGrid da origem para ter um portal ("portal") no X/Y
-        const currentGrid = sourceMap.tileGrid as string[][];
-        if (
-          currentGrid &&
-          currentGrid[linkFromY] &&
-          currentGrid[linkFromY][linkFromX] !== undefined
-        ) {
-          currentGrid[linkFromY][linkFromX] = "portal";
-        }
+      // A partir daqui só chega `admin` (requireRole acima), que tem
+      // autoridade sobre qualquer mapa — inclusive os criados por outros.
 
-        existingPortals.push({
-          id: `warp-${Date.now()}`,
-          sourceX: linkFromX,
-          sourceY: linkFromY,
-          targetMapId: createdMap.id,
-          targetMapName: createdMap.name,
-          targetX: linkTargetX,
-          targetY: linkTargetY,
-          label: `Warp → ${createdMap.name}`,
-        });
-
-        await db
-          .update(gameMaps)
-          .set({
-            tileGrid: currentGrid,
-            portals: existingPortals,
-            updatedAt: new Date(),
-          })
-          .where(eq(gameMaps.id, sourceMap.id));
+      const grid = sourceMap.tileGrid as string[][];
+      if (!grid[linkFromY] || grid[linkFromY][linkFromX] === undefined) {
+        throw badRequest("Coordenada de origem fora da grade do mapa.");
       }
+      grid[linkFromY][linkFromX] = "portal";
+
+      const portals = (
+        Array.isArray(sourceMap.portals) ? sourceMap.portals : []
+      ) as PortalConnection[];
+
+      portals.push({
+        id: `warp-${Date.now()}`,
+        sourceX: linkFromX,
+        sourceY: linkFromY,
+        targetMapId: createdMap.id,
+        targetMapName: createdMap.name,
+        targetX: linkTargetX,
+        targetY: linkTargetY,
+        label: `Warp → ${createdMap.name}`,
+      });
+
+      await db
+        .update(gameMaps)
+        .set({ tileGrid: grid, portals, updatedAt: new Date() })
+        .where(eq(gameMaps.id, sourceMap.id));
     }
 
-    const allMaps = await db.select().from(gameMaps).orderBy(asc(gameMaps.id));
-    return NextResponse.json({
-      createdMap,
-      maps: allMaps,
-    });
+    const maps = await db.select().from(gameMaps).orderBy(asc(gameMaps.id));
+
+    return NextResponse.json({ createdMap, maps });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro ao salvar mapa";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "maps:create", "Erro ao salvar o mapa.");
   }
 }
+
+export const dynamic = "force-dynamic";

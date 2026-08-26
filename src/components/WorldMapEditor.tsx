@@ -412,8 +412,8 @@ export function WorldMapEditor({
               <div className="mt-2.5 max-h-40 space-y-1.5 overflow-y-auto">
                 {portals.length === 0 ? (
                   <p className="font-['VT323'] text-lg text-slate-500">
-                    Nenhum portal ainda. Pinte um tile 🌀 ou clique em "+
-                    CONECTAR WARP" para ligar este mapa a outro.
+                    Nenhum portal ainda. Pinte um tile 🌀 ou clique em &ldquo;+
+                    CONECTAR WARP&rdquo; para ligar este mapa a outro.
                   </p>
                 ) : (
                   portals.map((p, idx) => (

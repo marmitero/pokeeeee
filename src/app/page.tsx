@@ -27,6 +27,8 @@ interface UserState {
   id: number;
   username: string;
   avatarSprite: string;
+  /** "player" | "moderator" | "admin" — vem da sessão; nunca é aceito do cliente */
+  role: string;
   money: number;
   pokeballs: number;
   greatballs: number;
@@ -66,7 +68,47 @@ const GUEST_USER: UserState = {
   money: 3000, pokeballs: 10, greatballs: 5, ultraballs: 2, masterballs: 0,
   potions: 3, superPotions: 1, maxPotions: 0, revives: 1,
   wins: 0, losses: 0, currentMapId: 1, playerX: 8, playerY: 12,
+  role: "player",
 };
+
+/**
+ * Restaura a sessão a partir do cookie `httpOnly` enviado pelo navegador.
+ *
+ * Fase 1: não existe mais token no `localStorage` — o cookie é inacessível a
+ * JavaScript, então a única forma de saber quem está logado é perguntar ao
+ * servidor (`GET /api/auth`).
+ *
+ * Vive fora do componente para que nenhum `setState` seja chamado
+ * sincronamente dentro do corpo de um `useEffect` (react-hooks/set-state-in-effect).
+ */
+async function fetchCurrentSession(
+  onSession: (user: UserState, party: BoxPokemon[]) => void,
+  onAuthRequired: () => void
+): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  try {
+    const res = await fetch("/api/auth", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+    });
+
+    if (!res.ok) {
+      onAuthRequired();
+      return;
+    }
+
+    const data = await res.json();
+    if (data.user) {
+      onSession(data.user, data.party || []);
+    } else {
+      onAuthRequired();
+    }
+  } catch {
+    onAuthRequired();
+  }
+}
 
 export default function DelugeRPGPage() {
   // ── Map state ──────────────────────────────────────────────────────────
@@ -100,6 +142,11 @@ export default function DelugeRPGPage() {
 
   const anyModalOpen = showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || battleState.active;
 
+  // O Editor de Mundos mexe no mundo compartilhado: só para administradores.
+  // Escondemos a entrada na UI para o jogador não montar um mapa e levar 403.
+  const isAdmin = user.role === "admin";
+  const isStaff = user.role === "admin" || user.role === "moderator";
+
   // ── Current map ────────────────────────────────────────────────────────
   const currentMap = maps.find((m) => m.id === currentMapId) || maps[0] || null;
 
@@ -116,11 +163,11 @@ export default function DelugeRPGPage() {
     }));
 
   // ── Utilities ──────────────────────────────────────────────────────────
-  const showBanner = (msg: string, ms = 4000) => {
+  const showBanner = useCallback((msg: string, ms = 4000) => {
     setBanner(msg);
     if (bannerTimer.current) clearTimeout(bannerTimer.current);
     bannerTimer.current = setTimeout(() => setBanner(""), ms);
-  };
+  }, []);
 
   // ── Load maps ──────────────────────────────────────────────────────────
   const fetchMaps = useCallback(async () => {
@@ -132,61 +179,59 @@ export default function DelugeRPGPage() {
   }, []);
 
   // ── Load badges ────────────────────────────────────────────────────────
-  const fetchBadges = useCallback(async (uid: number) => {
+  const fetchBadges = useCallback(async () => {
     try {
-      const res = await fetch(`/api/gym?userId=${uid}`);
+      // Sem `userId` na query: o servidor deriva o treinador da sessão.
+      const res = await fetch("/api/gym", { credentials: "same-origin" });
       const d = await res.json();
       setUserBadges(d.badges || []);
     } catch { /* ignore */ }
   }, []);
+
+  // ── Apply a restored/created session ───────────────────────────────────
+  const applyLogin = useCallback(
+    (u: UserState, pokeList: BoxPokemon[]) => {
+      setUser(u);
+      setAllPokemon(pokeList);
+      setIsLoggedIn(true);
+      setCurrentMapId(u.currentMapId || 1);
+      setPlayerX(u.playerX || 8);
+      setPlayerY(u.playerY || 12);
+      fetchBadges();
+      showBanner(`★ Bem-vindo de volta, ${u.username}!`);
+    },
+    [fetchBadges, showBanner]
+  );
+
+  const requestAuth = useCallback(() => setShowAuth(true), []);
 
   // ── Session resume on mount ────────────────────────────────────────────
   useEffect(() => {
     if (sessionInitialized.current) return;
     sessionInitialized.current = true;
     fetchMaps();
+    void fetchCurrentSession(applyLogin, requestAuth);
+  }, [fetchMaps, applyLogin, requestAuth]);
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("deluge_token") : null;
-    if (!token) { setShowAuth(true); return; }
+  const handleLogout = useCallback(async () => {
+    // Logout de verdade: revoga a sessão no banco e limpa o cookie.
+    // Antes só apagava o localStorage e o token continuava válido.
+    try {
+      await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch { /* o estado local é limpo de qualquer forma */ }
 
-    fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "resume", token }),
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.user) {
-          applyLogin(d.user, d.party || [], token);
-        } else {
-          localStorage.removeItem("deluge_token");
-          setShowAuth(true);
-        }
-      })
-      .catch(() => setShowAuth(true));
-  }, [fetchMaps]);
-
-  const applyLogin = (u: UserState, pokeList: BoxPokemon[], token: string) => {
-    setUser(u);
-    setAllPokemon(pokeList);
-    setIsLoggedIn(true);
-    setCurrentMapId(u.currentMapId || 1);
-    setPlayerX(u.playerX || 8);
-    setPlayerY(u.playerY || 12);
-    localStorage.setItem("deluge_token", token);
-    fetchBadges(u.id);
-    showBanner(`★ Bem-vindo de volta, ${u.username}!`);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("deluge_token");
     setIsLoggedIn(false);
     setUser(GUEST_USER);
     setAllPokemon([]);
     setUserBadges([]);
     setShowAuth(true);
     showBanner("Sessão encerrada. Até logo, Treinador!");
-  };
+  }, [showBanner]);
 
   // ── Heal party ────────────────────────────────────────────────────────
   const handleHealParty = useCallback(async () => {
@@ -198,12 +243,12 @@ export default function DelugeRPGPage() {
       const res = await fetch("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, currentMapId, playerX, playerY }),
+        body: JSON.stringify({ currentMapId, playerX, playerY }),
       });
       const d = await res.json();
       if (d.party) setAllPokemon(d.party);
     } catch { /* ignore */ }
-  }, [isLoggedIn, user.id, currentMapId, playerX, playerY]);
+  }, [isLoggedIn, currentMapId, playerX, playerY, showBanner]);
 
   // ── NPC Interaction ───────────────────────────────────────────────────
   const handleNpcInteraction = useCallback((npc: NpcDef) => {
@@ -222,7 +267,7 @@ export default function DelugeRPGPage() {
       return;
     }
     showBanner(`💬 ${npc.name}: "${npc.dialog}"`);
-  }, [handleHealParty, isLoggedIn]);
+  }, [handleHealParty, isLoggedIn, showBanner]);
 
   // ── Movement ──────────────────────────────────────────────────────────
   const movePlayer = useCallback((dx: number, dy: number, dir: "up" | "down" | "left" | "right") => {
@@ -246,7 +291,7 @@ export default function DelugeRPGPage() {
       fetch("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, currentMapId, playerX: nextX, playerY: nextY }),
+        body: JSON.stringify({ currentMapId, playerX: nextX, playerY: nextY }),
       }).catch(() => {});
     }
 
@@ -299,7 +344,7 @@ export default function DelugeRPGPage() {
       retroSfx.playEncounterFlash();
       setBattleState({ active: true, mode: "WILD", wildTarget: { species, variant, level, hp, maxHp: hp } });
     }
-  }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, user.id, currentMapId, handleHealParty, handleNpcInteraction]);
+  }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, currentMapId, handleHealParty, handleNpcInteraction, showBanner]);
 
   // ── Keyboard ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -351,6 +396,11 @@ export default function DelugeRPGPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2 font-['IBM_Plex_Mono'] text-[10px] text-slate-300">
                 <span className="font-semibold text-amber-300">👤 {user.username}</span>
+                {isStaff && (
+                  <span className="border border-cyan-400 bg-cyan-950/70 px-1 py-0.5 font-['Press_Start_2P'] text-[7px] text-cyan-300">
+                    {user.role === "admin" ? "ADMIN" : "MOD"}
+                  </span>
+                )}
                 <span>💰 {user.money} Pk$</span>
                 <span>🔴 {user.pokeballs}</span>
                 <span>🔵 {user.greatballs}</span>
@@ -398,10 +448,12 @@ export default function DelugeRPGPage() {
               className="flex items-center gap-1 border-2 border-amber-400 bg-slate-900 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-amber-300 shadow-[2px_2px_0px_#000] hover:bg-slate-800">
               <Sparkles className="h-3.5 w-3.5" /> SPRITES
             </button>
-            <button onClick={() => { retroSfx.playStep(); setShowMapEditor(true); }}
-              className="flex items-center gap-1 border-2 border-cyan-400 bg-cyan-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000] hover:bg-cyan-900">
-              <Map className="h-3.5 w-3.5" /> EDITOR
-            </button>
+            {isAdmin && (
+              <button onClick={() => { retroSfx.playStep(); setShowMapEditor(true); }}
+                className="flex items-center gap-1 border-2 border-cyan-400 bg-cyan-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000] hover:bg-cyan-900">
+                <Map className="h-3.5 w-3.5" /> EDITOR
+              </button>
+            )}
             <button onClick={() => { retroSfx.playStep(); setBattleState({ active: true, mode: "PVP" }); }}
               className="flex items-center gap-1 border-2 border-rose-500 bg-gradient-to-r from-rose-600 to-amber-600 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-white shadow-[2px_2px_0px_#000] hover:brightness-110">
               <Swords className="h-3.5 w-3.5" /> PVP
@@ -438,7 +490,9 @@ export default function DelugeRPGPage() {
           <div className="border-4 border-amber-400 bg-slate-900 p-4 shadow-[4px_4px_0px_#000]">
             <div className="flex items-center justify-between border-b-2 border-slate-800 pb-2 mb-3">
               <h2 className="font-['Press_Start_2P'] text-[9px] text-amber-400">MAPAS INTERLIGADOS</h2>
-              <button onClick={() => setShowMapEditor(true)} className="font-['Press_Start_2P'] text-[8px] text-cyan-300 hover:underline">+ CRIAR</button>
+              {isAdmin && (
+                <button onClick={() => setShowMapEditor(true)} className="font-['Press_Start_2P'] text-[8px] text-cyan-300 hover:underline">+ CRIAR</button>
+              )}
             </div>
             <div className="space-y-2">
               {maps.map((m) => {
@@ -636,8 +690,8 @@ export default function DelugeRPGPage() {
       {/* AUTH */}
       {showAuth && (
         <AuthModal
-          onSuccess={(loggedUser, loggedParty, token) => {
-            applyLogin(loggedUser as UserState, loggedParty as BoxPokemon[], token);
+          onSuccess={(loggedUser, loggedParty) => {
+            applyLogin(loggedUser as UserState, loggedParty as BoxPokemon[]);
             setShowAuth(false);
           }}
         />
@@ -647,7 +701,6 @@ export default function DelugeRPGPage() {
       {showBox && (
         <PokemonBox
           allPokemon={allPokemon}
-          userId={user.id}
           userItems={{ potions: user.potions, superPotions: user.superPotions, maxPotions: user.maxPotions, revives: user.revives }}
           onUpdated={(updated, updatedUser) => {
             setAllPokemon(updated as BoxPokemon[]);
@@ -663,7 +716,6 @@ export default function DelugeRPGPage() {
           shopId={shopCtx.shopId}
           shopName={shopCtx.shopName}
           npcDialog={shopCtx.dialog}
-          userId={user.id}
           userMoney={user.money}
           onPurchase={(updatedUser) => setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }))}
           onClose={() => setShopCtx(null)}
@@ -674,7 +726,6 @@ export default function DelugeRPGPage() {
       {gymCtx && (
         <GymModal
           gymLeaderId={gymCtx.gymLeaderId}
-          userId={user.id}
           playerParty={party}
           userBadges={userBadges}
           onBattleResult={(updatedUser, badges) => {
@@ -685,8 +736,8 @@ export default function DelugeRPGPage() {
         />
       )}
 
-      {/* MAP EDITOR */}
-      {showMapEditor && (
+      {/* MAP EDITOR — apenas admin */}
+      {showMapEditor && isAdmin && (
         <WorldMapEditor
           maps={maps}
           currentMapId={currentMapId}
@@ -704,7 +755,6 @@ export default function DelugeRPGPage() {
           mode={battleState.mode}
           wildTarget={battleState.wildTarget}
           playerParty={party}
-          userId={user.id}
           username={user.username}
           pokeballs={user.pokeballs}
           greatballs={user.greatballs}
