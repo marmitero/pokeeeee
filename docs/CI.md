@@ -4,33 +4,49 @@ O workflow está pronto em [`docs/ci.yml`](./ci.yml), mas **não está ativo**.
 
 ## Por quê
 
-O push foi rejeitado pelo GitHub:
+O GitHub rejeita a criação de arquivos em `.github/workflows/` por esta integração:
 
 ```
-! [remote rejected] arena/01a03ad9-pokeeeee (refusing to allow a GitHub App to
-  create or update workflow `.github/workflows/ci.yml` without `workflows` permission)
+! [remote rejected] refusing to allow a GitHub App to create or update
+  workflow `.github/workflows/ci.yml` without `workflows` permission
+
+PUT .github/workflows/probe.yml → 403 "Resource not accessible by integration"
 ```
 
-A integração do GitHub usada aqui não tem a permissão **`workflows`**, que é
-obrigatória para criar ou alterar arquivos em `.github/workflows/`.
+**Não dá para resolver pela tela de permissões do repositório.** O GitHub só
+mostra a chave das permissões que a App *declara querer* no manifesto dela.
+A App usada aqui (`arena-ai-coding-agent[bot]`) não declara `workflows`, então
+não aparece toggle nenhum para ativar — só a dona da App poderia mudar isso.
 
 ## Como ativar
 
-**Opção A — conceder a permissão (recomendado).**
-No repositório: *Settings → GitHub Apps / Installations → Configure → Repository
-permissions → Workflows → Read and write*. Depois é só mover o arquivo:
+### Opção A — criar o arquivo manualmente (recomendada)
+
+A restrição vale só para o bot; um humano com acesso de escrita cria o arquivo
+normalmente.
+
+1. Copie o conteúdo de [`docs/ci.yml`](./ci.yml)
+2. No repositório, **na branch onde o código está**, *Add file* → *Create new file*
+3. No campo de caminho, digite `.github/workflows/ci.yml`
+4. Cole e faça o commit
+
+> O caminho alternativo é *Actions → New workflow → set up a workflow yourself*
+> e colar o conteúdo.
+
+### Opção B — token com escopo `workflow`
+
+Um Personal Access Token clássico com o escopo `workflow` consegue criar o
+arquivo. Use por sua conta e risco; nada disso deve ser commitado.
+
+### Opção C — não usar CI
+
+É uma escolha legítima. O CI é **automação, não cobertura** — tudo o que ele
+rodaria já roda localmente:
 
 ```bash
-mkdir -p .github/workflows
-cp docs/ci.yml .github/workflows/ci.yml
-git add .github/workflows/ci.yml
-git commit -m "ci: ativa o workflow"
-git push
+npm run check             # lint + typecheck + testes unitários + build
+npm run test:integration  # testes de integração (sobe um banco de teste)
 ```
-
-**Opção B — colar manualmente pela interface do GitHub.**
-*Actions → New workflow → set up a workflow yourself* e colar o conteúdo de
-`docs/ci.yml`.
 
 ## O que o workflow faz
 

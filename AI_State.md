@@ -326,12 +326,16 @@ set_role com papel inexistente   → 400 (testado)
 `GET /` 200 · `GET /admin` 200 · `health` 200 `{"ok":true}` · `db:set-role` ✔.
 
 ### 4.7 O que **não** foi validado
-1. **O CI não está ativo.** O push de `.github/workflows/ci.yml` foi **rejeitado
-   pelo GitHub**: a App não tem a permissão `workflows`. O arquivo foi
-   preservado em `docs/ci.yml` e o passo a passo de ativação está em
-   `docs/CI.md`. Além disso, ele nunca rodou — o YAML foi validado só
-   estruturalmente (jobs, serviços, sem tabs), então a primeira execução real
-   pode revelar divergência de versão de action.
+1. **O CI não está ativo — e não depende do mantenedor habilitar nada.**
+   O push de `.github/workflows/ci.yml` foi rejeitado: a App
+   (`arena-ai-coding-agent[bot]`) não declara a permissão `workflows` no
+   manifesto, então **o toggle nem aparece** na tela de permissões do
+   repositório. Confirmado por `PUT .github/workflows/probe.yml` → `403
+   "Resource not accessible by integration"`.
+   O arquivo foi preservado em `docs/ci.yml`; `docs/CI.md` traz as três saídas
+   (criar o arquivo manualmente, token com escopo `workflow`, ou não usar CI).
+   Além disso ele nunca rodou — o YAML foi validado só estruturalmente, então a
+   primeira execução real pode revelar divergência de versão de action.
 2. **A interface de `/admin` não foi aberta num navegador** (item 7 das
    pendências manuais). A API por trás está coberta por testes.
 3. **Store Redis** não existe — decisão documentada na seção 3.
