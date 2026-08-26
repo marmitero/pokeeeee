@@ -112,15 +112,6 @@ export const authSchema = z.discriminatedUnion("action", [
   authLoginSchema,
 ]);
 
-// ─── /api/pokemon/catch ───────────────────────────────────────────────────
-
-export const catchSchema = z.object({
-  pokedexId: idSchema,
-  variant: variantSchema.default("Normal"),
-  level: levelSchema.default(5),
-  ballUsed: ballSchema.default("pokeballs"),
-});
-
 // ─── /api/pokemon/heal ────────────────────────────────────────────────────
 
 const coordinateSchema = z.coerce.number().int().min(0).max(63);
@@ -169,16 +160,6 @@ export const shopQuerySchema = z.object({
 export const gymQuerySchema = z.object({
   mapId: idSchema.optional(),
 });
-
-export const gymActionSchema = z.discriminatedUnion("action", [
-  z.object({
-    action: z.literal("battle_result"),
-    gymLeaderId: idSchema,
-    // ⚠️ Ainda vem do cliente. Passar a decidir no servidor é trabalho da
-    // Fase 2 (motor de jogo), que vai simular a luta de fato.
-    won: z.boolean(),
-  }),
-]);
 
 // ─── /api/pvp ─────────────────────────────────────────────────────────────
 
@@ -302,3 +283,35 @@ export const mapUpdateSchema = z.object({
   portals: z.array(portalSchema).max(50).optional(),
   npcs: z.array(npcSchema).max(50).optional(),
 });
+
+// ─── /api/battle (motor autoritativo — Fase 2) ────────────────────────────
+
+const battleCoordSchema = z.coerce.number().int().min(0).max(63);
+
+export const battleActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("start_wild"),
+    mapId: idSchema,
+    playerX: battleCoordSchema,
+    playerY: battleCoordSchema,
+  }),
+  z.object({ action: z.literal("start_gym"), gymLeaderId: idSchema }),
+  z.object({
+    action: z.literal("attack"),
+    battleId: idSchema,
+    moveIndex: z.coerce.number().int().min(0, "Golpe inválido").max(3, "Golpe inválido"),
+  }),
+  z.object({
+    action: z.literal("switch"),
+    battleId: idSchema,
+    pokemonId: idSchema,
+  }),
+  z.object({
+    action: z.literal("catch"),
+    battleId: idSchema,
+    ball: ballSchema,
+  }),
+  z.object({ action: z.literal("flee"), battleId: idSchema }),
+]);
+
+export const battleQuerySchema = z.object({ battleId: idSchema });

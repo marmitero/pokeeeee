@@ -11,7 +11,7 @@ import {
 import { retroSfx } from "@/lib/sound";
 import { AuthModal } from "@/components/AuthModal";
 import { WorldMapEditor, GameMapData } from "@/components/WorldMapEditor";
-import { BattleArenaModal, PlayerPokemonState, WildEncounterState } from "@/components/BattleArenaModal";
+import { BattleArenaModal } from "@/components/BattleArenaModal";
 import { SpritePackModal } from "@/components/SpritePackModal";
 import { PokemonBox, BoxPokemon } from "@/components/PokemonBox";
 import { ShopModal } from "@/components/ShopModal";
@@ -56,6 +56,19 @@ interface NpcDef {
   dialog: string;
 }
 
+/** Visão do time para o HUD (os dados vêm prontos do banco). */
+interface PartyView {
+  id: number;
+  pokedexId: number;
+  name: string;
+  variant: string;
+  level: number;
+  hp: number;
+  maxHp: number;
+  xp: number;
+  xpToNextLevel: number;
+}
+
 interface UserBadge {
   id: number;
   gymLeaderId: number;
@@ -65,6 +78,15 @@ interface UserBadge {
 
 /** A cada quantos passos a posição é persistida (B12). */
 const SAVE_EVERY_STEPS = 10;
+
+/**
+ * Chance de um passo em tile de encontro disparar uma batalha.
+ *
+ * Continua no cliente de propósito: é só ritmo de jogo. O que importa para a
+ * segurança — espécie, variante, nível, dano, XP e captura — é decidido no
+ * servidor, e a rota tem rate limit próprio.
+ */
+const ENCOUNTER_RATE = 0.22;
 
 const GUEST_USER: UserState = {
   id: 0, username: "Treinador", avatarSprite: "red",
@@ -139,9 +161,11 @@ export default function DelugeRPGPage() {
   const [showBox, setShowBox] = useState(false);
   const [shopCtx, setShopCtx] = useState<{ shopId: number; shopName: string; dialog: string } | null>(null);
   const [gymCtx, setGymCtx] = useState<{ gymLeaderId: number } | null>(null);
-  const [battleState, setBattleState] = useState<{
-    active: boolean; mode: "WILD" | "PVP"; wildTarget?: WildEncounterState;
-  }>({ active: false, mode: "WILD" });
+  // Fase 2: a batalha é criada e resolvida no servidor; aqui só guardamos o id.
+  const [battleState, setBattleState] = useState<{ active: boolean; battleId: number | null }>({
+    active: false,
+    battleId: null,
+  });
   const [audioEnabled, setAudioEnabled] = useState(true);
 
   const anyModalOpen = showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || battleState.active;
@@ -154,18 +178,19 @@ export default function DelugeRPGPage() {
   // ── Current map ────────────────────────────────────────────────────────
   const currentMap = maps.find((m) => m.id === currentMapId) || maps[0] || null;
 
-  const party: PlayerPokemonState[] = allPokemon
+  const party: PartyView[] = allPokemon
     .filter((p) => p.partySlot !== null)
     .sort((a, b) => (a.partySlot ?? 99) - (b.partySlot ?? 99))
     .map((p) => ({
-      id: p.id, pokedexId: p.pokedexId, name: p.nickname || p.name,
-      variant: p.variant as DelugeVariant,
-      level: p.level, hp: p.hp, maxHp: p.maxHp,
-      attack: p.attack, defense: p.defense,
-      // B3 (Fase 3): antes eram os literais 15 e 13 — todo Pokémon lutava com
-      // Sp.Atk 15 e Sp.Def 13, do Bulbasaur nível 5 ao Rayquaza nível 50.
-      spAttack: p.spAttack, spDefense: p.spDefense, speed: p.speed,
-      move1: p.move1, move2: p.move2, move3: p.move3, move4: p.move4,
+      id: p.id,
+      pokedexId: p.pokedexId,
+      name: p.nickname || p.name,
+      variant: p.variant,
+      level: p.level,
+      hp: p.hp,
+      maxHp: p.maxHp,
+      xp: p.xp,
+      xpToNextLevel: p.xpToNextLevel,
     }));
 
   // ── Utilities ──────────────────────────────────────────────────────────
@@ -276,6 +301,33 @@ export default function DelugeRPGPage() {
   }, [handleHealParty, isLoggedIn, showBanner]);
 
   // ── Movement ──────────────────────────────────────────────────────────
+  /**
+   * Pede ao servidor para sortear um encontro selvagem.
+   * O backend valida o tile contra a grade gravada do mapa.
+   */
+  const startWildEncounter = useCallback(
+    async (mapId: number, x: number, y: number) => {
+      retroSfx.playEncounterFlash();
+      try {
+        const res = await fetch("/api/battle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ action: "start_wild", mapId, playerX: x, playerY: y }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showBanner(`⚠️ ${data.error ?? "Não foi possível iniciar a batalha."}`);
+          return;
+        }
+        setBattleState({ active: true, battleId: data.battle.id });
+      } catch {
+        showBanner("⚠️ Falha de rede ao iniciar a batalha.");
+      }
+    },
+    [showBanner]
+  );
+
   const movePlayer = useCallback((dx: number, dy: number, dir: "up" | "down" | "left" | "right") => {
     if (anyModalOpen || !currentMap) return;
     setPlayerDir(dir);
@@ -338,27 +390,13 @@ export default function DelugeRPGPage() {
       return;
     }
 
-    // Wild encounter
-    if ((tileId === "tall_grass" || tileId === "water") && Math.random() < 0.22) {
-      const pool = currentMap.encounterTable?.length ? currentMap.encounterTable : [
-        { pokedexId: 4, name: "Charmander", weight: 20, minLevel: 5, maxLevel: 12, tileTypes: ["tall_grass"] },
-      ];
-      const totalW = pool.reduce((a, e) => a + (e.weight || 10), 0);
-      let roll = Math.random() * totalW;
-      let chosen = pool[0];
-      for (const entry of pool) {
-        if (roll <= entry.weight) { chosen = entry; break; }
-        roll -= entry.weight;
-      }
-      const species = getPokemonSpecies(chosen.pokedexId);
-      const variant: DelugeVariant = rollRandomDelugeVariant();
-      const level = Math.floor(Math.random() * (chosen.maxLevel - chosen.minLevel + 1)) + chosen.minLevel;
-      const hp = Math.floor(species.baseHp * 1.25 + level * 3.2);
-
-      retroSfx.playEncounterFlash();
-      setBattleState({ active: true, mode: "WILD", wildTarget: { species, variant, level, hp, maxHp: hp } });
+    // Encontro selvagem (Fase 2): o SORTEIO agora é do servidor.
+    // O cliente só decide "pisei num tile de encontro"; quem escolhe espécie,
+    // variante e nível, e valida o tile contra a grade gravada, é o backend.
+    if (tileDef.hasEncounter && Math.random() < ENCOUNTER_RATE) {
+      void startWildEncounter(currentMapId, nextX, nextY);
     }
-  }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, currentMapId, handleHealParty, handleNpcInteraction, showBanner]);
+  }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, currentMapId, handleHealParty, handleNpcInteraction, showBanner, startWildEncounter]);
 
   // ── Keyboard ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -468,7 +506,7 @@ export default function DelugeRPGPage() {
                 <Map className="h-3.5 w-3.5" /> EDITOR
               </button>
             )}
-            <button onClick={() => { retroSfx.playStep(); setBattleState({ active: true, mode: "PVP" }); }}
+            <button onClick={() => { retroSfx.playStep(); setBattleState({ active: true, battleId: null }); }}
               className="flex items-center gap-1 border-2 border-rose-500 bg-gradient-to-r from-rose-600 to-amber-600 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-white shadow-[2px_2px_0px_#000] hover:brightness-110">
               <Swords className="h-3.5 w-3.5" /> PVP
             </button>
@@ -771,7 +809,6 @@ export default function DelugeRPGPage() {
       {gymCtx && (
         <GymModal
           gymLeaderId={gymCtx.gymLeaderId}
-          playerParty={party}
           userBadges={userBadges}
           onBattleResult={(updatedUser, badges) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
@@ -797,19 +834,13 @@ export default function DelugeRPGPage() {
       {/* BATTLE */}
       {battleState.active && (
         <BattleArenaModal
-          mode={battleState.mode}
-          wildTarget={battleState.wildTarget}
-          playerParty={party}
+          battleId={battleState.battleId}
           username={user.username}
-          pokeballs={user.pokeballs}
-          greatballs={user.greatballs}
-          ultraballs={user.ultraballs}
-          masterballs={user.masterballs}
-          onCaughtPokemon={(_, updatedUser, updatedParty) => {
+          onStateChange={(updatedUser, updatedParty) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
             if (Array.isArray(updatedParty)) setAllPokemon(updatedParty as BoxPokemon[]);
           }}
-          onBattleEnd={() => setBattleState({ active: false, mode: "WILD" })}
+          onBattleEnd={() => setBattleState({ active: false, battleId: null })}
         />
       )}
     </div>

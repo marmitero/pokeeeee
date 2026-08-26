@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
-import { and, eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { gymLeaders, userBadges, users } from "@/db/schema";
+import { gymLeaders, userBadges } from "@/db/schema";
 import { ensureGymSeeded } from "@/lib/seed-gym";
-import { getSessionUser, requireUser } from "@/lib/session";
-import { enforceRateLimit } from "@/lib/rate-limit";
-import {   gymActionSchema, gymQuerySchema   } from "@/lib/validation";
-import {   parse, notFound, publicUser, routeError   } from "@/lib/api";
+import { getSessionUser } from "@/lib/session";
+import { gymQuerySchema } from "@/lib/validation";
+import { parse, routeError } from "@/lib/api";
 
 /**
  * Ginásios e insígnias.
@@ -57,106 +56,9 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
-  try {
-    const user = await requireUser(req);
-    enforceRateLimit(req, "gym", 20, 60_000);
-
-    const input = parse(gymActionSchema, await req.json().catch(() => ({})));
-    const uid = user.id;
-
-    const leaderRows = await db
-      .select()
-      .from(gymLeaders)
-      .where(eq(gymLeaders.id, input.gymLeaderId));
-
-    if (leaderRows.length === 0) throw notFound("Gym leader não encontrado.");
-    const gl = leaderRows[0];
-
-    const earned = await db
-      .select({ id: userBadges.id })
-      .from(userBadges)
-      .where(
-        and(eq(userBadges.userId, uid), eq(userBadges.gymLeaderId, gl.id))
-      );
-    const alreadyHasBadge = earned.length > 0;
-
-    // Pré-requisito de insígnias, agora também no servidor.
-    const badgeCount = await db
-      .select({ id: userBadges.id })
-      .from(userBadges)
-      .where(eq(userBadges.userId, uid));
-
-    if (badgeCount.length < gl.requiredBadges) {
-      return NextResponse.json(
-        {
-          error: `Você precisa de ${gl.requiredBadges} insígnia(s) para desafiar ${gl.name}. Você tem ${badgeCount.length}.`,
-        },
-        { status: 403 }
-      );
-    }
-
-    // ── DERROTA ──────────────────────────────────────────────────────────
-    if (!input.won) {
-      await db
-        .update(users)
-        .set({
-          losses: sql`${users.losses} + 1`,
-          money: sql`GREATEST(0, ${users.money} - ${LOSS_PENALTY})`,
-        })
-        .where(eq(users.id, uid));
-
-      const [updatedUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, uid));
-
-      return NextResponse.json({
-        user: publicUser(updatedUser),
-        message: `${gl.name} derrotou você! Perdeu ${LOSS_PENALTY} Pk$.`,
-      });
-    }
-
-    // ── VITÓRIA ──────────────────────────────────────────────────────────
-    await db.transaction(async (tx) => {
-      if (!alreadyHasBadge) {
-        await tx.insert(userBadges).values({
-          userId: uid,
-          gymLeaderId: gl.id,
-          badgeName: gl.badgeName,
-          badgeEmoji: gl.badgeEmoji,
-        });
-      }
-
-      await tx
-        .update(users)
-        .set({
-          money: sql`${users.money} + ${gl.rewardMoney}`,
-          wins: sql`${users.wins} + 1`,
-        })
-        .where(eq(users.id, uid));
-    });
-
-    const badges = await db
-      .select()
-      .from(userBadges)
-      .where(eq(userBadges.userId, uid));
-    const [updatedUser] = await db
-      .select()
-      .from(users)
-      .where(eq(users.id, uid));
-
-    return NextResponse.json({
-      user: publicUser(updatedUser),
-      badges,
-      newBadge: alreadyHasBadge
-        ? null
-        : { name: gl.badgeName, emoji: gl.badgeEmoji },
-      message: `Você derrotou ${gl.name} e ganhou a Insígnia ${gl.badgeName}! +${gl.rewardMoney} Pk$`,
-    });
-  } catch (err: unknown) {
-    return routeError(err, "gym:battle", "Erro no Ginásio.");
-  }
-}
-
-export const dynamic = "force-dynamic";
+// O `POST {action:"battle_result", won}` foi REMOVIDO na Fase 2.
+//
+// Ele aceitava o resultado pronto do cliente: bastava um curl com `won: true`
+// para ganhar a insígnia e o dinheiro sem lutar — e repetível à vontade.
+// Agora a batalha de ginásio corre em /api/battle, e é o servidor que decide
+// o resultado, concede a insígnia e credita a recompensa.

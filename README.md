@@ -202,9 +202,9 @@ O estado completo, a última etapa aplicada e a próxima a executar estão em **
 | **1** | Blindagem de segurança | ✅ Concluída |
 | **1.1** | Papéis de acesso + Editor admin-only | ✅ Concluída |
 | **3** | Consertar o que já está construído | ✅ Concluída |
-| **2** | Motor de jogo no servidor | ⬜ Próxima |
+| **2** | Motor de jogo no servidor | ✅ Concluída |
+| **5** | Infraestrutura: testes, rate limit real, painel admin, CI, migrations | ⬜ Próxima |
 | **4** | PvP de verdade | ⬜ |
-| **5** | Infraestrutura: rate limit real, painel admin, testes, CI, migrations | ⬜ |
 | **6** | Conteúdo e mundo | ⬜ |
 
 > A ordem é por **dependência**, não numérica: não adicione conteúdo novo antes da Fase 1. O motor de combate ainda não valida nada no servidor.

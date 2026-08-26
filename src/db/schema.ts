@@ -235,6 +235,32 @@ export const pvpBattles = pgTable("pvp_battles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ─── BATALHAS (motor autoritativo — Fase 2) ───────────────────────────────
+
+/**
+ * Estado de batalha persistido.
+ *
+ * Antes a luta inteira acontecia no cliente: o dano era só `setState`, o HP
+ * nunca era gravado (fechar a modal restaurava tudo) e o resultado do ginásio
+ * chegava pronto num campo `won` — farmável com um curl.
+ *
+ * Agora o servidor é a fonte da verdade: cada turno é resolvido aqui, o HP é
+ * gravado em `user_pokemon` e o resultado é decidido pelo motor.
+ */
+export const battles = pgTable("battles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  kind: text("kind").notNull(),                 // "wild" | "gym"
+  mapId: integer("map_id"),                     // batalha selvagem
+  gymLeaderId: integer("gym_leader_id"),        // batalha de ginásio
+  activePokemonId: integer("active_pokemon_id"),
+  opponentIndex: integer("opponent_index").notNull().default(0),
+  state: jsonb("state").notNull(),              // combatentes, turno, log
+  status: text("status").notNull().default("ACTIVE"), // ACTIVE|WON|LOST|FLED|CAUGHT
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // ─── CHAT ─────────────────────────────────────────────────────────────────
 
 export const chatMessages = pgTable("chat_messages", {

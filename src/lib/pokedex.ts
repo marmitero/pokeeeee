@@ -643,6 +643,30 @@ export const POKEDEX: PokemonSpecies[] = [
   },
 ];
 
+/** Golpe padrão usado quando o nome gravado no banco não existe mais no catálogo. */
+export const FALLBACK_MOVE: PokemonMove = {
+  name: "Investida",
+  type: "Normal",
+  power: 40,
+  accuracy: 100,
+  category: "Physical",
+  description: "Um ataque corporal simples.",
+  sfx: "slash",
+};
+
+/**
+ * Resolve um golpe pelo NOME EXIBIDO ("Lança-Chamas"), não pela chave.
+ *
+ * Necessário porque `user_pokemon.move1..4` e os times de ginásio guardam o
+ * nome em português, enquanto `ALL_MOVES` é indexado pela chave em inglês.
+ * Nome desconhecido devolve um golpe neutro em vez de quebrar a batalha — o
+ * combate precisa continuar mesmo com dado legado.
+ */
+export function getMoveByName(displayName: string): PokemonMove {
+  const found = Object.values(ALL_MOVES).find((m) => m.name === displayName);
+  return found ?? FALLBACK_MOVE;
+}
+
 /**
  * Resolve uma espécie por id ou nome.
  *

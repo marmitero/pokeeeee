@@ -21,6 +21,24 @@
 >
 > **Nunca** apague o histórico de etapas — apenas acrescente.
 
+> ## 📌 PENDÊNCIAS DE VALIDAÇÃO MANUAL (aguardando o mantenedor)
+>
+> Itens verificados **no servidor/motor** mas **nunca abertos num navegador**.
+> Nenhum deles bloqueia o trabalho seguinte, mas precisam de uma passada visual.
+>
+> | # | O que testar | Como | Origem |
+> |---|---|---|---|
+> | 1 | **Batalha selvagem**: pisar na grama alta, ver o sprite do oponente, as barras de HP, o log com "É super efetivo!", os 4 golpes com tipo/poder, e o botão FUGIR | Login → andar até a grama alta (WASD) | Fase 2 |
+> | 2 | **Captura na tela**: arremessar Pokébola e ver a mensagem de escape com a % de chance | idem, botão 🔴 | Fase 2 |
+> | 3 | **Ginásio**: falar com o Brock (🏟️), ver a tela de introdução com os sprites corretos (Geodude/Onix, **não** Bulbasaur), lutar e ver a insígnia no HUD | Mapa 1, NPC 🏟️ | Fases 2 e 3 |
+> | 4 | **Chat global**: abrir o PVP, ver as mensagens reais carregadas (não as fake) e enviar uma | Botão PVP | Fase 3 |
+> | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
+> | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
+>
+> **Conta de admin para teste:** `admin` / `admin12345`
+>
+> Quando validar, marcar cada linha com ✅/❌ e registrar o resultado na seção 4.
+
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
 **Branch da sessão:** `arena/01a03ad9-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
@@ -66,16 +84,16 @@ src/
 | Registro / Login / Sessão | ✅ Funciona (inseguro — ver Fase 1) |
 | Exploração + movimento + portais | ✅ Funciona |
 | Encontros selvagens | ✅ Funciona (decididos no cliente) |
-| Batalha selvagem | ⚠️ Cosmética — nada persiste (derrota agora tem saída; motor é Fase 2) |
-| Captura | ⚠️ Grava, mas não valida nada |
+| Batalha selvagem | ✅ **Servidor** — dano, tipos, XP, captura e HP persistidos |
+| Captura | ✅ **Servidor** — `catchRate` + HP + bola; pode falhar |
 | XP / Nível up | ❌ Morto — colunas existem, nunca recebem UPDATE |
 | PC Box / time / itens | ✅ Funciona |
-| Ginásio | ✅ **FUNCIONA** (B1/B2 corrigidos na Fase 3) — insígnias em sequência; `won` ainda vem do cliente (Fase 2) |
+| Ginásio | ✅ **Servidor** — luta turno a turno, insígnia só vencendo de verdade |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
 | Loja (vender item) | ❌ Não existe (`sellPrice` é coluna morta) |
 | Loja (Antídoto) | 🗑️ Removido na Fase 3 — dava Poção e não havia status para curar |
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
-| PvP real | ❌ Falso — luta contra Mewtwo fixo |
+| PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
 | Pacote de Sprites | ✅ Funciona (vitrine) — 21 espécies × 6 variantes |
 
@@ -106,6 +124,20 @@ responde, com a API respondendo 200 normalmente via curl. Afeta só `next dev`.
 
 **Dependências adicionadas:** `zod` (runtime), `tsx` (dev).
 
+### Motor de jogo no servidor (Fase 2)
+| Módulo | Responsabilidade |
+|---|---|
+| `src/lib/engine/types.ts` | Tabela de efetividade 18×18 (esparsa: só os pares não-neutros) |
+| `src/lib/engine/damage.ts` | Fórmula de dano: `power`, `accuracy`, `category`, STAB, tipos, crítico, variância |
+| `src/lib/engine/xp.ts` | Curva de XP, ganho por batalha, level up |
+| `src/lib/engine/capture.ts` | Rolagem de captura com `catchRate` + fórmula de chacoalhada |
+| `src/lib/engine/combatant.ts` | Monta os combatentes; variante **afeta** os status (B4) |
+| `src/lib/battle-service.ts` | Orquestra turno, troca, captura, fuga e o resultado do ginásio |
+| `src/app/api/battle/route.ts` | `start_wild` · `start_gym` · `attack` · `switch` · `catch` · `flee` |
+| tabela `battles` | Estado de batalha persistido (`state` jsonb + `status`) |
+
+O cliente não calcula mais nada: escolhe uma ação e desenha o que o servidor devolver.
+
 ### Papéis de acesso (Fase 1.1)
 `users.role` — `text NOT NULL DEFAULT 'player'`, com hierarquia `player (0) < moderator (1) < admin (2)`.
 
@@ -135,14 +167,15 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
   - [x] **B12** AirSlash criado · limites por `width`/`height` · save de posição a cada 10 passos · teleporte livre restrito a portais
   - [x] Soft-lock de derrota resolvido (botões desabilitados + aviso + botão de saída)
 
-- [ ] **FASE 2 — Motor de jogo no servidor**
-  - [ ] Fórmula de dano no servidor usando `power`, `accuracy`, `category`, stats reais
-  - [ ] Tabela de efetividade de tipos (18×18) — hoje não existe
-  - [ ] **B4** Corrigir `computeDelugeStats(..., "Normal")` na captura — variante não afeta status *(preservado na Fase 1 de propósito, há `TODO` no código)*
-  - [ ] Sistema de XP e level up real (**B5** — hoje nenhuma coluna de XP recebe UPDATE)
-  - [ ] Rolagem de captura no servidor usando `catchRate` (hoje nunca é lido)
-  - [ ] Persistir HP ao fim da batalha; recompensas reais de vitória (**B6**)
-  - [ ] **Resolver a batalha de ginásio no servidor e parar de aceitar `won` do cliente.** Enquanto `won` vier do cliente, a recompensa do ginásio segue farmável por curl — autenticação não resolve isso. É o motivo de a Fase 2 ser obrigatória.
+- [x] **FASE 2 — Motor de jogo no servidor** ✅ 2026-08-26 (detalhes na seção 3)
+  - [x] Fórmula de dano no servidor (`power`, `accuracy`, `category`, STAB, tipos, crítico)
+  - [x] Tabela de efetividade de tipos 18×18
+  - [x] **B4** variante afeta os status
+  - [x] **B5** XP + level up com recálculo de status
+  - [x] Rolagem de captura com `catchRate`
+  - [x] HP persistido + recompensas reais de vitória
+  - [x] `won` decidido no servidor (endpoint farmável removido)
+  - [x] Times de ginásio derivados da Pokédex
 
 - [ ] **FASE 4 — PvP de verdade** (turnos assíncronos ou WebSocket)
 
@@ -174,149 +207,156 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
-### ✅ FASE 3 — Consertar o que já está construído (2026-08-25)
+### ✅ FASE 2 — Motor de jogo no servidor (2026-08-26)
 
-Sete defeitos corrigidos. Todos em código que já existia — nenhuma feature nova.
+A maior fase até aqui: **1.328 linhas de motor novo**, 17 arquivos tocados
+(+2.048 / −1.096). Todas as regras que viviam no cliente passaram para o
+servidor.
 
-| Bug | Antes | Depois |
+| Item | Antes | Depois |
 |---|---|---|
-| **B1** Ginásio | `fetch('/api/gym?mapId=0')` → lista vazia → `setLeader` nunca roda → **preso em "Carregando Ginásio..." para sempre** | `fetch('/api/gym')` (sem filtro, filtra no cliente) + `loadError` com tela de erro e botão VOLTAR em vez de travar |
-| **B2** Sprites | 5 dos 6 Pokémon de ginásio viravam **Bulbasaur** (`getPokemonSpecies` caía em `\|\| POKEDEX[0]`) | +5 espécies (Geodude 74, Onix 95, Staryu 120, Starmie 121, Dragonair 148) + 7 golpes novos; fallback **removido** — id inválido agora lança |
-| **B3** Status | `spAttack: 15, spDefense: 13` literais — todo Pokémon lutava igual | `p.spAttack` / `p.spDefense` do banco (campos adicionados ao tipo `BoxPokemon`) |
-| **B10** Antídoto | `itemKey: "potions"` — comprar antídoto dava Poção | Item **removido** + limpeza idempotente para bancos já semeados |
-| **B11** Chat | `GET /api/pvp` nunca era chamado; `chatMessages` **nem era renderizado**; 2 mensagens fake | Busca ao abrir + polling de 5s + uso da resposta do POST; lista renderizada; fake e `pvpRooms` (estado morto) removidos |
-| **B12a** AirSlash | `ALL_MOVES.AirSlash \|\| QuickAttack` — não existia, caía no fallback em silêncio | Golpe `AirSlash` criado; Charizard agora tem Corte Aéreo de verdade |
-| **B12b** Limites | `nextX >= 16` hardcoded, ignorando `width`/`height` | `currentMap.width` / `.height` |
-| **B12c** Posição | `Math.random() < 0.15` — **85% dos passos não eram gravados** | a cada `SAVE_EVERY_STEPS = 10` passos, determinístico |
-| **B12d** Teleporte | A lista lateral trocava para **qualquer** mapa, ignorando portais e progressão | Só mapas ligados por portal ao atual são clicáveis; os demais ficam com 🔒 |
-| **—** Derrota | `handleUseMove` retornava em silêncio com `playerHp <= 0`, mas os botões seguiam ativos → **soft-lock sem saída** | Botões desabilitados + linha de log de derrota + botão "VOLTAR PARA A BASE" |
+| **Dano** | `(level * 2.4 + 14) * crit` — os 4 golpes causavam dano **idêntico**; nome do golpe era só texto | Fórmula clássica com `power`, `accuracy`, `category`, **STAB**, tipos, crítico (1/16) e variância 0.85–1.00 |
+| **Tipos** | Não existia. Água vs. Fogo = Normal vs. Normal | Tabela 18×18 esparsa + STAB + rótulos no log |
+| **B4 variante** | Gravava `"Shiny"` e calculava com `"Normal"` | `sideFromSpecies` usa a variante real |
+| **B5 XP** | Colunas `xp`/`xp_to_next_level` **nunca recebiam UPDATE** | Acumula, sobe de nível e **recalcula os status** |
+| **Captura** | Sempre succeedia, decidida no cliente | `catchRate` + HP + bola, fórmula de chacoalhada; **pode falhar** |
+| **HP** | Só `setState`; fechar a modal restaurava tudo | Gravado em `user_pokemon` a cada turno |
+| **Recompensa** | Log anunciava "+650 Pokedólares" e **nenhuma API era chamada** | Dinheiro real (`level*12+40` no selvagem, `rewardMoney` no ginásio) |
+| **Ginásio** | Cliente mandava `{action:"battle_result", won:true}` pronto | Luta turno a turno; o **servidor** decide e concede a insígnia |
+| **Times de ginásio** | `hp`/`attack`/golpes escritos à mão em `seed-gym.ts` | Só `pokedexId`/`level`/`variant`; o resto vem da Pokédex |
 
-#### Arquivos alterados (8)
-`src/lib/pokedex.ts` · `src/lib/seed-shop.ts` · `src/app/page.tsx` ·
-`src/components/GymModal.tsx` · `src/components/BattleArenaModal.tsx` ·
-`src/components/PokemonBox.tsx` · `AI_State.md` · `README.md`
+#### Rotas
+- **Nova:** `POST /api/battle` com `start_wild` · `start_gym` · `attack` ·
+  `switch` · `catch` · `flee`, e `GET /api/battle?battleId=`.
+- **Removidas:** `POST /api/pokemon/catch` (captura sem rolagem, superseded) e
+  `POST /api/gym {action:"battle_result"}` (o endpoint farmável — hoje **405**).
+- **Removido:** `src/lib/battle.ts` (a fórmula antiga).
 
-#### ⚠️ Decisões e observações
-
-1. **Antídoto foi removido, não consertado.** Não existe sistema de status
-   (veneno/queimadura/paralisia) para ele curar. Quando o sistema chegar, o
-   item volta com **coluna própria** — não reaproveitar `potions`.
-2. **Stats dos times de ginásio continuam hardcoded** em `seed-gym.ts`
-   (Geodude lvl 12 com `hp: 52`, por exemplo). A batalha usa esses valores
-   direto, não `computeDelugeStats`. Recalcular é trabalho da **Fase 2**, junto
-   com o motor de combate — mexer agora só desbalancearia sem resolver.
-3. **A Pokédex tem 21 espécies**, não as 16 originais. O rodapé do
-   `SpritePackModal` mostra `POKEDEX.length × 6`, então o número exibido
-   atualiza sozinho.
-4. **B1 e B4 continuam pendentes de propósito:** `won` ainda vem do cliente
-   (Fase 2) e a captura ainda calcula status como `"Normal"` (`TODO` no código,
-   Fase 2).
+#### Decisões
+1. **Ordem do turno** é decidida por `speed`, com empate resolvido no aleatório.
+2. **Golpes de status** (`category: "Status"`) causam 0 de dano e logam
+   "Mas nada aconteceu...". Efeitos próprios (buff/debuff/status) ainda não
+   existem — é conteúdo futuro, não bug.
+3. **Fórmula de captura:** a primeira versão usava `a/255` linear e dava ~6%
+   num comum com HP cheio. Trocada pela fórmula de chacoalhada clássica:
+   12% / 20% / 26% (HP cheio / metade / 10%) com Pokébola em catchRate 45.
+   Números medidos e registrados no docstring.
+4. **Encontro selvagem:** o cliente só diz "pisei num tile de encontro"; o
+   servidor valida a coordenada contra a grade gravada e sorteia espécie,
+   variante e nível da tabela do mapa. `playerX/Y` ainda vêm do cliente, mas
+   só podem apontar para tiles de encontro do mesmo mapa — sem ganho.
+5. **Não dá para fugir de ginásio**, e não dá para capturar o Pokémon do líder.
 
 ---
 
 ## 4. Passo a passo de validação da última etapa
 
-### 4.1 Checagens do projeto
+Tudo executado contra PostgreSQL 18.4 + a aplicação em `next dev`.
 
+### 4.1 Checagens
 ```bash
 npm run check     # lint + typecheck + build
 ```
-✅ **exit 0** — lint 0 erros/0 warnings · `tsc` 0 erros · build 11 rotas.
+✅ **exit 0** — lint 0/0 · `tsc` 0 erros · build **11 rotas** (inclui `/api/battle`).
+Tabela `battles` criada via `npm run db:push` (10 tabelas no total).
 
-### 4.2 B2 — Pokédex (`npx tsx /tmp/poke.ts`)
-
+### 4.2 Efetividade de tipos (o teste central)
+Mesmo atacante (Charmander), golpes diferentes, alvos diferentes:
 ```
-Espécies na Pokédex: 21
-Golpes em ALL_MOVES: 19
+Lança-Chamas (Fire, pw90) vs Bulbasaur (Grass/Poison) → 186 de dano   ← super efetivo + STAB
+Lança-Chamas (Fire, pw90) vs Pikachu  (Electric)      → 102 e 66      ← neutro, variância
+```
+Antes os quatro golpes dariam os mesmos 62 pontos contra qualquer alvo.
+Log real observado: `Squirtle usou Jato d'Água! | É super efetivo! | Causou 51 de dano.`
 
-Times de ginásio (B2):
-  OK  #74  Geodude   → Geodude   [Rock/Ground]     4 golpes
-  OK  #95  Onix      → Onix      [Rock/Ground]     4 golpes
-  OK  #120 Staryu    → Staryu    [Water]           4 golpes
-  OK  #121 Starmie   → Starmie   [Water/Psychic]   4 golpes
-  OK  #148 Dragonair → Dragonair [Dragon]          4 golpes
-  OK  #149 Dragonite → Dragonite [Dragon/Flying]   4 golpes
-
-Charizard: Lança-Chamas, Garra Dragão, Terremoto, Corte Aéreo   ← AirSlash real
-Fallback removido?  ✔ lança: "Espécie desconhecida na Pokédex: 9999. Ids disponíveis: [...]"
-Toda espécie tem 4 golpes válidos?  ✔
-Bugs restantes nos times de ginásio: 0
+### 4.3 Validação do tile de encontro
+```
+start_wild em (8,10) = stone → 400 "Não há encontros nesse tile."
+start_wild em (7,0)  = portal → 400 "Não há encontros nesse tile."
+start_wild em (3,9)  = tall_grass → 200, encontro sorteado pelo servidor
 ```
 
-### 4.3 B1 — o que a `GymModal` consome
-
+### 4.4 XP, level up e persistência de HP
 ```
-GET /api/gym → 3 líderes
-  - Brock | mapId 1 | Insígnia Pedra    | Geodude(74), Onix(95)
-  - Misty | mapId 2 | Insígnia Cascata  | Staryu(120), Starmie(121)
-  - Lance | mapId 3 | Insígnia do Dragão| Dragonair(148), Dragonite(149)
-```
-Antes: `GET /api/gym?mapId=0` → `{"gymLeaders":[]}`.
-
-### 4.4 Fluxo completo do ginásio (critério de aceite)
-
-| Passo | Resultado |
-|---|---|
-| Insígnias iniciais | `0` |
-| Enfrentar Brock (requiredBadges 0) | `200` · money 3000 → **4500** |
-| Insígnias | `1` — 🪨 Insígnia Pedra |
-| Enfrentar Misty (requiredBadges 1) | `200` · money → **6700** |
-| Enfrentar Lance (requiredBadges 2) | `200` · money → **11700** |
-| Insígnias finais | **🪨 💧 🐉 — 3/3** |
-
-O gate de pré-requisito foi respeitado em sequência.
-
-### 4.5 B10 e B11
-
-```
-GET /api/shop?shopId=1 → Pokébola, Poção, Reviver
-  Antídoto presente? ✔ NÃO            (limpeza idempotente rodou num banco já semeado)
-
-POST /api/pvp {action:"chat"} → 200
-GET  /api/pvp → chatMessages: 1  →  "admin: Fase 3: chat funcionando de verdade"
+batalha 1 → xp no banco: 0/264
+batalha 2 → xp 33/264        (recompensas {"xp":33,"money":112})
+batalha 3 → xp 66/264
+com xp 810/822 + 43 ganhos → ★ nível 19 · xp 31/913 · stats recalculados
+Charmander desmaiado → hp 0 persistido; nova batalha recusada:
+  400 "Toda a sua equipe está desmaiada. Cure-a num Centro Pokémon (✚)."
 ```
 
-### 4.6 O que **não** foi validado por curl
+> ⚠️ **Bug encontrado e corrigido durante esta validação:** a primeira versão
+> calculava o XP (`rewards.xp: 37`) mas **não o gravava** — o banco seguia em 0,
+> e `applyXp` era chamado com `currentXp = 0` em vez do XP acumulado.
+> Corrigido adicionando `xp` ao `SideState` e ao `UPDATE`.
 
-Os itens **puramente visuais** dependem de abrir a interface e não foram
-conferidos no navegador: sprites aparecendo corretos na tela de batalha do
-ginásio, a lista de mensagens do chat renderizada, os cards 🔒 na lista de
-mapas e o botão "VOLTAR PARA A BASE" na derrota. A lógica por trás de cada um
-foi verificada acima; a pintura em si, não.
+### 4.5 Captura pode falhar
+```
+20 arremessos de Pokébola em alvo com HP cheio:
+  capturou 4 | escapou 16   → 20% observados (esperado ~12%, dentro do ruído p/ n=20)
+  pokébolas 500 → 480 (1 debitada por arremesso, inclusive nas falhas)
+Log real: "Ah não! Eevee escapou! (chance era de 6%)"  ← antes da troca de fórmula
+```
+
+> ⚠️ **Erro de método meu, registrado para não se repetir:** a primeira
+> bateria fez 60+ requests e estourou o rate limit de 60/min. As "escapadas"
+> eram rejeições **429**, não falhas de captura — o resultado de 0% era
+> inválido. Refeito com 20 tentativas e ritmo controlado.
+
+### 4.6 Ginásio: o critério de aceite
+```
+POST /api/gym {action:"battle_result", won:true}  → 405 (rota removida)
+  insígnias: 0 · money: 3624 · wins: 0        ← nada concedido
+
+POST /api/battle {action:"start_gym", gymLeaderId:1}
+  → Geodude lvl 12 (hp 34, derivado da Pokédex) · fila com Onix
+  → 4 turnos de luta → status WON
+  → recompensas {"xp":96,"money":1500,"badge":"Insígnia Pedra"}
+  → insígnia gravada no banco · money 3624 → 5124 · wins 0 → 1
+```
+
+### 4.7 Regressão das outras rotas
+`health` · `maps` · `gym` · `shop?shopId=1` · `pvp` → 200.
+`shop` (comprar) · `pokemon/heal` · `pvp` (chat) → 200.
+
+### 4.8 O que **não** foi validado
+A **interface** das duas batalhas reescritas (`BattleArenaModal`, `GymModal`)
+não foi aberta num navegador. As chamadas de API, os payloads e o motor foram
+verificados de ponta a ponta; a pintura em tela, não. É o item de maior risco
+residual desta fase e merece uma passada manual no preview.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🔥 FASE 2 — Motor de jogo no servidor
+### 🧪 FASE 5 — Infraestrutura e testes
 
-**Por que agora:** as três pendências que restam são todas do mesmo tipo —
-regras de jogo decididas no cliente. Não dá para corrigi-las uma a uma; elas
-exigem o mesmo motor.
+**Por que ela antes da Fase 4 (PvP):** acabamos de escrever **1.328 linhas de
+regras de jogo sem um único teste**. O motor é agora o coração do produto —
+tabela de tipos, fórmula de dano, curva de XP e rolagem de captura são funções
+puras, determinísticas e triviais de testar. Blindar isso custa pouco e protege
+todo o resto. Construir PvP em cima de um motor sem testes é acumular risco.
 
-1. **Fórmula de dano no servidor** usando `power`, `accuracy`, `category` e os
-   status reais. Hoje `src/lib/battle.ts` ignora tudo isso: os 4 golpes causam
-   dano idêntico e o nome é só texto.
-2. **Tabela de efetividade de tipos (18×18)** — hoje não existe; Água vs. Fogo
-   é igual a Normal vs. Normal.
-3. **B4** — `computeDelugeStats(..., "Normal")` na captura. A variante é gravada
-   e exibida com selo dourado, mas não afeta nenhum status. Há `TODO` no código.
-4. **B5 — XP e level up.** As colunas `xp`/`xp_to_next_level` existem e **nunca
-   recebem UPDATE**. A barra de XP na `PokemonBox` nunca sai do lugar. É o loop
-   central de progressão de um RPG e ele não existe.
-5. **Rolagem de captura no servidor** usando `catchRate` (declarado nas 21
-   espécies, nunca lido em lugar nenhum).
-6. **Persistir HP** ao fim da batalha (hoje o dano é só `setState` local: fechar
-   a modal restaura o HP) e **recompensas reais de vitória** (o log anuncia
-   "+650 Pokedólares" e nenhuma API é chamada).
-7. **`won` decidido no servidor** na batalha de ginásio. Enquanto vier do
-   cliente, a recompensa segue farmável por curl.
-8. **Recalcular os stats dos times de ginásio** a partir da Pokédex em vez dos
-   valores hardcoded em `seed-gym.ts`.
+1. **Vitest** para `src/lib/engine/*` — os casos que mais valem:
+   - `typeMultiplier`: cada par imune (×0), ×2, ×4 e ×0.25; tipo desconhecido = ×1
+   - `computeDamage`: STAB ligado/desligado, físico vs. especial, crítico, erro
+   - `xpToNextLevel` / `applyXp`: level up múltiplo, teto em 100, carry-over de XP
+   - `captureChance`: Master Ball = 1, HP 0 vs. HP cheio, cada bola
+2. **Testes de integração** das rotas com Postgres de teste — em especial
+   "o mesmo curl repetido não concede insígnia duas vezes".
+3. **⚡ Rate limit real** (pendência explícita da Fase 1): o atual é em memória,
+   não sobrevive a restart nem compartilha entre réplicas. Trocar por
+   Redis/Upstash mantendo a assinatura `enforceRateLimit(req, scope, limit, windowMs)`
+   e adicionar `RATE_LIMIT_URL` ao `.env.example`.
+4. **Migrations versionadas** (`drizzle-kit generate`): hoje só existe `db:push`,
+   que não gera histórico — insuficiente para produção.
+5. **GitHub Actions**: `lint` + `typecheck` + `test` + `build`.
+6. **Painel administrativo** para gestão de papéis (hoje só via
+   `npm run db:set-role`) + **poderes concretos de `moderator`** (moderação de chat).
 
-**Critério de aceite sugerido:** um mesmo curl repetido não pode mais dar
-insígnia nem dinheiro; uma captura pode falhar; uma batalha selvagem vencida
-concede XP visível na barra e, ao subir de nível, os status mudam.
+**Critério de aceite sugerido:** `npm test` verde cobrindo as quatro funções do
+motor; CI rodando a cada push; uma migration versionada gerada e aplicada.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -329,10 +369,11 @@ concede XP visível na barra e, ao subir de nível, os status mudam.
 | 2026-08-25 | Auditoria completa | ✅ Concluída | `AUDITORIA.md` |
 | 2026-08-25 | **Fase 0** — Higiene + protocolo AI_State | ✅ Concluída e validada | commit `6496bff` |
 | 2026-08-25 | **Fase 1** — Blindagem de segurança | ✅ Concluída e validada | commit `6496bff` |
-| 2026-08-25 | **Fase 1.1** — Papéis + Editor admin-only | ✅ Concluída e validada | commit `6496bff` |
-| 2026-08-25 | **Fase 3** — Consertar o que já está construído | ✅ Concluída e validada | 10 defeitos corrigidos |
-| 2026-08-26 | **Correção** — `allowedDevOrigins` (preview não hidratava) | ✅ Concluída e validada | `next.config.ts` |
-| — | **Fase 2** — Motor de jogo no servidor | ⬜ Próxima | — |
+| 2026-08-25 | **Fase 1.1** — Papéis + Editor admin-only | ✅ Concluída e validada | commit `660aeb0` |
+| 2026-08-26 | **Correção** — `allowedDevOrigins` (preview não hidratava) | ✅ Concluída e validada | commit `660aeb0` |
+| 2026-08-26 | **Fase 3** — Consertar o que já estava construído | ✅ Concluída e validada | 10 defeitos corrigidos |
+| 2026-08-26 | **Fase 2** — Motor de jogo no servidor | ✅ Concluída e validada | 1.328 linhas de motor |
+| — | **Fase 5** — Infraestrutura e testes | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** os commits originais por fase
 > (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos num reset do `.git` do
