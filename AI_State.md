@@ -85,6 +85,13 @@ Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs anima
 ### Infraestrutura de projeto (Fase 0)
 `.gitignore` · `README.md` · `.env.example` · `drizzle.config.ts` · `package-lock.json` versionado · `AI_State.md`
 
+### ⚠️ `allowedDevOrigins` em `next.config.ts` — não remover
+O Next 16 **bloqueia recursos de desenvolvimento de origem cruzada por padrão**.
+Sem `allowedDevOrigins: ["*.e2b.app"]`, o preview servido por proxy quebra de um
+jeito enganoso: o HTML chega renderizado, mas o client do React é bloqueado e
+**nunca hidrata** — o mapa não carrega (é buscado em `useEffect`) e nenhum botão
+responde, com a API respondendo 200 normalmente via curl. Afeta só `next dev`.
+
 ### Camada de segurança (Fase 1)
 | Módulo | Responsabilidade |
 |---|---|
@@ -324,6 +331,7 @@ concede XP visível na barra e, ao subir de nível, os status mudam.
 | 2026-08-25 | **Fase 1** — Blindagem de segurança | ✅ Concluída e validada | commit `6496bff` |
 | 2026-08-25 | **Fase 1.1** — Papéis + Editor admin-only | ✅ Concluída e validada | commit `6496bff` |
 | 2026-08-25 | **Fase 3** — Consertar o que já está construído | ✅ Concluída e validada | 10 defeitos corrigidos |
+| 2026-08-26 | **Correção** — `allowedDevOrigins` (preview não hidratava) | ✅ Concluída e validada | `next.config.ts` |
 | — | **Fase 2** — Motor de jogo no servidor | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** os commits originais por fase
