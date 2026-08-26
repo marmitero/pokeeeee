@@ -58,7 +58,7 @@ src/
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-16 espécies · 12 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 12 itens de loja · 10 tipos de tile
+21 espécies · 19 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -66,17 +66,18 @@ src/
 | Registro / Login / Sessão | ✅ Funciona (inseguro — ver Fase 1) |
 | Exploração + movimento + portais | ✅ Funciona |
 | Encontros selvagens | ✅ Funciona (decididos no cliente) |
-| Batalha selvagem | ⚠️ Cosmética — nada persiste |
+| Batalha selvagem | ⚠️ Cosmética — nada persiste (derrota agora tem saída; motor é Fase 2) |
 | Captura | ⚠️ Grava, mas não valida nada |
 | XP / Nível up | ❌ Morto — colunas existem, nunca recebem UPDATE |
 | PC Box / time / itens | ✅ Funciona |
-| Ginásio | ❌ **MORTO** — `GymModal` chama `?mapId=0`, líderes têm map_id 1/2/3 |
+| Ginásio | ✅ **FUNCIONA** (B1/B2 corrigidos na Fase 3) — insígnias em sequência; `won` ainda vem do cliente (Fase 2) |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
 | Loja (vender item) | ❌ Não existe (`sellPrice` é coluna morta) |
+| Loja (Antídoto) | 🗑️ Removido na Fase 3 — dava Poção e não havia status para curar |
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ❌ Falso — luta contra Mewtwo fixo |
-| Chat global | ⚠️ Grava, nunca carrega (`GET /api/pvp` nunca é chamado) |
-| Pacote de Sprites | ✅ Funciona (vitrine) |
+| Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
+| Pacote de Sprites | ✅ Funciona (vitrine) — 21 espécies × 6 variantes |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -118,14 +119,14 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
 - [x] **FASE 1.1 — Papéis de acesso e Editor de Mundos admin-only** ✅ 2026-08-25 (detalhes na seção 3)
 
-- [ ] **FASE 3 — Consertar o que já está construído** ← *⚡ PRÓXIMA ETAPA*
-  - [ ] **B1** Ginásio: `GymModal` pede `?mapId=0` → trava em "Carregando..." *(preservado na Fase 1 de propósito)*
-  - [ ] **B2** Pokédex: adicionar Geodude(74), Onix(95), Staryu(120), Starmie(121), Dragonair(148) **e remover o fallback silencioso** `|| POKEDEX[0]`
-  - [ ] **B3** `spAttack: 15, spDefense: 13` hardcoded em `page.tsx`
-  - [ ] **B11** Chat: chamar `GET /api/pvp`, renderizar de verdade, remover mensagens fake e o estado morto `pvpRooms`
-  - [ ] Soft-lock de derrota na batalha selvagem (botões ativos com `playerHp <= 0`)
-  - [ ] **B10** Antídoto gravando em `potions` / sistema de status
-  - [ ] **B12** Teleporte livre pela lista de mapas; salvamento de posição determinístico (hoje `Math.random() < 0.15`); limites do mapa por `width`/`height` em vez de 16; `ALL_MOVES.AirSlash` inexistente
+- [x] **FASE 3 — Consertar o que já está construído** ✅ 2026-08-25 (detalhes na seção 3)
+  - [x] **B1** Ginásio: `?mapId=0` → `GET /api/gym` + tela de erro em vez de "Carregando..." eterno
+  - [x] **B2** Pokédex: +Geodude(74), Onix(95), Staryu(120), Starmie(121), Dragonair(148) — 16 → 21 espécies — **e fallback silencioso removido** (agora lança)
+  - [x] **B3** `spAttack`/`spDefense` reais (antes literais 15 e 13)
+  - [x] **B10** Antídoto removido da loja (dava Poção; não há sistema de status)
+  - [x] **B11** Chat global ligado de verdade: `GET /api/pvp` chamado, mensagens renderizadas, fake e `pvpRooms` removidos
+  - [x] **B12** AirSlash criado · limites por `width`/`height` · save de posição a cada 10 passos · teleporte livre restrito a portais
+  - [x] Soft-lock de derrota resolvido (botões desabilitados + aviso + botão de saída)
 
 - [ ] **FASE 2 — Motor de jogo no servidor**
   - [ ] Fórmula de dano no servidor usando `power`, `accuracy`, `category`, stats reais
@@ -166,175 +167,149 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
-### ✅ FASE 1.1 — Papéis de acesso + Editor de Mundos admin-only (2026-08-25)
+### ✅ FASE 3 — Consertar o que já está construído (2026-08-25)
 
-Etapa pedida pelo mantenedor após a Fase 1, para fechar o risco residual que a
-Fase 1 documentou (mapas de sistema editáveis por qualquer autenticado).
+Sete defeitos corrigidos. Todos em código que já existia — nenhuma feature nova.
 
-#### Papéis (em `src/db/schema.ts`)
-
-| Papel | Nível | Pode |
+| Bug | Antes | Depois |
 |---|---|---|
-| `player` | 0 | Jogar. **Não** altera nada do mundo compartilhado. |
-| `moderator` | 1 | O mesmo que `player` **por enquanto** — o nível existe na hierarquia, mas ainda não há capacidade distinta implementada (ver roadmap, Fase 5). **Não** edita mapas. |
-| `admin` | 2 | Tudo, incluindo criar e editar **qualquer** mapa. |
+| **B1** Ginásio | `fetch('/api/gym?mapId=0')` → lista vazia → `setLeader` nunca roda → **preso em "Carregando Ginásio..." para sempre** | `fetch('/api/gym')` (sem filtro, filtra no cliente) + `loadError` com tela de erro e botão VOLTAR em vez de travar |
+| **B2** Sprites | 5 dos 6 Pokémon de ginásio viravam **Bulbasaur** (`getPokemonSpecies` caía em `\|\| POKEDEX[0]`) | +5 espécies (Geodude 74, Onix 95, Staryu 120, Starmie 121, Dragonair 148) + 7 golpes novos; fallback **removido** — id inválido agora lança |
+| **B3** Status | `spAttack: 15, spDefense: 13` literais — todo Pokémon lutava igual | `p.spAttack` / `p.spDefense` do banco (campos adicionados ao tipo `BoxPokemon`) |
+| **B10** Antídoto | `itemKey: "potions"` — comprar antídoto dava Poção | Item **removido** + limpeza idempotente para bancos já semeados |
+| **B11** Chat | `GET /api/pvp` nunca era chamado; `chatMessages` **nem era renderizado**; 2 mensagens fake | Busca ao abrir + polling de 5s + uso da resposta do POST; lista renderizada; fake e `pvpRooms` (estado morto) removidos |
+| **B12a** AirSlash | `ALL_MOVES.AirSlash \|\| QuickAttack` — não existia, caía no fallback em silêncio | Golpe `AirSlash` criado; Charizard agora tem Corte Aéreo de verdade |
+| **B12b** Limites | `nextX >= 16` hardcoded, ignorando `width`/`height` | `currentMap.width` / `.height` |
+| **B12c** Posição | `Math.random() < 0.15` — **85% dos passos não eram gravados** | a cada `SAVE_EVERY_STEPS = 10` passos, determinístico |
+| **B12d** Teleporte | A lista lateral trocava para **qualquer** mapa, ignorando portais e progressão | Só mapas ligados por portal ao atual são clicáveis; os demais ficam com 🔒 |
+| **—** Derrota | `handleUseMove` retornava em silêncio com `playerHp <= 0`, mas os botões seguiam ativos → **soft-lock sem saída** | Botões desabilitados + linha de log de derrota + botão "VOLTAR PARA A BASE" |
 
-- Coluna `users.role` — `text NOT NULL DEFAULT 'player'`.
-- `text` em vez de `pgEnum` **de propósito**: adicionar um papel novo vira uma
-  linha de código, não uma migration de tipo. A validação de valor fica na
-  aplicação (`ROLES`, `ROLE_LEVEL`, `toRole`).
-- `toRole()` converte qualquer valor vindo do banco e **falha para `"player"`**
-  — sempre para o lado mais restritivo.
+#### Arquivos alterados (8)
+`src/lib/pokedex.ts` · `src/lib/seed-shop.ts` · `src/app/page.tsx` ·
+`src/components/GymModal.tsx` · `src/components/BattleArenaModal.tsx` ·
+`src/components/PokemonBox.tsx` · `AI_State.md` · `README.md`
 
-#### Como transformar um usuário em admin
+#### ⚠️ Decisões e observações
 
-```bash
-npm run db:set-role -- <username> admin          # promove
-npm run db:set-role -- <username> moderator      # promove a moderador
-npm run db:set-role -- <username> player         # rebaixa
-npm run db:set-role                              # sem argumentos: lista a equipe
-```
-
-Não existe endpoint HTTP para isso — **é deliberado**. Um endpoint de gestão de
-papéis abriria exatamente a superfície que a Fase 1 fechou. Painel
-administrativo com trilha de auditoria está no roadmap (Fase 5).
-
-O efeito é **imediato**: como o papel é lido do banco a cada request, um
-rebaixamento vale na hora, mesmo com a sessão já aberta.
-
-#### Autorização
-
-- `requireRole(req, min)` em `src/lib/session.ts` — exige sessão **e** papel
-  igual ou superior. A comparação é por nível, então pedir `"moderator"`
-  também aceita `"admin"`. Lança `403` com mensagem clara.
-- `POST /api/maps` e `PUT /api/maps/[id]` agora usam `requireRole(req, "admin")`.
-- A checagem anterior "só o dono edita o próprio mapa" foi **removida**: com a
-  porta restrita a admin, ela só serviria para impedir um admin de mexer num
-  mapa criado por outro. `creatorId` continua gravado, agora como
-  **autoria/auditoria**, não como autorização.
-
-#### Interface
-
-- Botão **EDITOR** e o link **+ CRIAR** só aparecem para `admin`.
-- A modal `WorldMapEditor` só renderiza para `admin`.
-- Selo **ADMIN** / **MOD** no HUD para a equipe.
-- `role` passa a vir na resposta da sessão (`publicUser` já o incluía por
-  não ser sensível) — a UI nunca decide permissão por ele, só esconde entrada.
-
-> ⚠️ **Consequência de produto:** o Editor de Mundos era anunciado como
-> feature de jogador ("crie seus próprios mapas") e agora é ferramenta de
-> administração. O `README` e o texto de marketing precisam refletir isso.
-> Se a intenção for voltar a abrir para jogadores, o caminho é um sistema de
-> mapas *privados* por usuário, e não reabrir a escrita no mundo compartilhado.
-
-#### Arquivos
-
-- **Novo:** `scripts/set-role.ts`
-- **Alterados:** `src/db/schema.ts` (+`role`, `ROLES`, `ROLE_LEVEL`, `toRole`) ·
-  `src/lib/session.ts` (+`requireRole`) · `src/lib/validation.ts` (+`roleSchema`) ·
-  `src/app/api/maps/route.ts` · `src/app/api/maps/[id]/route.ts` ·
-  `src/app/page.tsx` · `package.json` (+`db:set-role`)
+1. **Antídoto foi removido, não consertado.** Não existe sistema de status
+   (veneno/queimadura/paralisia) para ele curar. Quando o sistema chegar, o
+   item volta com **coluna própria** — não reaproveitar `potions`.
+2. **Stats dos times de ginásio continuam hardcoded** em `seed-gym.ts`
+   (Geodude lvl 12 com `hp: 52`, por exemplo). A batalha usa esses valores
+   direto, não `computeDelugeStats`. Recalcular é trabalho da **Fase 2**, junto
+   com o motor de combate — mexer agora só desbalancearia sem resolver.
+3. **A Pokédex tem 21 espécies**, não as 16 originais. O rodapé do
+   `SpritePackModal` mostra `POKEDEX.length × 6`, então o número exibido
+   atualiza sozinho.
+4. **B1 e B4 continuam pendentes de propósito:** `won` ainda vem do cliente
+   (Fase 2) e a captura ainda calcula status como `"Normal"` (`TODO` no código,
+   Fase 2).
 
 ---
 
 ## 4. Passo a passo de validação da última etapa
 
-Tudo executado de fato contra PostgreSQL 18.4 + a aplicação em `next dev`.
+### 4.1 Checagens do projeto
 
-### 4.1 Schema e checagens
-
-```bash
-npm run db:push
-```
-```
-information_schema.columns → role | text | 'player'::text | NOT NULL
-```
 ```bash
 npm run check     # lint + typecheck + build
 ```
 ✅ **exit 0** — lint 0 erros/0 warnings · `tsc` 0 erros · build 11 rotas.
 
-### 4.2 Script de papéis
+### 4.2 B2 — Pokédex (`npx tsx /tmp/poke.ts`)
 
-```bash
-npm run db:set-role                              # → "Nenhum moderador ou admin cadastrado ainda."
-npm run db:set-role -- nao_existe admin          # → ✗ Treinador "nao_existe" não encontrado.
-npm run db:set-role -- audit_test superuser      # → ✗ Papel inválido: superuser
-                                                 #   Papéis aceitos: player | moderator | admin
-npm run db:set-role -- audit_test admin          # → ✔ audit_test (id 4): "player" → "admin"
-npm run db:set-role -- smoke_final moderator     # → ✔ smoke_final (id 7): "player" → "moderator"
-npm run db:set-role                              # → #4 audit_test  admin  último acesso: …
+```
+Espécies na Pokédex: 21
+Golpes em ALL_MOVES: 19
+
+Times de ginásio (B2):
+  OK  #74  Geodude   → Geodude   [Rock/Ground]     4 golpes
+  OK  #95  Onix      → Onix      [Rock/Ground]     4 golpes
+  OK  #120 Staryu    → Staryu    [Water]           4 golpes
+  OK  #121 Starmie   → Starmie   [Water/Psychic]   4 golpes
+  OK  #148 Dragonair → Dragonair [Dragon]          4 golpes
+  OK  #149 Dragonite → Dragonite [Dragon/Flying]   4 golpes
+
+Charizard: Lança-Chamas, Garra Dragão, Terremoto, Corte Aéreo   ← AirSlash real
+Fallback removido?  ✔ lança: "Espécie desconhecida na Pokédex: 9999. Ids disponíveis: [...]"
+Toda espécie tem 4 golpes válidos?  ✔
+Bugs restantes nos times de ginásio: 0
 ```
 
-### 4.3 Autorização na API (3 sessões reais)
+### 4.3 B1 — o que a `GymModal` consome
 
-`role` devolvido pela sessão: `admin` / `moderator` / `player` ✔
-
-| Rota | admin | moderator | player |
-|---|---|---|---|
-| `POST /api/maps` | **200** (mapa id 5 criado) | **403** | **403** |
-| `PUT /api/maps/1` | **200** | **403** | **403** |
-
-Mensagem do 403: `"Esta ação exige papel \"admin\" ou superior. O seu é \"player\"."`
-
-### 4.4 Rebaixamento com sessão aberta
-
-```bash
-npm run db:set-role -- audit_test player    # ✔ "admin" → "player"
 ```
+GET /api/gym → 3 líderes
+  - Brock | mapId 1 | Insígnia Pedra    | Geodude(74), Onix(95)
+  - Misty | mapId 2 | Insígnia Cascata  | Staryu(120), Starmie(121)
+  - Lance | mapId 3 | Insígnia do Dragão| Dragonair(148), Dragonite(149)
 ```
-ex-admin tenta PUT /api/maps/1  → HTTP 403
-role na sessão                  → "player"
+Antes: `GET /api/gym?mapId=0` → `{"gymLeaders":[]}`.
+
+### 4.4 Fluxo completo do ginásio (critério de aceite)
+
+| Passo | Resultado |
+|---|---|
+| Insígnias iniciais | `0` |
+| Enfrentar Brock (requiredBadges 0) | `200` · money 3000 → **4500** |
+| Insígnias | `1` — 🪨 Insígnia Pedra |
+| Enfrentar Misty (requiredBadges 1) | `200` · money → **6700** |
+| Enfrentar Lance (requiredBadges 2) | `200` · money → **11700** |
+| Insígnias finais | **🪨 💧 🐉 — 3/3** |
+
+O gate de pré-requisito foi respeitado em sequência.
+
+### 4.5 B10 e B11
+
 ```
-A troca vale na hora, sem precisar re-login.
+GET /api/shop?shopId=1 → Pokébola, Poção, Reviver
+  Antídoto presente? ✔ NÃO            (limpeza idempotente rodou num banco já semeado)
 
-### 4.5 Regressão — jogador comum segue jogando
-
-`GET /api/maps` 200 · `GET /api/shop` 200 · comprar 1 Pokébola 200 ·
-capturar Pikachu 200 · curar equipe 200 · chat global 200.
+POST /api/pvp {action:"chat"} → 200
+GET  /api/pvp → chatMessages: 1  →  "admin: Fase 3: chat funcionando de verdade"
+```
 
 ### 4.6 O que **não** foi validado por curl
 
-O **ocultamento dos botões** EDITOR / + CRIAR no navegador é decisão de render
-no cliente (depende do `role` que chega na sessão). Está correto no código
-(`{isAdmin && …}` nos três pontos), mas **não foi verificado visualmente** —
-exige abrir a interface logado como admin e como jogador. Fica como verificação
-manual pendente.
+Os itens **puramente visuais** dependem de abrir a interface e não foram
+conferidos no navegador: sprites aparecendo corretos na tela de batalha do
+ginásio, a lista de mensagens do chat renderizada, os cards 🔒 na lista de
+mapas e o botão "VOLTAR PARA A BASE" na derrota. A lógica por trás de cada um
+foi verificada acima; a pintura em si, não.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### ⚡ FASE 3 — Consertar o que já está construído
+### 🔥 FASE 2 — Motor de jogo no servidor
 
-**⏸️ Aguardando autorização do mantenedor para começar.**
+**Por que agora:** as três pendências que restam são todas do mesmo tipo —
+regras de jogo decididas no cliente. Não dá para corrigi-las uma a uma; elas
+exigem o mesmo motor.
 
-**Por que ela antes da Fase 2:** são defeitos de 1 a 5 linhas cada, em código
-que já existe e já está ligado. Retorno em experiência imediato, risco baixo.
-A Fase 2 (motor de jogo no servidor) é bem maior e fica melhor sobre uma base
-que pelo menos funciona na tela.
+1. **Fórmula de dano no servidor** usando `power`, `accuracy`, `category` e os
+   status reais. Hoje `src/lib/battle.ts` ignora tudo isso: os 4 golpes causam
+   dano idêntico e o nome é só texto.
+2. **Tabela de efetividade de tipos (18×18)** — hoje não existe; Água vs. Fogo
+   é igual a Normal vs. Normal.
+3. **B4** — `computeDelugeStats(..., "Normal")` na captura. A variante é gravada
+   e exibida com selo dourado, mas não afeta nenhum status. Há `TODO` no código.
+4. **B5 — XP e level up.** As colunas `xp`/`xp_to_next_level` existem e **nunca
+   recebem UPDATE**. A barra de XP na `PokemonBox` nunca sai do lugar. É o loop
+   central de progressão de um RPG e ele não existe.
+5. **Rolagem de captura no servidor** usando `catchRate` (declarado nas 21
+   espécies, nunca lido em lugar nenhum).
+6. **Persistir HP** ao fim da batalha (hoje o dano é só `setState` local: fechar
+   a modal restaura o HP) e **recompensas reais de vitória** (o log anuncia
+   "+650 Pokedólares" e nenhuma API é chamada).
+7. **`won` decidido no servidor** na batalha de ginásio. Enquanto vier do
+   cliente, a recompensa segue farmável por curl.
+8. **Recalcular os stats dos times de ginásio** a partir da Pokédex em vez dos
+   valores hardcoded em `seed-gym.ts`.
 
-**Ordem sugerida:**
-
-1. **B1 — Ginásio quebrado** *(o defeito mais visível do jogo)*
-   `GymModal.tsx` chama `fetch('/api/gym?mapId=0')`, mas os líderes têm
-   `map_id` 1/2/3 → lista vazia → `setLeader` nunca roda → trava em
-   "Carregando Ginásio..." para sempre. Trocar por `GET /api/gym/:id`.
-2. **B2 — Pokémon de ginásio viram Bulbasaur**
-   Adicionar Geodude(74), Onix(95), Staryu(120), Starmie(121), Dragonair(148)
-   à Pokédex **e remover o fallback silencioso** `return found || POKEDEX[0]`.
-3. **B11 — Chat morto**
-   Ligar `GET /api/pvp`, renderizar de verdade, remover as 2 mensagens fake
-   hardcoded e o estado `pvpRooms` (escrito, nunca renderizado).
-4. **Soft-lock de derrota** na batalha selvagem.
-5. **B3** `spAttack: 15, spDefense: 13` hardcoded em `page.tsx`.
-6. **B10** Antídoto gravando em `potions`.
-7. **B12** Teleporte livre · salvamento de posição determinístico · limites do
-   mapa por `width`/`height` · `ALL_MOVES.AirSlash` inexistente.
-
-**Critério de aceite:** abrir o Ginásio pela interface e chegar à tela de
-batalha com os sprites corretos (Onix é Onix, não Bulbasaur); vencer, receber a
-insígnia e vê-la no HUD; chat global carregando mensagens reais.
+**Critério de aceite sugerido:** um mesmo curl repetido não pode mais dar
+insígnia nem dinheiro; uma captura pode falhar; uma batalha selvagem vencida
+concede XP visível na barra e, ao subir de nível, os status mudam.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -345,7 +320,13 @@ insígnia e vê-la no HUD; chat global carregando mensagens reais.
 | Data | Etapa | Status | Registro |
 |---|---|---|---|
 | 2026-08-25 | Auditoria completa | ✅ Concluída | `AUDITORIA.md` |
-| 2026-08-25 | **Fase 0** — Higiene + protocolo AI_State | ✅ Concluída e validada | commit `fca7f6a` |
-| 2026-08-25 | **Fase 1** — Blindagem de segurança | ✅ Concluída e validada | commit `f22672f` |
-| 2026-08-25 | **Fase 1.1** — Papéis + Editor admin-only | ✅ Concluída e validada | 403 para player/moderator, 200 para admin |
-| — | **Fase 3** — Consertar o que já está construído | ⏸️ Aguardando autorização | — |
+| 2026-08-25 | **Fase 0** — Higiene + protocolo AI_State | ✅ Concluída e validada | commit `6496bff` |
+| 2026-08-25 | **Fase 1** — Blindagem de segurança | ✅ Concluída e validada | commit `6496bff` |
+| 2026-08-25 | **Fase 1.1** — Papéis + Editor admin-only | ✅ Concluída e validada | commit `6496bff` |
+| 2026-08-25 | **Fase 3** — Consertar o que já está construído | ✅ Concluída e validada | 10 defeitos corrigidos |
+| — | **Fase 2** — Motor de jogo no servidor | ⬜ Próxima | — |
+
+> **Nota sobre o histórico git:** os commits originais por fase
+> (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos num reset do `.git` do
+> sandbox e reunidos em `6496bff`. O código nunca foi afetado. Por isso a
+> memória do projeto vive **neste arquivo**, não no histórico do git.

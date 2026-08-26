@@ -63,6 +63,9 @@ interface UserBadge {
   badgeEmoji: string;
 }
 
+/** A cada quantos passos a posição é persistida (B12). */
+const SAVE_EVERY_STEPS = 10;
+
 const GUEST_USER: UserState = {
   id: 0, username: "Treinador", avatarSprite: "red",
   money: 3000, pokeballs: 10, greatballs: 5, ultraballs: 2, masterballs: 0,
@@ -127,6 +130,7 @@ export default function DelugeRPGPage() {
   const [allPokemon, setAllPokemon] = useState<BoxPokemon[]>([]);
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const sessionInitialized = useRef(false);
+  const stepCount = useRef(0);
 
   // ── Modal state ────────────────────────────────────────────────────────
   const [showAuth, setShowAuth] = useState(false);
@@ -158,7 +162,9 @@ export default function DelugeRPGPage() {
       variant: p.variant as DelugeVariant,
       level: p.level, hp: p.hp, maxHp: p.maxHp,
       attack: p.attack, defense: p.defense,
-      spAttack: 15, spDefense: 13, speed: p.speed,
+      // B3 (Fase 3): antes eram os literais 15 e 13 — todo Pokémon lutava com
+      // Sp.Atk 15 e Sp.Def 13, do Bulbasaur nível 5 ao Rayquaza nível 50.
+      spAttack: p.spAttack, spDefense: p.spDefense, speed: p.speed,
       move1: p.move1, move2: p.move2, move3: p.move3, move4: p.move4,
     }));
 
@@ -276,7 +282,11 @@ export default function DelugeRPGPage() {
 
     const nextX = playerX + dx;
     const nextY = playerY + dy;
-    if (nextX < 0 || nextX >= 16 || nextY < 0 || nextY >= 16) return;
+    // B12 (Fase 3): antes o limite era o literal 16, ignorando as colunas
+    // width/height que existem no banco e no tipo GameMapData.
+    const mapW = currentMap.width || 16;
+    const mapH = currentMap.height || 16;
+    if (nextX < 0 || nextX >= mapW || nextY < 0 || nextY >= mapH) return;
 
     const tileId = (currentMap.tileGrid[nextY]?.[nextX] || "grass") as TileId;
     const tileDef = TILE_DEFINITIONS[tileId] || TILE_DEFINITIONS.grass;
@@ -286,11 +296,15 @@ export default function DelugeRPGPage() {
     setPlayerX(nextX);
     setPlayerY(nextY);
 
-    // Save position periodically (only if logged in)
-    if (isLoggedIn && Math.random() < 0.15) {
+    // B12 (Fase 3): antes era `Math.random() < 0.15` — 85% dos passos não eram
+    // gravados e o jogador reabria o jogo em outro lugar ao acaso. Agora salva
+    // a cada SAVE_EVERY_STEPS passos, de forma determinística.
+    stepCount.current += 1;
+    if (isLoggedIn && stepCount.current % SAVE_EVERY_STEPS === 0) {
       fetch("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({ currentMapId, playerX: nextX, playerY: nextY }),
       }).catch(() => {});
     }
@@ -497,16 +511,47 @@ export default function DelugeRPGPage() {
             <div className="space-y-2">
               {maps.map((m) => {
                 const isCurrent = m.id === currentMapId;
+                // B12 (Fase 3): esta lista era um teleporte livre — clicava-se em
+                // qualquer mapa e ignorava-se portais e progressão. Agora só é
+                // possível viajar para um mapa ligado por portal ao mapa atual.
+                const reachable =
+                  !isCurrent &&
+                  !!currentMap?.portals?.some((p) => p.targetMapId === m.id);
                 return (
-                  <div key={m.id} onClick={() => {
-                    retroSfx.playPortalWarp();
-                    setCurrentMapId(m.id); setPlayerX(8); setPlayerY(12);
-                    showBanner(`🌀 Viajou para ${m.name}`);
-                  }}
-                    className={`cursor-pointer border-2 p-2.5 transition ${isCurrent ? "border-amber-400 bg-amber-500/15" : "border-slate-800 bg-slate-950 hover:border-slate-600"}`}>
+                  <div key={m.id}
+                    onClick={() => {
+                      if (!reachable) {
+                        retroSfx.playStep();
+                        showBanner(`🔒 ${m.name} só é acessível por um portal 🌀 no mapa atual.`);
+                        return;
+                      }
+                      retroSfx.playPortalWarp();
+                      setCurrentMapId(m.id); setPlayerX(8); setPlayerY(12);
+                      showBanner(`🌀 Viajou para ${m.name}`);
+                    }}
+                    title={
+                      isCurrent
+                        ? "Você está aqui"
+                        : reachable
+                          ? `Viajar para ${m.name}`
+                          : "Acesse este mapa por um portal 🌀"
+                    }
+                    className={`border-2 p-2.5 transition ${
+                      isCurrent
+                        ? "border-amber-400 bg-amber-500/15"
+                        : reachable
+                          ? "cursor-pointer border-slate-800 bg-slate-950 hover:border-cyan-500"
+                          : "border-slate-800/60 bg-slate-950/60 opacity-60"
+                    }`}>
                     <div className="flex items-center justify-between">
                       <span className="font-['Press_Start_2P'] text-[9px] text-amber-300">#{m.id} {m.name}</span>
-                      {isCurrent && <span className="bg-amber-500 px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-slate-950">AQUI</span>}
+                      {isCurrent ? (
+                        <span className="bg-amber-500 px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-slate-950">AQUI</span>
+                      ) : reachable ? (
+                        <span className="border border-cyan-500/60 px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-cyan-300">IR →</span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-slate-600">🔒</span>
+                      )}
                     </div>
                     <p className="mt-1 font-['IBM_Plex_Mono'] text-[10px] text-slate-500 truncate">{m.description}</p>
                     {m.portals?.length > 0 && (

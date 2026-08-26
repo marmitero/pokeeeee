@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   DELUGE_VARIANTS,
   DelugeVariant,
@@ -14,6 +14,39 @@ import {
 } from "@/lib/battle";
 import { retroSfx } from "@/lib/sound";
 import { Shield, Sparkles, Swords, Trophy, Send } from "lucide-react";
+
+export interface ArenaChatMessage {
+  id?: number;
+  username: string;
+  message: string;
+  createdAt?: string;
+}
+
+/**
+ * Carrega o chat global da arena.
+ *
+ * B11 (Fase 3): o `GET /api/pvp` existia mas **nunca era chamado** — o chat
+ * mostrava só o eco local, com duas mensagens fake hardcoded, e o estado
+ * `chatMessages` nem era renderizado. Agora ele é buscado ao abrir e
+ * atualizado por polling.
+ *
+ * Vive fora do componente para não chamar `setState` sincronamente dentro do
+ * corpo do `useEffect` (react-hooks/set-state-in-effect).
+ */
+async function loadArenaChat(
+  onMessages: (messages: ArenaChatMessage[]) => void
+): Promise<void> {
+  try {
+    const res = await fetch("/api/pvp", { credentials: "same-origin" });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (Array.isArray(data.chatMessages)) {
+      onMessages(data.chatMessages as ArenaChatMessage[]);
+    }
+  } catch {
+    // O chat é acessório: uma falha não pode derrubar a batalha.
+  }
+}
 
 export interface WildEncounterState {
   species: PokemonSpecies;
@@ -106,23 +139,18 @@ export function BattleArenaModal({
   const [isCatching, setIsCatching] = useState(false);
   const [caughtSuccess, setCaughtSuccess] = useState(false);
 
-  // Online PvP matchmaking lobby state
-  const [pvpRooms, setPvpRooms] = useState<
-    Array<{
-      id: number;
-      roomCode: string;
-      player1Username: string;
-      status: string;
-    }>
-  >([]);
+  // O estado `pvpRooms` foi removido na Fase 3 (B11): era escrito a cada
+  // "+ CRIAR SALA" e nunca lido em lugar nenhum do JSX.
   const [pvpRoomCode, setPvpRoomCode] = useState("ARENA-DELUGE-01");
   const [chatInput, setChatInput] = useState("");
-  const [chatMessages, setChatMessages] = useState<
-    Array<{ username: string; message: string }>
-  >([
-    { username: "Red [Master]", message: "Quem tem um Rayquaza Metallic pra batalhar?" },
-    { username: "Cynthia", message: "Meu Garchomp Mystic está invicto na Arena!" },
-  ]);
+  const [chatMessages, setChatMessages] = useState<ArenaChatMessage[]>([]);
+
+  // B11: busca o chat ao abrir e mantém atualizado por polling.
+  useEffect(() => {
+    void loadArenaChat(setChatMessages);
+    const timer = setInterval(() => void loadArenaChat(setChatMessages), 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const opponentSpecies = initialOpponent.species;
   const opponentVariantConfig =
@@ -167,11 +195,19 @@ export function BattleArenaModal({
     setTimeout(() => {
       retroSfx.playAttack("slash");
       const enemyDmg = computeWildCounterDamage(initialOpponent.level);
-      setPlayerHp((prev) => Math.max(0, prev - enemyDmg));
+      const newPlayerHp = Math.max(0, playerHp - enemyDmg);
+      setPlayerHp(newPlayerHp);
       setLogs((prev) => [
         ...prev,
         logLine,
         `${opponentSpecies.name} contra-atacou causando ${enemyDmg} de dano!`,
+        // Sem isto o jogador ficava preso: os botões seguiam clicáveis, mas
+        // handleUseMove retornava em silêncio com playerHp <= 0.
+        ...(newPlayerHp <= 0
+          ? [
+              `💀 ${activePoke.name} desmaiou! Você voltou para a base. Cure sua equipe num Centro Pokémon (✚).`,
+            ]
+          : []),
       ]);
     }, 450);
   };
@@ -247,14 +283,22 @@ export function BattleArenaModal({
     setChatMessages((prev) => [...prev, newMsg]);
     setChatInput("");
     try {
-      await fetch("/api/pvp", {
+      const res = await fetch("/api/pvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
         body: JSON.stringify({
           action: "chat",
           message: newMsg.message,
         }),
       });
+      // A rota devolve a lista atualizada — usamos em vez de esperar o polling.
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.chatMessages)) {
+          setChatMessages(data.chatMessages as ArenaChatMessage[]);
+        }
+      }
     } catch {
       // ignore
     }
@@ -274,11 +318,12 @@ export function BattleArenaModal({
       });
       const data = await res.json();
       if (res.ok && data.battle) {
-        setPvpRooms((prev) => [data.battle, ...prev]);
         setLogs((prev) => [
           ...prev,
-          `Sala ${pvpRoomCode} aberta para desafiantes online!`,
+          `Sala ${data.battle.roomCode} aberta para desafiantes online!`,
         ]);
+      } else if (!res.ok) {
+        setLogs((prev) => [...prev, `Não foi possível abrir a sala: ${data.error ?? "erro"}`]);
       }
     } catch {
       // ignore
@@ -465,6 +510,14 @@ export function BattleArenaModal({
                 CONTINUAR EXPLORANDO O MAPA →
               </button>
             )}
+            {!caughtSuccess && playerHp <= 0 && (
+              <button
+                onClick={onBattleEnd}
+                className="mt-2 w-full border-2 border-rose-400 bg-rose-700 py-2 font-['Press_Start_2P'] text-xs text-white hover:bg-rose-600"
+              >
+                VOLTAR PARA A BASE →
+              </button>
+            )}
           </div>
 
           {/* Right Action Matrix: 4 Moves + 4 Pokéballs */}
@@ -483,7 +536,7 @@ export function BattleArenaModal({
                 ].map((moveName, idx) => (
                   <button
                     key={idx}
-                    disabled={enemyHp <= 0 || caughtSuccess}
+                    disabled={enemyHp <= 0 || playerHp <= 0 || caughtSuccess}
                     onClick={() => handleUseMove(moveName)}
                     className="border-2 border-slate-600 bg-gradient-to-r from-slate-800 to-slate-900 px-3 py-2.5 text-left font-['Press_Start_2P'] text-[10px] text-amber-300 shadow-[3px_3px_0px_#000] hover:border-amber-400 hover:brightness-125 disabled:opacity-40"
                   >
@@ -540,6 +593,23 @@ export function BattleArenaModal({
 
         {/* Live Multiplayer PvP Arena & Chat Drawer */}
         <div className="border-t-2 border-slate-800 bg-slate-950 px-5 py-3">
+          {/* B11 (Fase 3): as mensagens nunca eram renderizadas. */}
+          <div className="mb-2 max-h-20 space-y-0.5 overflow-y-auto font-['VT323'] text-base text-slate-300">
+            {chatMessages.length === 0 ? (
+              <p className="text-slate-600">Nenhuma mensagem na arena ainda. Seja o primeiro!</p>
+            ) : (
+              chatMessages.map((msg, idx) => (
+                <div key={msg.id ?? `${msg.username}-${idx}`} className="truncate">
+                  <span className="font-['Press_Start_2P'] text-[8px] text-amber-400">
+                    {msg.username}
+                  </span>
+                  <span className="text-slate-500"> » </span>
+                  {msg.message}
+                </div>
+              ))
+            )}
+          </div>
+
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <input

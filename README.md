@@ -201,8 +201,8 @@ O estado completo, a última etapa aplicada e a próxima a executar estão em **
 | **0** | Higiene de projeto | ✅ Concluída |
 | **1** | Blindagem de segurança | ✅ Concluída |
 | **1.1** | Papéis de acesso + Editor admin-only | ✅ Concluída |
-| **3** | Consertar o que já está construído | ⬜ Próxima |
-| **2** | Motor de jogo no servidor | ⬜ |
+| **3** | Consertar o que já está construído | ✅ Concluída |
+| **2** | Motor de jogo no servidor | ⬜ Próxima |
 | **4** | PvP de verdade | ⬜ |
 | **5** | Infraestrutura: rate limit real, painel admin, testes, CI, migrations | ⬜ |
 | **6** | Conteúdo e mundo | ⬜ |

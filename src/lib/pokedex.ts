@@ -215,6 +215,72 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     description: "Disparo de aura espiritual que nunca erra.",
     sfx: "beam",
   },
+  // ── Adicionados na Fase 3 (B2): necessários para os Pokémon de ginásio
+  //    que existiam em seed-gym.ts mas não na Pokédex, e para o AirSlash que
+  //    Charizard referenciava sem existir (B12).
+  Tackle: {
+    name: "Investida",
+    type: "Normal",
+    power: 40,
+    accuracy: 100,
+    category: "Physical",
+    description: "Um ataque corporal simples que atinge o alvo em cheio.",
+    sfx: "slash",
+  },
+  RockThrow: {
+    name: "Arremesso de Rocha",
+    type: "Rock",
+    power: 50,
+    accuracy: 90,
+    category: "Physical",
+    description: "Atira pedras pequenas para acertar o oponente.",
+    sfx: "slash",
+  },
+  RockSlide: {
+    name: "Deslizamento de Pedras",
+    type: "Rock",
+    power: 75,
+    accuracy: 90,
+    category: "Physical",
+    description: "Rochas enormes caem sobre o alvo e podem fazê-lo hesitar.",
+    sfx: "slash",
+  },
+  IronTail: {
+    name: "Cauda de Ferro",
+    type: "Steel",
+    power: 100,
+    accuracy: 75,
+    category: "Physical",
+    description: "Golpeia com uma cauda dura como ferro; pode reduzir a defesa.",
+    sfx: "slash",
+  },
+  WaterPulse: {
+    name: "Pulso d'Água",
+    type: "Water",
+    power: 60,
+    accuracy: 100,
+    category: "Special",
+    description: "Um jato de água pulsado que pode confundir o alvo.",
+    sfx: "water",
+  },
+  AirSlash: {
+    name: "Corte Aéreo",
+    type: "Flying",
+    power: 75,
+    accuracy: 95,
+    category: "Special",
+    description: "Lâminas de ar cortam o céu; podem fazer o alvo hesitar.",
+    sfx: "beam",
+  },
+  DragonPulse: {
+    name: "Pulso do Dragão",
+    type: "Dragon",
+    power: 85,
+    accuracy: 100,
+    category: "Special",
+    description: "Uma onda de choque draconiana emitida pela boca aberta.",
+    sfx: "beam",
+  },
 };
 
 export const POKEDEX: PokemonSpecies[] = [
@@ -263,7 +329,7 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 85,
     baseSpd: 100,
     catchRate: 30,
-    moves: [ALL_MOVES.Flamethrower, ALL_MOVES.DragonClaw, ALL_MOVES.Earthquake, ALL_MOVES.AirSlash || ALL_MOVES.QuickAttack],
+    moves: [ALL_MOVES.Flamethrower, ALL_MOVES.DragonClaw, ALL_MOVES.Earthquake, ALL_MOVES.AirSlash],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/6.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/6.gif",
@@ -319,6 +385,74 @@ export const POKEDEX: PokemonSpecies[] = [
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/25.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/25.gif",
     description: "Armazena eletricidade nas bochechas vermelhas.",
+  },
+  {
+    id: 74,
+    name: "Geodude",
+    types: ["Rock", "Ground"],
+    baseHp: 40,
+    baseAtk: 80,
+    baseDef: 100,
+    baseSpAtk: 30,
+    baseSpDef: 30,
+    baseSpd: 20,
+    catchRate: 255,
+    moves: [ALL_MOVES.RockThrow, ALL_MOVES.Tackle, ALL_MOVES.Earthquake, ALL_MOVES.RockSlide],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/74.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/74.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/74.gif",
+    description: "Comum em trilhas de montanha. Parece uma pedra comum até ganhar vida.",
+  },
+  {
+    id: 95,
+    name: "Onix",
+    types: ["Rock", "Ground"],
+    baseHp: 35,
+    baseAtk: 45,
+    baseDef: 160,
+    baseSpAtk: 30,
+    baseSpDef: 45,
+    baseSpd: 70,
+    catchRate: 45,
+    moves: [ALL_MOVES.RockSlide, ALL_MOVES.Tackle, ALL_MOVES.IronTail, ALL_MOVES.Earthquake],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/95.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/95.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/95.gif",
+    description: "Escava o subsolo a 80 km/h, deixando túneis que viram seu território.",
+  },
+  {
+    id: 120,
+    name: "Staryu",
+    types: ["Water"],
+    baseHp: 30,
+    baseAtk: 45,
+    baseDef: 55,
+    baseSpAtk: 70,
+    baseSpDef: 55,
+    baseSpd: 85,
+    catchRate: 225,
+    moves: [ALL_MOVES.WaterPulse, ALL_MOVES.IceBeam, ALL_MOVES.Tackle, ALL_MOVES.Psychic],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/120.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/120.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/120.gif",
+    description: "No centro do corpo há um núcleo vermelho que pulsa como uma estrela.",
+  },
+  {
+    id: 121,
+    name: "Starmie",
+    types: ["Water", "Psychic"],
+    baseHp: 60,
+    baseAtk: 75,
+    baseDef: 85,
+    baseSpAtk: 100,
+    baseSpDef: 85,
+    baseSpd: 115,
+    catchRate: 60,
+    moves: [ALL_MOVES.HydroPump, ALL_MOVES.Psychic, ALL_MOVES.IceBeam, ALL_MOVES.Thunderbolt],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/121.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/121.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/121.gif",
+    description: "Seu núcleo emite sinais de rádio que muitos acreditam ser uma linguagem.",
   },
   {
     id: 94,
@@ -387,6 +521,23 @@ export const POKEDEX: PokemonSpecies[] = [
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/133.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/133.gif",
     description: "Possui DNA genético instável que se adapta a qualquer ambiente.",
+  },
+  {
+    id: 148,
+    name: "Dragonair",
+    types: ["Dragon"],
+    baseHp: 61,
+    baseAtk: 84,
+    baseDef: 65,
+    baseSpAtk: 70,
+    baseSpDef: 70,
+    baseSpd: 70,
+    catchRate: 45,
+    moves: [ALL_MOVES.DragonPulse, ALL_MOVES.DragonClaw, ALL_MOVES.Thunderbolt, ALL_MOVES.IceBeam],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/148.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/148.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/148.gif",
+    description: "Armazena uma imensa energia nas esferas de cristal em sua cauda.",
   },
   {
     id: 149,
@@ -492,13 +643,33 @@ export const POKEDEX: PokemonSpecies[] = [
   },
 ];
 
+/**
+ * Resolve uma espécie por id ou nome.
+ *
+ * Fase 3 (B2): o fallback silencioso `return found || POKEDEX[0]` foi
+ * **removido**. Ele convertia qualquer id desconhecido em Bulbasaur, o que
+ * escondia dados inválidos em vez de expô-los — foi exatamente o que fez 5 dos
+ * 6 Pokémon de ginásio serem exibidos como Bulbasaur sem que nada acusasse erro.
+ *
+ * Agora um id fora da Pokédex lança. As rotas já capturam exceções via
+ * `routeError()`, que registra o detalhe no log do servidor e devolve uma
+ * mensagem genérica ao jogador.
+ */
 export function getPokemonSpecies(idOrName: number | string): PokemonSpecies {
   const found = POKEDEX.find(
     (p) =>
       p.id === idOrName ||
       p.name.toLowerCase() === String(idOrName).toLowerCase()
   );
-  return found || POKEDEX[0];
+
+  if (!found) {
+    throw new Error(
+      `Espécie desconhecida na Pokédex: ${String(idOrName)}. ` +
+        `Ids disponíveis: [${POKEDEX.map((p) => p.id).join(", ")}].`
+    );
+  }
+
+  return found;
 }
 
 export function computeDelugeStats(

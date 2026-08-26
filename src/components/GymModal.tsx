@@ -53,6 +53,7 @@ export function GymModal({ gymLeaderId, playerParty, userBadges, onBattleResult,
   const [leader, setLeader] = useState<GymLeader | null>(null);
   const [loading, setLoading] = useState(true);
   const [phase, setPhase] = useState<BattlePhase>("intro");
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Battle state
   const [currentLeaderPokemonIdx, setCurrentLeaderPokemonIdx] = useState(0);
@@ -65,14 +66,26 @@ export function GymModal({ gymLeaderId, playerParty, userBadges, onBattleResult,
   const activePoke = playerParty[0];
 
   useEffect(() => {
-    fetch(`/api/gym?mapId=0`)
-      .then((r) => r.json())
+    // B1 (Fase 3): antes isto pedia `?mapId=0`, mas os líderes têm map_id
+    // 1/2/3 — a resposta vinha vazia, `setLeader` nunca rodava e a modal
+    // ficava presa em "Carregando Ginásio..." para sempre.
+    // Sem filtro de mapa a rota devolve todos os líderes; filtramos aqui.
+    fetch("/api/gym")
+      .then(async (r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d) => {
         const found = (d.gymLeaders as GymLeader[]).find((g) => g.id === gymLeaderId);
-        if (found) {
-          setLeader(found);
-          setLeaderCurrentHp(found.team[0]?.hp ?? 0);
+        if (!found) {
+          throw new Error(`Nenhum líder de ginásio com id ${gymLeaderId}.`);
         }
+        setLeader(found);
+        setLeaderCurrentHp(found.team[0]?.hp ?? 0);
+      })
+      .catch((err: unknown) => {
+        // Sem isto a modal travaria num "Carregando..." eterno em qualquer falha.
+        setLoadError(err instanceof Error ? err.message : "Falha ao carregar o Ginásio.");
       })
       .finally(() => setLoading(false));
     // O HP do jogador é definido em `handleStartBattle`; mantê-lo fora deste
@@ -170,8 +183,24 @@ export function GymModal({ gymLeaderId, playerParty, userBadges, onBattleResult,
 
   if (loading || !leader) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90">
-        <p className="font-['Press_Start_2P'] text-sm text-amber-400">Carregando Ginásio...</p>
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-black/90 p-6 text-center">
+        {loadError ? (
+          <>
+            <div className="text-5xl">⚠️</div>
+            <p className="font-['Press_Start_2P'] text-xs text-rose-400">
+              NÃO FOI POSSÍVEL CARREGAR O GINÁSIO
+            </p>
+            <p className="font-['VT323'] text-xl text-slate-400">{loadError}</p>
+            <button
+              onClick={onClose}
+              className="border-2 border-amber-400 bg-amber-500 px-5 py-2 font-['Press_Start_2P'] text-xs text-slate-950 shadow-[3px_3px_0px_#000] hover:brightness-110"
+            >
+              VOLTAR
+            </button>
+          </>
+        ) : (
+          <p className="font-['Press_Start_2P'] text-sm text-amber-400">Carregando Ginásio...</p>
+        )}
       </div>
     );
   }
