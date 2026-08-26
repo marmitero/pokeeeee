@@ -63,6 +63,11 @@ export function captureChance(
   return Math.min(MAX_CHANCE, Math.max(MIN_CHANCE, p));
 }
 
+/**
+ * `<` e não `<=` de propósito: `Math.random()` pode retornar exatamente 0, e
+ * com `<=` uma chance de 0 capturaria nesse caso. Com `<`, chance 0 nunca
+ * captura e chance 1 (Master Ball) sempre captura, já que o sorteio é [0, 1).
+ */
 export function rollCapture(chance: number): boolean {
-  return Math.random() <= chance;
+  return Math.random() < chance;
 }

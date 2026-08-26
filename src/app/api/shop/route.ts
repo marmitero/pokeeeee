@@ -45,8 +45,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    // Regressão da Fase 1 corrigida na Fase 5: o seed tinha sido removido daqui
+    // e ficado só no GET. Na prática a UI sempre lista antes de comprar, então
+    // nunca apareceu — mas um POST direto num banco novo devolvia 404.
+    // Encontrado pelo teste de integração "compra legítima debita o valor exato".
+    await ensureShopSeeded();
+
     const user = await requireUser(req);
-    enforceRateLimit(req, "shop", 30, 60_000);
+    await enforceRateLimit(req, "shop", 30, 60_000);
 
     const input = parse(shopActionSchema, await req.json().catch(() => ({})));
 

@@ -39,7 +39,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireRole(req, "admin");
-    enforceRateLimit(req, "maps", 15, 60_000);
+    await enforceRateLimit(req, "maps", 15, 60_000);
 
     const input = parse(mapCreateSchema, await req.json().catch(() => ({})));
 

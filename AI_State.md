@@ -34,6 +34,7 @@
 > | 4 | **Chat global**: abrir o PVP, ver as mensagens reais carregadas (não as fake) e enviar uma | Botão PVP | Fase 3 |
 > | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
 > | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
+| 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
@@ -124,6 +125,18 @@ responde, com a API respondendo 200 normalmente via curl. Afeta só `next dev`.
 
 **Dependências adicionadas:** `zod` (runtime), `tsx` (dev).
 
+### Infraestrutura de qualidade (Fase 5)
+| Item | Onde |
+|---|---|
+| **106 testes** (77 unit + 29 integração) | `src/**/*.test.ts` · `tests/integration/` |
+| Vitest | `vitest.config.mts` · `vitest.integration.config.mts` |
+| Banco de teste isolado | `tests/global-setup.ts` (cria/derruba `app_db_test`) |
+| **CI** com 5 jobs | `docs/ci.yml` — **pronto mas inativo** (ver §4.7) |
+| **Migrations versionadas** | `drizzle/0000_*.sql` + `drizzle/0001_*.sql` (`npm run db:migrate`) |
+| **Rate limit compartilhado** | tabela `rate_limits` + `src/lib/rate-limit-store.ts` |
+| PostgreSQL local embutido | `npm run db:local` (dados em `.pgdata/`, gitignored) |
+| **Painel administrativo** | `/admin` + `POST /api/admin` |
+
 ### Motor de jogo no servidor (Fase 2)
 | Módulo | Responsabilidade |
 |---|---|
@@ -179,184 +192,174 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 - [ ] **FASE 4 — PvP de verdade** (turnos assíncronos ou WebSocket)
 
-- [ ] **FASE 5 — Infraestrutura e qualidade**
-  - [ ] **⚡ Rate limit real (pendência explícita da Fase 1).** Hoje `src/lib/rate-limit.ts`
-        é uma janela fixa **em memória**: não sobrevive a restart, não compartilha
-        contagem entre réplicas e pode ser contornado abrindo outra instância.
-        Trocar por **Redis/Upstash** (janela deslizante + `INCR`/`EXPIRE` atômicos),
-        mantendo a assinatura `enforceRateLimit(req, scope, limit, windowMs)` para
-        que as rotas não mudem. Adicionar `RATE_LIMIT_URL` no `.env.example`.
-        Estender a cobertura para `catch`, `shop` e `maps`, não só `auth`.
-  - [ ] **Painel administrativo** para gestão de papéis pela interface. Hoje promover
-        alguém exige acesso direto ao banco (`npm run db:set-role`) — deliberado,
-        mas impraticável em produção. Exige endpoint com `requireRole(req, "admin")`
-        + trilha de auditoria.
-  - [ ] **Poderes concretos de `moderator`.** O papel existe na hierarquia mas ainda
-        não tem capacidade distinta de `player`. Implementar moderação de chat
-        (`DELETE /api/pvp/chat/:id` com `requireRole(req, "moderator")`) e, se
-        desejado, silenciamento temporário de jogadores.
-  - [ ] Vitest para `src/lib/` + testes de integração das rotas
-  - [ ] GitHub Actions: `lint` + `typecheck` + `test` + `build`
-  - [ ] **Migrations versionadas** (`drizzle-kit generate`) — hoje só existe `db:push`
-  - [ ] Logging estruturado + monitoramento de erros
+- [x] **FASE 5 — Infraestrutura e qualidade** ✅ 2026-08-26 (detalhes na seção 3)
+  - [x] **⚡ Rate limit real**: store no **Postgres** (tabela `rate_limits`), compartilhado
+        entre réplicas e sobrevivente a restart. Redis não entrou porque o binário é
+        bloqueado neste ambiente — e o Postgres já resolve os dois requisitos sem
+        dependência nova. Store Redis fica como upgrade opcional se o banco ficar quente.
+  - [x] **106 testes** (77 unit + 29 integração) com Vitest
+  - [x] **Migrations versionadas** (`drizzle/0000_*`, `drizzle/0001_*`) + `npm run db:migrate`
+  - [x] **CI** no GitHub Actions: lint, typecheck, unit, integration, build
+  - [x] **Painel administrativo** `/admin` + `POST /api/admin`
+  - [x] **Poderes concretos de `moderator`**: moderação do chat (antes o papel não fazia nada)
+  - [x] PostgreSQL local embutido (`npm run db:local`) para os testes não dependerem de Docker
 
-- [ ] **FASE 6 — Conteúdo e mundo** (Pokédex 16→50+, evoluções, status, ranking, premium)
+- [ ] **FASE 6 — Conteúdo e mundo** (Pokédex 21→50+, evoluções, status, ranking, premium)
 - [ ] **⚠️ Risco legal a decidir antes da Fase 6:** sprites/nomes da Nintendo/Game Freak via CDN de terceiros
 
 ---
 
 ## 3. Qual foi a última etapa aplicada
 
-### ✅ FASE 2 — Motor de jogo no servidor (2026-08-26)
+### ✅ FASE 5 — Infraestrutura e qualidade (2026-08-26)
 
-A maior fase até aqui: **1.328 linhas de motor novo**, 17 arquivos tocados
-(+2.048 / −1.096). Todas as regras que viviam no cliente passaram para o
-servidor.
+Feita **antes** da Fase 4 de propósito: a Fase 2 tinha acabado de adicionar
+1.328 linhas de regras de jogo sem um único teste.
 
-| Item | Antes | Depois |
+#### 1. Testes — 106 no total
+| Suíte | Qtde | Cobre |
 |---|---|---|
-| **Dano** | `(level * 2.4 + 14) * crit` — os 4 golpes causavam dano **idêntico**; nome do golpe era só texto | Fórmula clássica com `power`, `accuracy`, `category`, **STAB**, tipos, crítico (1/16) e variância 0.85–1.00 |
-| **Tipos** | Não existia. Água vs. Fogo = Normal vs. Normal | Tabela 18×18 esparsa + STAB + rótulos no log |
-| **B4 variante** | Gravava `"Shiny"` e calculava com `"Normal"` | `sideFromSpecies` usa a variante real |
-| **B5 XP** | Colunas `xp`/`xp_to_next_level` **nunca recebiam UPDATE** | Acumula, sobe de nível e **recalcula os status** |
-| **Captura** | Sempre succeedia, decidida no cliente | `catchRate` + HP + bola, fórmula de chacoalhada; **pode falhar** |
-| **HP** | Só `setState`; fechar a modal restaurava tudo | Gravado em `user_pokemon` a cada turno |
-| **Recompensa** | Log anunciava "+650 Pokedólares" e **nenhuma API era chamada** | Dinheiro real (`level*12+40` no selvagem, `rewardMoney` no ginásio) |
-| **Ginásio** | Cliente mandava `{action:"battle_result", won:true}` pronto | Luta turno a turno; o **servidor** decide e concede a insígnia |
-| **Times de ginásio** | `hp`/`attack`/golpes escritos à mão em `seed-gym.ts` | Só `pokedexId`/`level`/`variant`; o resto vem da Pokédex |
+| `types.test.ts` | 13 | ×2/×4/×0.5/×0.25, imunidades, tipo inexistente, imunidade vencendo fraqueza |
+| `damage.test.ts` | 12 | fórmula completa, STAB = 1.5× isolado, físico vs. especial, crítico, erro, imunidade, defesa 0 |
+| `xp.test.ts` | 14 | curva cúbica, level up múltiplo, carry-over, teto no nível 100 |
+| `capture.test.ts` | 12 | valores de referência, Master Ball, ordem das bolas, clamps |
+| `password.test.ts` | 9 | round-trip, salt aleatório, normalização unicode, hash malformado |
+| `validation.test.ts` | 7 | os schemas que fecharam V3/V4 |
+| `security.integration.test.ts` | 29 | as invariantes de segurança de ponta a ponta |
 
-#### Rotas
-- **Nova:** `POST /api/battle` com `start_wild` · `start_gym` · `attack` ·
-  `switch` · `catch` · `flee`, e `GET /api/battle?battleId=`.
-- **Removidas:** `POST /api/pokemon/catch` (captura sem rolagem, superseded) e
-  `POST /api/gym {action:"battle_result"}` (o endpoint farmável — hoje **405**).
-- **Removido:** `src/lib/battle.ts` (a fórmula antiga).
+#### 2. Rate limit real (pendência explícita da Fase 1)
+Store em **Postgres** (tabela `rate_limits`), atrás de uma interface com dois
+backends (`MemoryStore` / `PostgresStore`). Resolve os dois problemas do limite
+em memória: sobrevive a restart e vale entre réplicas.
 
-#### Decisões
-1. **Ordem do turno** é decidida por `speed`, com empate resolvido no aleatório.
-2. **Golpes de status** (`category: "Status"`) causam 0 de dano e logam
-   "Mas nada aconteceu...". Efeitos próprios (buff/debuff/status) ainda não
-   existem — é conteúdo futuro, não bug.
-3. **Fórmula de captura:** a primeira versão usava `a/255` linear e dava ~6%
-   num comum com HP cheio. Trocada pela fórmula de chacoalhada clássica:
-   12% / 20% / 26% (HP cheio / metade / 10%) com Pokébola em catchRate 45.
-   Números medidos e registrados no docstring.
-4. **Encontro selvagem:** o cliente só diz "pisei num tile de encontro"; o
-   servidor valida a coordenada contra a grade gravada e sorteia espécie,
-   variante e nível da tabela do mapa. `playerX/Y` ainda vêm do cliente, mas
-   só podem apontar para tiles de encontro do mesmo mapa — sem ganho.
-5. **Não dá para fugir de ginásio**, e não dá para capturar o Pokémon do líder.
+**Por que não Redis:** o binário é baixado de `download.redis.io`, que está
+bloqueado neste ambiente — não havia como testar. Entregar um adaptador Redis
+não verificado seria pior do que não entregar. O Postgres já é dependência do
+projeto, resolve o requisito e **pôde ser testado aqui**. A interface
+`RateLimitStore` está pronta para receber um store Redis depois.
+
+**Falha aberta de propósito:** se o banco cair, o limite é ignorado e o erro vai
+para o log. Derrubar o jogo por causa do rate limit seria pior.
+
+#### 3. Migrations versionadas
+`drizzle-kit generate` produziu `drizzle/0000_military_kitty_pryde.sql` e
+`drizzle/0001_useful_vin_gonzales.sql`. Antes só existia `db:push`, que não
+gera histórico — insuficiente para produção.
+
+#### 4. CI (`docs/ci.yml` — pronto, ainda inativo)
+5 jobs: `lint`, `typecheck`, `unit`, `integration` (com serviço Postgres 18) e
+`build` (depende dos três primeiros).
+
+#### 5. Painel administrativo
+- `POST /api/admin` com `set_role` e `list_staff` (só **admin**), `list_chat` e
+  `delete_chat` (**moderator** ou superior).
+- Página `/admin` + botão **ADMIN** no HUD (só aparece para staff).
+- Admin **não pode rebaixar a si mesmo** — evita trancar a porta do painel.
+- Isso finalmente dá função ao papel `moderator`, que existia na hierarquia mas
+  não fazia nada.
+
+#### 6. `npm run db:local`
+PostgreSQL embutido com dados em `.pgdata/` (gitignored). Os testes de
+integração não dependem mais de Docker nem de Postgres instalado na máquina.
+
+#### Bug real encontrado pelos testes
+`POST /api/shop` **não chamava `ensureShopSeeded()`** — eu o tinha removido na
+Fase 1, deixando o seed só no `GET`. Na prática a UI sempre lista antes de
+comprar, então nunca apareceu; mas um `POST` direto num banco novo devolvia 404.
+Encontrado por `compra legítima debita o valor exato`.
 
 ---
 
 ## 4. Passo a passo de validação da última etapa
 
-Tudo executado contra PostgreSQL 18.4 + a aplicação em `next dev`.
-
-### 4.1 Checagens
+### 4.1 Checagem completa
 ```bash
-npm run check     # lint + typecheck + build
+npm run check     # lint + typecheck + test + build
 ```
-✅ **exit 0** — lint 0/0 · `tsc` 0 erros · build **11 rotas** (inclui `/api/battle`).
-Tabela `battles` criada via `npm run db:push` (10 tabelas no total).
+✅ **exit 0** — lint 0/0 · `tsc` 0 erros · **77 unit tests** · build **14 rotas**
+(inclui `/admin` e `/api/admin`).
 
-### 4.2 Efetividade de tipos (o teste central)
-Mesmo atacante (Charmander), golpes diferentes, alvos diferentes:
+```bash
+npm run test:integration
 ```
-Lança-Chamas (Fire, pw90) vs Bulbasaur (Grass/Poison) → 186 de dano   ← super efetivo + STAB
-Lança-Chamas (Fire, pw90) vs Pikachu  (Electric)      → 102 e 66      ← neutro, variância
-```
-Antes os quatro golpes dariam os mesmos 62 pontos contra qualquer alvo.
-Log real observado: `Squirtle usou Jato d'Água! | É super efetivo! | Causou 51 de dano.`
+✅ **29 testes** passando contra `app_db_test` (criado e derrubado a cada run).
 
-### 4.3 Validação do tile de encontro
-```
-start_wild em (8,10) = stone → 400 "Não há encontros nesse tile."
-start_wild em (7,0)  = portal → 400 "Não há encontros nesse tile."
-start_wild em (3,9)  = tall_grass → 200, encontro sorteado pelo servidor
-```
+### 4.2 Bugs que os testes pegaram (e foram corrigidos)
+| Bug | Teste que pegou |
+|---|---|
+| `rollCapture` usava `<=`: com `Math.random() === 0` capturava mesmo com chance 0 | `chance 0 nunca captura` |
+| `POST /api/shop` sem seed (regressão minha da Fase 1) | `compra legítima debita o valor exato` |
+| XP calculado mas não gravado *(já corrigido na Fase 2, agora travado por teste)* | `vitória concede XP persistido no banco` |
 
-### 4.4 XP, level up e persistência de HP
+Dois testes meus também estavam errados e foram corrigidos (valor de referência
+da captura calculado com hp=3.6 mas escrito hp=4; monotonicidade do XP ignorando
+o piso de 20).
+
+### 4.3 Rate limit no Postgres
 ```
-batalha 1 → xp no banco: 0/264
-batalha 2 → xp 33/264        (recompensas {"xp":33,"money":112})
-batalha 3 → xp 66/264
-com xp 810/822 + 43 ganhos → ★ nível 19 · xp 31/913 · stats recalculados
-Charmander desmaiado → hp 0 persistido; nova batalha recusada:
-  400 "Toda a sua equipe está desmaiada. Cure-a num Centro Pokémon (✚)."
+rateLimitStoreName()            → "postgres"
+14 tentativas de login          → 429 na 11ª
+tabela rate_limits após 1 req   → +1 linha (contador no banco, não em memória)
+app_db rate_limits              → 2 entradas após o smoke test
 ```
 
-> ⚠️ **Bug encontrado e corrigido durante esta validação:** a primeira versão
-> calculava o XP (`rewards.xp: 37`) mas **não o gravava** — o banco seguia em 0,
-> e `applyXp` era chamado com `currentXp = 0` em vez do XP acumulado.
-> Corrigido adicionando `xp` ao `SideState` e ao `UPDATE`.
-
-### 4.5 Captura pode falhar
+### 4.4 Migrations
+```bash
+CREATE DATABASE mig_test2
+DATABASE_URL=.../mig_test2 npm run db:migrate   → "migrations applied successfully!"
 ```
-20 arremessos de Pokébola em alvo com HP cheio:
-  capturou 4 | escapou 16   → 20% observados (esperado ~12%, dentro do ruído p/ n=20)
-  pokébolas 500 → 480 (1 debitada por arremesso, inclusive nas falhas)
-Log real: "Ah não! Eevee escapou! (chance era de 6%)"  ← antes da troca de fórmula
+Resultado: **11 tabelas** (`battles, chat_messages, game_maps, gym_leaders,
+pvp_battles, rate_limits, sessions, shop_items, user_badges, user_pokemon, users`),
+`users.role` presente, `rate_limits` com `key, count, reset_at`.
+
+### 4.5 Painel admin em runtime
 ```
-
-> ⚠️ **Erro de método meu, registrado para não se repetir:** a primeira
-> bateria fez 60+ requests e estourou o rate limit de 60/min. As "escapadas"
-> eram rejeições **429**, não falhas de captura — o resultado de 0% era
-> inválido. Refeito com 20 tentativas e ritmo controlado.
-
-### 4.6 Ginásio: o critério de aceite
-```
-POST /api/gym {action:"battle_result", won:true}  → 405 (rota removida)
-  insígnias: 0 · money: 3624 · wins: 0        ← nada concedido
-
-POST /api/battle {action:"start_gym", gymLeaderId:1}
-  → Geodude lvl 12 (hp 34, derivado da Pokédex) · fila com Onix
-  → 4 turnos de luta → status WON
-  → recompensas {"xp":96,"money":1500,"badge":"Insígnia Pedra"}
-  → insígnia gravada no banco · money 3624 → 5124 · wins 0 → 1
+GET  /admin                      → 200
+POST /api/admin {list_staff}     → 200 (admin)   |  401 sem sessão
+POST /api/admin {list_chat}      → 200 (admin/mod)
+moderator tentando set_role      → 403 (testado)
+admin rebaixando a si mesmo      → 400 (testado)
+set_role com papel inexistente   → 400 (testado)
 ```
 
-### 4.7 Regressão das outras rotas
-`health` · `maps` · `gym` · `shop?shopId=1` · `pvp` → 200.
-`shop` (comprar) · `pokemon/heal` · `pvp` (chat) → 200.
+### 4.6 Smoke test do ambiente
+`GET /` 200 · `GET /admin` 200 · `health` 200 `{"ok":true}` · `db:set-role` ✔.
 
-### 4.8 O que **não** foi validado
-A **interface** das duas batalhas reescritas (`BattleArenaModal`, `GymModal`)
-não foi aberta num navegador. As chamadas de API, os payloads e o motor foram
-verificados de ponta a ponta; a pintura em tela, não. É o item de maior risco
-residual desta fase e merece uma passada manual no preview.
+### 4.7 O que **não** foi validado
+1. **O CI não está ativo.** O push de `.github/workflows/ci.yml` foi **rejeitado
+   pelo GitHub**: a App não tem a permissão `workflows`. O arquivo foi
+   preservado em `docs/ci.yml` e o passo a passo de ativação está em
+   `docs/CI.md`. Além disso, ele nunca rodou — o YAML foi validado só
+   estruturalmente (jobs, serviços, sem tabs), então a primeira execução real
+   pode revelar divergência de versão de action.
+2. **A interface de `/admin` não foi aberta num navegador** (item 7 das
+   pendências manuais). A API por trás está coberta por testes.
+3. **Store Redis** não existe — decisão documentada na seção 3.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🧪 FASE 5 — Infraestrutura e testes
+### ⚔️ FASE 4 — PvP de verdade
 
-**Por que ela antes da Fase 4 (PvP):** acabamos de escrever **1.328 linhas de
-regras de jogo sem um único teste**. O motor é agora o coração do produto —
-tabela de tipos, fórmula de dano, curva de XP e rolagem de captura são funções
-puras, determinísticas e triviais de testar. Blindar isso custa pouco e protege
-todo o resto. Construir PvP em cima de um motor sem testes é acumular risco.
+Agora é a hora: o motor autoritativo da Fase 2 já resolve turnos, dano, tipos e
+persistência, e a Fase 5 o cobriu de testes. PvP é o último recurso anunciado
+que não existe — hoje `create_room`/`join_room` gravam a sala e param aí.
 
-1. **Vitest** para `src/lib/engine/*` — os casos que mais valem:
-   - `typeMultiplier`: cada par imune (×0), ×2, ×4 e ×0.25; tipo desconhecido = ×1
-   - `computeDamage`: STAB ligado/desligado, físico vs. especial, crítico, erro
-   - `xpToNextLevel` / `applyXp`: level up múltiplo, teto em 100, carry-over de XP
-   - `captureChance`: Master Ball = 1, HP 0 vs. HP cheio, cada bola
-2. **Testes de integração** das rotas com Postgres de teste — em especial
-   "o mesmo curl repetido não concede insígnia duas vezes".
-3. **⚡ Rate limit real** (pendência explícita da Fase 1): o atual é em memória,
-   não sobrevive a restart nem compartilha entre réplicas. Trocar por
-   Redis/Upstash mantendo a assinatura `enforceRateLimit(req, scope, limit, windowMs)`
-   e adicionar `RATE_LIMIT_URL` ao `.env.example`.
-4. **Migrations versionadas** (`drizzle-kit generate`): hoje só existe `db:push`,
-   que não gera histórico — insuficiente para produção.
-5. **GitHub Actions**: `lint` + `typecheck` + `test` + `build`.
-6. **Painel administrativo** para gestão de papéis (hoje só via
-   `npm run db:set-role`) + **poderes concretos de `moderator`** (moderação de chat).
+1. **Resolver a batalha PvP no motor existente**, reaproveitando
+   `battle-service` com `kind: "pvp"` e dois `activePokemonId`.
+2. **Matchmaking**: `join_room` precisa acoplar os dois jogadores e iniciar a
+   batalha — hoje só preenche `player2Id` e nada acontece.
+3. **Turnos**: assíncronos com polling (mais simples, usa só Postgres) **ou**
+   tempo real com WebSocket/SSE. Decisão a tomar antes de começar.
+4. **Sincronização de estado**: ambos os lados precisam ver o mesmo turno.
+5. **Recompensa e ranking**: `wins`/`losses` já existem no schema.
+6. **Desafiantes lendários**: `LEGENDARY_CHALLENGERS` em `/api/pvp` é decorativo
+   — ou vira batalha real de PvE, ou sai da tela.
 
-**Critério de aceite sugerido:** `npm test` verde cobrindo as quatro funções do
-motor; CI rodando a cada push; uma migration versionada gerada e aplicada.
+**Critério de aceite sugerido:** dois navegadores logados em contas diferentes,
+um cria a sala, o outro entra, trocam golpes e um vence — com o resultado
+decidido pelo servidor e visível para os dois.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -371,11 +374,13 @@ motor; CI rodando a cada push; uma migration versionada gerada e aplicada.
 | 2026-08-25 | **Fase 1** — Blindagem de segurança | ✅ Concluída e validada | commit `6496bff` |
 | 2026-08-25 | **Fase 1.1** — Papéis + Editor admin-only | ✅ Concluída e validada | commit `660aeb0` |
 | 2026-08-26 | **Correção** — `allowedDevOrigins` (preview não hidratava) | ✅ Concluída e validada | commit `660aeb0` |
-| 2026-08-26 | **Fase 3** — Consertar o que já estava construído | ✅ Concluída e validada | 10 defeitos corrigidos |
-| 2026-08-26 | **Fase 2** — Motor de jogo no servidor | ✅ Concluída e validada | 1.328 linhas de motor |
-| — | **Fase 5** — Infraestrutura e testes | ⬜ Próxima | — |
+| 2026-08-26 | **Fase 3** — Consertar o que já estava construído | ✅ Concluída e validada | commit `212ea1d` |
+| 2026-08-26 | **Fase 2** — Motor de jogo no servidor | ✅ Concluída e validada | commit `003ef41` |
+| 2026-08-26 | **Fase 5** — Infraestrutura e qualidade | ✅ Concluída e validada | 106 testes + CI |
+| — | **Fase 4** — PvP de verdade | ⬜ Próxima | — |
 
-> **Nota sobre o histórico git:** os commits originais por fase
-> (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos num reset do `.git` do
-> sandbox e reunidos em `6496bff`. O código nunca foi afetado. Por isso a
-> memória do projeto vive **neste arquivo**, não no histórico do git.
+> **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
+> Os commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos
+> e reunidos em `6496bff`. O código nunca foi afetado, e o push para o GitHub é
+> o que preserva o histórico. Por isso a memória do projeto vive **neste
+> arquivo**, não no git.

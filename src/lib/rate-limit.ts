@@ -1,55 +1,47 @@
 import { tooManyRequests } from "./api";
+import { MemoryStore, PostgresStore, type RateLimitStore } from "./rate-limit-store";
 
 /**
- * Rate limiting em memória (janela fixa).
+ * Rate limiting (Fase 5).
  *
- * ⚠️ LIMITAÇÃO CONHECIDA: o estado vive no processo Node. Funciona para uma
- * instância única (o caso atual), mas **não** compartilha contagem entre
- * réplicas nem sobrevive a restart. Quando o projeto for para um deploy
- * multi-instância (Fase 5/6), trocar por Redis/Upstash mantendo esta mesma
- * assinatura de função.
+ * A versão da Fase 1 era uma janela fixa **em memória**: não sobrevivia a
+ * restart e não era compartilhada entre réplicas — bastava reiniciar o
+ * processo para zerar o contador. Agora o store padrão é o **Postgres**, que
+ * resolve os dois problemas sem adicionar dependência.
+ *
+ * Seleção do store:
+ *   - `RATE_LIMIT_STORE=memory`    → força o store em memória
+ *   - `RATE_LIMIT_STORE=postgres`  → força o store no banco
+ *   - (ausente)                    → postgres se houver `DATABASE_URL`, senão memory
+ *
+ * **Falha aberta de propósito:** se o banco estiver indisponível, o limite é
+ * ignorado e o erro vai para o log. Derrubar o jogo inteiro por causa do
+ * rate limit seria pior; o risco é registrado. Redis é o upgrade natural se o
+ * acesso ao banco ficar quente.
  */
 
-interface Bucket {
-  count: number;
-  resetAt: number;
+function createStore(): RateLimitStore {
+  const forced = process.env.RATE_LIMIT_STORE;
+
+  if (forced === "memory") return new MemoryStore();
+  if (forced === "postgres") return new PostgresStore();
+
+  return process.env.DATABASE_URL ? new PostgresStore() : new MemoryStore();
 }
 
-const buckets = new Map<string, Bucket>();
-const SWEEP_INTERVAL_MS = 60_000;
-let lastSweep = Date.now();
+const store = createStore();
 
-/** Remove entradas vencidas para o Map não crescer indefinidamente. */
-function sweep(now: number): void {
-  if (now - lastSweep < SWEEP_INTERVAL_MS) return;
-  lastSweep = now;
-  for (const [key, bucket] of buckets) {
-    if (bucket.resetAt <= now) buckets.delete(key);
-  }
+/** Store em uso — exposto para diagnóstico e testes. */
+export function rateLimitStoreName(): string {
+  return store.name;
 }
 
-export function consume(
-  key: string,
-  limit: number,
-  windowMs: number
-): { ok: boolean; retryAfterSec: number } {
-  const now = Date.now();
-  sweep(now);
-
-  const bucket = buckets.get(key);
-
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return { ok: true, retryAfterSec: 0 };
-  }
-
-  bucket.count += 1;
-
-  if (bucket.count > limit) {
-    return { ok: false, retryAfterSec: Math.ceil((bucket.resetAt - now) / 1000) };
-  }
-
-  return { ok: true, retryAfterSec: 0 };
+/**
+ * Zera os contadores. Usado pelos testes de integração; não é chamado em
+ * produção.
+ */
+export async function resetRateLimits(): Promise<void> {
+  await store.reset();
 }
 
 /** Identifica o cliente por IP (respeita proxies via X-Forwarded-For). */
@@ -65,22 +57,33 @@ export function clientIp(req: Request): string {
 /**
  * Aplica o limite e lança `ApiError(429)` quando estourado.
  *
- * @param scope    agrupador lógico ("auth", "catch"...), para um limite não
+ * @param scope    agrupador lógico ("auth", "battle"...), para um limite não
  *                 interferir no outro
+ * @param extraKey discriminador adicional (ex.: a ação), opcional
  */
-export function enforceRateLimit(
+export async function enforceRateLimit(
   req: Request,
   scope: string,
   limit: number,
   windowMs: number,
   extraKey?: string
-): void {
-  const key = extraKey ? `${scope}:${clientIp(req)}:${extraKey}` : `${scope}:${clientIp(req)}`;
-  const { ok, retryAfterSec } = consume(key, limit, windowMs);
+): Promise<void> {
+  const key = extraKey
+    ? `${scope}:${clientIp(req)}:${extraKey}`
+    : `${scope}:${clientIp(req)}`;
 
-  if (!ok) {
+  let hit;
+  try {
+    hit = await store.hit(key, limit, windowMs);
+  } catch (err) {
+    // Falha aberta: não derruba a request por causa do rate limit.
+    console.error(`[rate-limit] store "${store.name}" falhou; limite ignorado`, err);
+    return;
+  }
+
+  if (!hit.ok) {
     throw tooManyRequests(
-      `Muitas tentativas. Aguarde ${retryAfterSec}s e tente novamente.`
+      `Muitas tentativas. Aguarde ${hit.retryAfterSec}s e tente novamente.`
     );
   }
 }

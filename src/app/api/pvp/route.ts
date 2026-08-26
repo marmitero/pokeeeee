@@ -98,7 +98,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
-    enforceRateLimit(req, "pvp", 30, 60_000);
+    await enforceRateLimit(req, "pvp", 30, 60_000);
 
     const input = parse(pvpActionSchema, await req.json().catch(() => ({})));
 

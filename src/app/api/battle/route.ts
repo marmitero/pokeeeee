@@ -46,7 +46,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   try {
     const user = await requireUser(req);
-    enforceRateLimit(req, "battle", 60, 60_000);
+    await enforceRateLimit(req, "battle", 60, 60_000);
 
     const input = parse(battleActionSchema, await req.json().catch(() => ({})));
 

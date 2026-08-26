@@ -89,7 +89,7 @@ export async function POST(req: Request) {
     }
 
     const input = parse(authSchema, body);
-    enforceRateLimit(req, "auth", AUTH_LIMIT, AUTH_WINDOW_MS, input.action);
+    await enforceRateLimit(req, "auth", AUTH_LIMIT, AUTH_WINDOW_MS, input.action);
 
     await ensureDefaultMapsSeeded();
 

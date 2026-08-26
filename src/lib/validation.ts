@@ -315,3 +315,16 @@ export const battleActionSchema = z.discriminatedUnion("action", [
 ]);
 
 export const battleQuerySchema = z.object({ battleId: idSchema });
+
+// ─── /api/admin (Fase 5) ──────────────────────────────────────────────────
+
+export const adminActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("set_role"),
+    username: z.string().trim().min(3).max(20),
+    role: roleSchema,
+  }),
+  z.object({ action: z.literal("list_staff") }),
+  z.object({ action: z.literal("list_chat"), limit: z.coerce.number().int().min(1).max(100).default(50) }),
+  z.object({ action: z.literal("delete_chat"), messageId: idSchema }),
+]);

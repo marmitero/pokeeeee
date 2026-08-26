@@ -92,6 +92,10 @@ Abra <http://localhost:3000>.
 | `npm run db:push` | Aplica o schema no banco |
 | `npm run db:generate` | Gera migrations SQL |
 | `npm run db:studio` | Abre o Drizzle Studio |
+| `npm run test` | Testes unitários (Vitest) |
+| `npm run test:integration` | Testes de integração — sobe e derruba um banco de teste |
+| `npm run db:migrate` | Aplica as migrations versionadas de `drizzle/` |
+| `npm run db:local` | Sobe um PostgreSQL local embutido (dados em `.pgdata/`) |
 | `npm run db:migrate-passwords` | Converte senhas legadas em texto puro para scrypt |
 | `npm run db:set-role` | Define o papel de um treinador (sem argumentos: lista a equipe) |
 
@@ -102,6 +106,9 @@ Abra <http://localhost:3000>.
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `DATABASE_URL` | ✅ | String de conexão PostgreSQL. Usada por `src/db/index.ts` (runtime) e `drizzle.config.ts` (schema). |
+| `RATE_LIMIT_STORE` | — | `postgres` (padrão quando há `DATABASE_URL`) ou `memory`. |
+| `ALLOWED_DEV_ORIGINS` | — | Hosts extras aceitos pelo `next dev` (separados por vírgula). |
+| `TEST_PG_URL` | — | Postgres usado pelos testes de integração. Padrão: local. |
 
 `.env` está no `.gitignore` e **nunca** deve ser commitado. Use `.env.example` como modelo.
 
@@ -117,7 +124,7 @@ Implantado na Fase 1. Qualquer mudança nas rotas deve respeitá-lo.
 - **Entrada:** todo payload passa por um schema Zod (`src/lib/validation.ts`) antes de tocar o banco.
 - **Erros:** o detalhe técnico vai para o log do servidor; o cliente recebe mensagem genérica (`routeError`).
 - **Dinheiro e itens:** sempre `UPDATE ... WHERE saldo > 0` dentro de transação — nunca read-then-write.
-- **Rate limit:** 10 tentativas de login/registro por IP a cada 10 min. ⚠️ Estado em memória: trocar por Redis num deploy multi-instância (roadmap, Fase 5).
+- **Rate limit:** contadores na tabela `rate_limits` (Postgres) — compartilhados entre réplicas e sobreviventes a restart. 10 tentativas de login/registro por IP a cada 10 min. Falha **aberta** de propósito: se o banco cair, o limite é ignorado e o erro vai para o log. Use `RATE_LIMIT_STORE=memory` para o comportamento por processo.
 
 ### Papéis de acesso
 
@@ -130,6 +137,9 @@ Implantado na Fase 1. Qualquer mudança nas rotas deve respeitá-lo.
 O **Editor de Mundos é exclusivo de `admin`** — o mundo é um recurso compartilhado
 por todos os jogadores, então sua estrutura não é editável por jogadores comuns.
 Para eles, os botões **EDITOR** e **+ CRIAR** nem aparecem na interface.
+
+Há também um **painel administrativo** em `/admin` (botão ADMIN no HUD, visível
+só para staff): admin gerencia papéis, moderador remove mensagens do chat.
 
 #### Como promover alguém
 
@@ -203,8 +213,8 @@ O estado completo, a última etapa aplicada e a próxima a executar estão em **
 | **1.1** | Papéis de acesso + Editor admin-only | ✅ Concluída |
 | **3** | Consertar o que já está construído | ✅ Concluída |
 | **2** | Motor de jogo no servidor | ✅ Concluída |
-| **5** | Infraestrutura: testes, rate limit real, painel admin, CI, migrations | ⬜ Próxima |
-| **4** | PvP de verdade | ⬜ |
+| **5** | Infraestrutura: testes, rate limit real, painel admin, migrations | ✅ Concluída (CI pronto, inativo — ver `docs/CI.md`) |
+| **4** | PvP de verdade | ⬜ Próxima |
 | **6** | Conteúdo e mundo | ⬜ |
 
 > A ordem é por **dependência**, não numérica: não adicione conteúdo novo antes da Fase 1. O motor de combate ainda não valida nada no servidor.

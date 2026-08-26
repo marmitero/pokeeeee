@@ -29,7 +29,7 @@ export async function PUT(
 ) {
   try {
     await requireRole(req, "admin");
-    enforceRateLimit(req, "maps", 15, 60_000);
+    await enforceRateLimit(req, "maps", 15, 60_000);
 
     const params = await context.params;
     const mapId = Number(params.id);

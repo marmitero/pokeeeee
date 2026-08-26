@@ -261,6 +261,24 @@ export const battles = pgTable("battles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// ─── RATE LIMIT (Fase 5) ──────────────────────────────────────────────────
+
+/**
+ * Contadores de rate limit compartilhados.
+ *
+ * Substitui o limite "em memória" da Fase 1, que não sobrevivia a restart nem
+ * era compartilhado entre réplicas — ou seja, bastava reiniciar o processo (ou
+ * abrir outra instância) para zerar o contador.
+ *
+ * Uma linha por (escopo + cliente). O `DELETE` de linhas vencidas roda junto,
+ * então a tabela não cresce indefinidamente.
+ */
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(1),
+  resetAt: timestamp("reset_at").notNull(),
+});
+
 // ─── CHAT ─────────────────────────────────────────────────────────────────
 
 export const chatMessages = pgTable("chat_messages", {

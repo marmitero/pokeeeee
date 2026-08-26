@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import { TILE_DEFINITIONS, TileId } from "@/lib/tiles";
 import {
   DELUGE_VARIANTS,
@@ -500,6 +501,12 @@ export default function DelugeRPGPage() {
               className="flex items-center gap-1 border-2 border-amber-400 bg-slate-900 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-amber-300 shadow-[2px_2px_0px_#000] hover:bg-slate-800">
               <Sparkles className="h-3.5 w-3.5" /> SPRITES
             </button>
+            {isStaff && (
+              <Link href="/admin"
+                className="flex items-center gap-1 border-2 border-purple-400 bg-purple-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-purple-300 shadow-[2px_2px_0px_#000] hover:bg-purple-900">
+                <Shield className="h-3.5 w-3.5" /> ADMIN
+              </Link>
+            )}
             {isAdmin && (
               <button onClick={() => { retroSfx.playStep(); setShowMapEditor(true); }}
                 className="flex items-center gap-1 border-2 border-cyan-400 bg-cyan-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000] hover:bg-cyan-900">
