@@ -5,6 +5,7 @@ import { DELUGE_VARIANTS, getPokemonSpecies } from "@/lib/pokedex";
 import { retroSfx } from "@/lib/sound";
 import { Swords, Send } from "lucide-react";
 import type { BattleView } from "@/lib/battle-service";
+import { api } from "@/lib/api-client";
 
 export interface ArenaChatMessage {
   id?: number;
@@ -38,7 +39,7 @@ async function loadArenaChat(
   onMessages: (messages: ArenaChatMessage[]) => void
 ): Promise<void> {
   try {
-    const res = await fetch("/api/pvp", { credentials: "same-origin" });
+    const res = await api("/api/pvp", { credentials: "same-origin" });
     if (!res.ok) return;
     const data = await res.json();
     if (Array.isArray(data.chatMessages)) {
@@ -52,7 +53,7 @@ async function loadArenaChat(
 async function callBattle(
   body: Record<string, unknown>
 ): Promise<{ battle: BattleView; user: unknown; party: unknown[] } | { error: string }> {
-  const res = await fetch("/api/battle", {
+  const res = await api("/api/battle", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "same-origin",
@@ -91,7 +92,7 @@ export function BattleArenaModal({
     // síncrono (react-hooks/set-state-in-effect). O estado inicial já nasce
     // `true` quando há battleId.
     try {
-      const res = await fetch(`/api/battle?battleId=${battleId}`, {
+      const res = await api(`/api/battle?battleId=${battleId}`, {
         credentials: "same-origin",
       });
       const data = await res.json();
@@ -177,7 +178,7 @@ export function BattleArenaModal({
     setChatMessages((prev) => [...prev, { username, message: chatInput.trim() }]);
     setChatInput("");
     try {
-      const res = await fetch("/api/pvp", {
+      const res = await api("/api/pvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -196,7 +197,7 @@ export function BattleArenaModal({
     retroSfx.playCatchSuccess();
     setRoomMsg(null);
     try {
-      const res = await fetch("/api/pvp", {
+      const res = await api("/api/pvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",

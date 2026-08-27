@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Swords, X, Users } from "lucide-react";
 import { getPokemonSpecies } from "@/lib/pokedex";
+import { api } from "@/lib/api-client";
 
 /**
  * Lobby da Arena PvP (Fase 4).
@@ -44,7 +45,7 @@ export function PvpLobby({
 
   const loadRooms = useCallback(async (apply: (rooms: WaitingRoom[]) => void) => {
     // Setter por parâmetro — ver comentário em PvpArena.load.
-    const res = await fetch("/api/pvp", { credentials: "same-origin" }).catch(() => null);
+    const res = await api("/api/pvp", { credentials: "same-origin" }).catch(() => null);
     if (!res || !res.ok) return; // o lobby funciona sem a listagem
 
     const data = await res.json();
@@ -68,7 +69,7 @@ export function PvpLobby({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/pvp", {
+      const res = await api("/api/pvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",

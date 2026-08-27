@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Shield, Trash2, Crown, MessageSquare } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 /**
  * Painel administrativo (Fase 5).
@@ -44,7 +45,7 @@ const ROLE_COLOR: Record<Role, string> = {
 };
 
 async function adminCall(body: Record<string, unknown>) {
-  const res = await fetch("/api/admin", {
+  const res = await api("/api/admin", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "same-origin",
@@ -85,7 +86,7 @@ export default function AdminPage() {
 
     (async () => {
       try {
-        const res = await fetch("/api/auth", { credentials: "same-origin" });
+        const res = await api("/api/auth", { credentials: "same-origin" });
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;

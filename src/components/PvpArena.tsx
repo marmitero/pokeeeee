@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Swords, Flag } from "lucide-react";
 import { getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
+import { api } from "@/lib/api-client";
 
 /**
  * Arena PvP (Fase 4).
@@ -72,7 +73,7 @@ export function PvpArena({
       // Os setters entram por PARÂMETRO, como em `loadArenaChat` do
       // BattleArenaModal: é o formato que react-hooks/set-state-in-effect aceita
       // para carregamento disparado dentro de um effect.
-      const res = await fetch(`/api/pvp?roomCode=${encodeURIComponent(roomCode)}`, {
+      const res = await api(`/api/pvp?roomCode=${encodeURIComponent(roomCode)}`, {
         credentials: "same-origin",
       }).catch(() => null);
 
@@ -105,7 +106,7 @@ export function PvpArena({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch("/api/pvp", {
+      const res = await api("/api/pvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",

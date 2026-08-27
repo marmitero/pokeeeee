@@ -13,6 +13,8 @@ import { sideFromSpecies, sideFromUserPokemon, type SideState } from "@/lib/engi
 import { applyXp, battleXpGain, xpToNextLevel, MAX_LEVEL } from "@/lib/engine/xp";
 import { BALL_LABEL, captureChance, rollCapture, type BallKey } from "@/lib/engine/capture";
 import { badRequest, forbidden, notFound } from "@/lib/api";
+import { ensureDefaultMapsSeeded } from "@/lib/seed-maps";
+import { ensureGymSeeded } from "@/lib/seed-gym";
 
 /**
  * Motor de batalha autoritativo (Fase 2).
@@ -96,6 +98,11 @@ export async function startWildBattle(
   playerX: number,
   playerY: number
 ): Promise<BattleView> {
+  // Garante o seed antes de ler. Sem isso, chamar start_wild antes de
+  // GET /api/maps devolve "Mapa não encontrado" num banco recém-criado —
+  // o mesmo padrão do bug da loja corrigido na Fase 5.
+  await ensureDefaultMapsSeeded();
+
   const maps = await db.select().from(gameMaps).where(eq(gameMaps.id, mapId));
   if (maps.length === 0) throw notFound("Mapa não encontrado.");
   const map = maps[0];
@@ -175,6 +182,9 @@ export async function startGymBattle(
   userId: number,
   gymLeaderId: number
 ): Promise<BattleView> {
+  // Idem: garante o seed antes de procurar o líder.
+  await ensureGymSeeded();
+
   const leaders = await db.select().from(gymLeaders).where(eq(gymLeaders.id, gymLeaderId));
   if (leaders.length === 0) throw notFound("Líder de ginásio não encontrado.");
   const leader = leaders[0];

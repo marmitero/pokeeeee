@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { retroSfx } from "@/lib/sound";
 import { X, ShoppingCart, Coins } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 interface ShopItem {
   id: number;
@@ -35,7 +36,7 @@ export function ShopModal({ shopId, shopName, npcDialog, userMoney, onPurchase, 
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    fetch(`/api/shop?shopId=${shopId}`)
+    api(`/api/shop?shopId=${shopId}`)
       .then((r) => r.json())
       .then((d) => setItems(d.items || []))
       .finally(() => setLoading(false));
@@ -53,7 +54,7 @@ export function ShopModal({ shopId, shopName, npcDialog, userMoney, onPurchase, 
     setBuying(true);
     retroSfx.playStep();
     try {
-      const res = await fetch("/api/shop", {
+      const res = await api("/api/shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "buy", itemId: item.id, quantity: qty }),

@@ -154,8 +154,12 @@ export async function POST(req: Request) {
         .from(userPokemon)
         .where(eq(userPokemon.userId, newUser.id));
 
+      // O token vai no corpo TAMBÉM: é o que permite o fluxo Bearer dentro de
+      // iframe cross-site, onde o cookie não é reenviado. Não é vazamento —
+      // é a credencial do próprio usuário logado. O que era vazamento de
+      // verdade (passwordHash) continua fora da resposta.
       return withSessionCookie(
-        NextResponse.json({ user: publicUser(newUser), party }),
+        NextResponse.json({ user: publicUser(newUser), party, token }),
         token
       );
     }
@@ -206,7 +210,7 @@ export async function POST(req: Request) {
       .where(eq(userPokemon.userId, user.id));
 
     return withSessionCookie(
-      NextResponse.json({ user: publicUser(user), party }),
+      NextResponse.json({ user: publicUser(user), party, token }),
       token
     );
   } catch (err: unknown) {

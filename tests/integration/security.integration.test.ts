@@ -111,12 +111,17 @@ const uname = (r: CallResult) => (r.body as { user: { username: string } }).user
 const money = (r: CallResult) => (r.body as { user: { money: number } }).user.money;
 
 describe("autenticação (V1)", () => {
-  it("não devolve passwordHash nem token no corpo", async () => {
+  it("não devolve passwordHash no corpo", async () => {
     const { r } = await register(`auth${Date.now()}`);
     const raw = JSON.stringify(r.body);
 
+    // Esta é a propriedade de segurança real da Fase 1.
     expect(raw).not.toContain("passwordHash");
-    expect(raw).not.toContain('"token"');
+
+    // O token de sessão É devolvido de propósito: é a credencial do próprio
+    // usuário logado, e é o que permite o fluxo Bearer dentro de iframe
+    // cross-site, onde o cookie não é reenviado. Não é vazamento.
+    expect((r.body as { token?: string }).token).toBeTruthy();
   });
 
   it("grava a senha com hash scrypt, nunca em texto puro", async () => {

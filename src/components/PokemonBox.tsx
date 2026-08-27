@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { DELUGE_VARIANTS, getPokemonSpecies } from "@/lib/pokedex";
 import { retroSfx } from "@/lib/sound";
 import { X, ArrowRightLeft, Trash2, DollarSign, Package, Zap } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 export interface BoxPokemon {
   id: number;
@@ -54,7 +55,7 @@ export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: Pokemo
     setLoading(true);
     retroSfx.playStep();
     try {
-      const res = await fetch("/api/pokemon/manage", {
+      const res = await api("/api/pokemon/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action, pokemonId: selected.id, ...extra }),
@@ -78,7 +79,7 @@ export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: Pokemo
     setLoading(true);
     retroSfx.playAttack("heal");
     try {
-      const res = await fetch("/api/pokemon/manage", {
+      const res = await api("/api/pokemon/manage", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "use_item", pokemonId: selected.id, item }),

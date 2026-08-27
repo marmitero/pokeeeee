@@ -5,6 +5,7 @@ import { getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
 import { retroSfx } from "@/lib/sound";
 import { X, Trophy, Shield, Swords } from "lucide-react";
 import type { BattleState, BattleView } from "@/lib/battle-service";
+import { api } from "@/lib/api-client";
 
 interface GymLeader {
   id: number;
@@ -50,7 +51,7 @@ type Phase = "intro" | "fighting" | "result";
 async function callBattle(
   body: Record<string, unknown>
 ): Promise<{ battle: BattleView; user: unknown; party: unknown[] } | { error: string }> {
-  const res = await fetch("/api/battle", {
+  const res = await api("/api/battle", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "same-origin",
@@ -81,7 +82,7 @@ export function GymModal({
 
   // Carrega o líder (a luta só começa quando o jogador aceita).
   useEffect(() => {
-    fetch("/api/gym", { credentials: "same-origin" })
+    api("/api/gym", { credentials: "same-origin" })
       .then(async (r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -98,7 +99,7 @@ export function GymModal({
   }, [gymLeaderId]);
 
   const refreshBadges = useCallback(async () => {
-    const res = await fetch("/api/gym", { credentials: "same-origin" });
+    const res = await api("/api/gym", { credentials: "same-origin" });
     if (!res.ok) return [];
     const d = await res.json();
     return (d.badges ?? []) as UserBadge[];

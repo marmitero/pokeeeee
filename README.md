@@ -108,6 +108,7 @@ Abra <http://localhost:3000>.
 | `DATABASE_URL` | ✅ | String de conexão PostgreSQL. Usada por `src/db/index.ts` (runtime) e `drizzle.config.ts` (schema). |
 | `RATE_LIMIT_STORE` | — | `postgres` (padrão quando há `DATABASE_URL`) ou `memory`. |
 | `ALLOWED_DEV_ORIGINS` | — | Hosts extras aceitos pelo `next dev` (separados por vírgula). |
+| `DATABASE_SSL` | — | Força/desliga SSL. Automático para hosts `supabase.com`/`neon.tech`/`render.com`. |
 | `COOKIE_SAME_SITE` | — | `lax` (padrão) ou `none`. Use **`none`** quando o app for acessado dentro de iframe de outro site (caso do preview embutido): com `lax` o navegador não reenvia o cookie e toda request devolve 401. `none` exige HTTPS e ativa a validação de `Origin` (`src/lib/csrf.ts`) como proteção CSRF. |
 | `TEST_PG_URL` | — | Postgres usado pelos testes de integração. Padrão: local. |
 
@@ -115,11 +116,22 @@ Abra <http://localhost:3000>.
 
 ---
 
+## 🐞 Painel de depuração
+
+Botão 🐞 no canto inferior direito, ou `?debug=1` na URL. Mostra o diagnóstico
+de sessão (tem token? está em iframe? `cookieEnabled`?) e as últimas 60 chamadas
+de API com status, duração e a mensagem de erro real do servidor.
+
+## ☁️ Supabase
+
+O banco pode rodar no Supabase sem mudar nenhuma linha de código — só o
+`DATABASE_URL`. Guia completo em [`docs/SUPABASE.md`](./docs/SUPABASE.md).
+
 ## 🔐 Modelo de segurança
 
 Implantado na Fase 1. Qualquer mudança nas rotas deve respeitá-lo.
 
-- **Sessão:** cookie `deluge_session`, `HttpOnly` + `SameSite=Lax` + `Secure` em produção. O token **bruto nunca é gravado** — o banco guarda o SHA-256.
+- **Sessão:** cookie `deluge_session` (`HttpOnly`) **ou** header `Authorization: Bearer`. O Bearer existe porque o cookie não é reenviado em iframe cross-site quando o navegador bloqueia cookies de terceiros. O token **bruto nunca é gravado** — o banco guarda o SHA-256.
 - **Identidade:** toda rota que escreve chama `requireUser(req)` e deriva o usuário **da sessão**. Nenhum endpoint aceita `userId` no corpo.
 - **Senhas:** scrypt (N=16384, r=8, p=1) com salt aleatório e comparação em tempo constante. Contas legadas em texto puro são migradas no primeiro login, ou em lote via `npm run db:migrate-passwords`.
 - **Entrada:** todo payload passa por um schema Zod (`src/lib/validation.ts`) antes de tocar o banco.

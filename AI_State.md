@@ -40,6 +40,45 @@
 >
 > Quando validar, marcar cada linha com ✅/❌ e registrar o resultado na seção 4.
 
+> ## 💾 RECUPERAÇÃO (ler se o ambiente resetou)
+>
+> Este sandbox perde coisas entre sessões. O que acontece e como recuperar:
+>
+> | O que | Persiste? | Recuperação |
+> |---|---|---|
+> | Arquivos do workspace (código, docs, **este arquivo**) | ✅ sim | nada a fazer |
+> | Histórico de commits local (`.git`) | ❌ **reseta** para `6d70b24` | `git fetch docs/repo-backup.bundle 'refs/heads/*:refs/remotes/backup/*'` e depois `git reset --hard backup/arena/01a03ad9-pokeeeee` |
+> | `.env` (gitignored) | ❌ some | `cp .env.example .env` |
+> | `.pgdata/`, `node_modules/` | ❌ somem | `npm install` e `npm run db:local` |
+> | Branch remota no GitHub | ✅ até onde houve push | `git fetch origin` |
+>
+> **Se o `.git` resetou:** os arquivos continuam corretos no disco. Basta
+> `git add -A && git commit` de novo — não é preciso reescrever nada.
+> O histórico completo também está em `docs/repo-backup.bundle`.
+
+> ## ☁️ SUPABASE — testado e BLOQUEADO neste sandbox (2026-08-27)
+>
+> A conexão foi tentada com a URL fornecida pelo mantenedor. **Não é problema
+> de credencial nem de configuração** — é o proxy de saída do sandbox:
+>
+> ```
+> TLS github.com:443                                → ✅ OK
+> TLS aws-0-sa-east-1.pooler.supabase.com:5432      → ❌ ECONNRESET
+> db.cpkcvtjzdfsagvyjlazy.supabase.co               → só tem registro AAAA (IPv6),
+>                                                    e o sandbox não tem rota IPv6 global
+> ```
+>
+> O TCP chega a abrir, mas o TLS é derrubado para hosts fora da allowlist
+> (só `github.com` e `registry.npmjs.org` passam). Varri 17 regiões × 2 portas
+> do pooler: todas com o mesmo erro.
+>
+> **Consequência:** o código de suporte a Supabase está pronto e correto
+> (`src/db/index.ts`), mas **não pôde ser exercitado aqui**. Funciona se o app
+> rodar fora deste sandbox (máquina local, Vercel, etc.).
+>
+> ⚠️ **A senha do banco foi colada no chat** e deve ser considerada exposta.
+> Rotacionar em Project Settings → Database → Reset database password.
+
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
 **Branch da sessão:** `arena/01a03ad9-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
@@ -124,6 +163,20 @@ responde, com a API respondendo 200 normalmente via curl. Afeta só `next dev`.
 **Postura atual:** toda rota que escreve exige sessão; `userId` é sempre derivado do cookie; dinheiro e itens são debitados com `UPDATE ... WHERE saldo > 0` dentro de transação.
 
 **Dependências adicionadas:** `zod` (runtime), `tsx` (dev).
+
+### Sessão: cookie **ou** Bearer (correção de 2026-08-27, 2ª tentativa)
+| Item | Onde |
+|---|---|
+| Token no `localStorage` + `Authorization: Bearer` | `src/lib/api-client.ts` |
+| Servidor aceita cookie **ou** Bearer | `src/lib/session.ts` → `readSessionToken()` |
+| Painel de depuração na tela | `src/components/DebugPanel.tsx` (botão 🐞 ou `?debug=1`) |
+| Suporte a Supabase (SSL automático) | `src/db/index.ts` |
+
+O cookie `httpOnly` **não é reenviado em iframe cross-site** quando o navegador
+aplica bloqueio de cookies de terceiros — e nenhum atributo de cookie contorna
+isso, nem `SameSite=None; Secure` (tentado e não resolveu). O Bearer token
+resolve porque não depende de cookie, e é **mais** seguro contra CSRF: um site
+externo não consegue setar header `Authorization` cross-origin sem CORS.
 
 ### Sessão em iframe cross-site (correção de 2026-08-27)
 | Item | Onde |
@@ -242,74 +295,57 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
-### ✅ Correção — sessão quebrada no preview (2026-08-27)
+### ✅ Correção 2 — sessão por Bearer token + painel de debug (2026-08-27)
 
-Reportado pelo mantenedor durante a validação manual: criar mapa não fazia nada,
-criar sala PvP dava "Sessão inválida ou expirada", e desafiar ginásio idem —
-mesmo logado, e mesmo com conta recém-criada.
+A correção anterior (`SameSite=None; Secure`) **não resolveu**. O mantenedor
+retestou e os três fluxos continuavam com "Sessão inválida ou expirada".
 
-#### Diagnóstico (a partir dos logs, não de suposição)
+#### O que a tentativa anterior errou
 
-O padrão nos logs era inequívoco:
+Eu tratei o problema como de **atributo** de cookie quando era de **política do
+navegador**. Em iframe cross-site, navegadores com bloqueio de cookies de
+terceiros não reenviam o cookie **independentemente** de `SameSite=None; Secure`.
+Não existe atributo que contorne isso.
 
-```
-POST /api/auth 200      ← login funciona
-GET  /api/auth 401      ← mas a sessão seguinte já não existe
-POST /api/maps 401 · POST /api/pvp 401 · POST /api/battle 401
-POST /api/pokemon/heal 401 · GET /api/pvp 401
-```
+#### A correção real: não depender de cookie
 
-E com o cookie enviado manualmente, tudo funcionava:
+- O login agora devolve o `token` no corpo (além do cookie).
+- O cliente guarda em `localStorage` e envia `Authorization: Bearer <token>`.
+- O servidor aceita **cookie OU Bearer** (`readSessionToken`).
+- Todas as 29 chamadas de API passaram pelo novo `api()` (`src/lib/api-client.ts`).
 
-```
-curl -b cookie  GET  /api/auth  → 200
-curl -b cookie  POST /api/maps  → 400 (validação — ou seja, PASSOU na auth)
-```
+Bearer é **mais** seguro contra CSRF que cookie, não menos: um site externo não
+consegue setar header `Authorization` em requisição cross-origin sem aprovação
+de CORS. A validação de `Origin` da correção anterior foi mantida.
 
-Logo o servidor estava correto e o problema era o cookie não sobreviver no
-navegador. O cabeçalho emitido era:
+#### Painel de debug (pedido do mantenedor)
 
-```
-set-cookie: deluge_session=...; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000
-```
+Botão 🐞 no canto inferior direito (ou `?debug=1` na URL). Mostra:
 
-#### Causa raiz
+- **Diagnóstico de sessão**: tem token? está em iframe? `cookieEnabled`? origin?
+- **Log das últimas 60 chamadas**: método, rota, **status**, duração e a
+  **mensagem de erro real** do servidor.
 
-**O preview é um iframe cross-site** (`arena.ai` incorporando
-`https://3000-<sandbox>.e2b.app`). Em contexto de terceiro, o navegador **não
-reenvia cookies `SameSite=Lax`**.
+Existe porque o sintoma original era "carrega e para" sem nenhum sinal na tela.
 
-Isso explica os três relatos de uma vez, e também um detalhe que parecia
-contraditório:
+#### Bug extra encontrado no caminho
 
-- o login **parecia** funcionar porque `applyLogin()` preenche a interface com o
-  usuário vindo da **resposta** — os botões ADMIN/EDITOR aparecem por estado em
-  memória, não por sessão;
-- toda request seguinte ia sem cookie → 401;
-- "não chega a deslogar verdadeiramente" porque o estado em memória continua
-  intacto — só o servidor discorda.
+`startGymBattle` e `startWildBattle` **não chamavam o seed**. Num banco
+recém-criado, chamar `start_gym` antes de `GET /api/gym` devolvia 404
+("Líder de ginásio não encontrado"). É o mesmo padrão do bug da loja corrigido
+na Fase 5 — e passou despercebido nas duas fases.
 
-#### Correção
+#### Supabase (preparado, aguardando credencial)
 
-1. **`COOKIE_SAME_SITE`** (`lax` padrão · `none` para iframe). Com `none` o
-   cookie sai `SameSite=None; Secure` — o navegador exige `Secure` junto.
-2. **CSRF por validação de `Origin`** (`src/lib/csrf.ts`), chamada dentro de
-   `requireUser()`. Necessário porque `SameSite=None` desliga a proteção CSRF do
-   navegador. Se o `Origin` vier e não bater com o `Host` → 403. Sem `Origin`,
-   permite (preserva curl e testes sem abrir o vetor clássico, que depende
-   justamente do navegador enviar o Origin).
-3. **Erro visível no drawer de criar mapa.** Bug de UX separado, encontrado no
-   caminho: a falha ia para `statusMsg`, que renderiza em **outro painel**. O
-   usuário clicava, a request falhava e a tela não dava sinal — daí o "carrega
-   e para". Agora o erro aparece dentro do próprio drawer, com estado de
-   "Salvando mapa...".
+Supabase **é** PostgreSQL, então não muda nada no código — só `DATABASE_URL`.
+Duas armadilhas tratadas em `src/db/index.ts`:
 
-#### Arquivos
-
-| | |
-|---|---|
-| **Novos** | `src/lib/csrf.ts` · `src/lib/csrf.test.ts` |
-| **Alterados** | `src/lib/session.ts` (SameSite configurável + CSRF em `requireUser`) · `src/components/WorldMapEditor.tsx` (erro no drawer) · `.env.example` (documentação) · `tests/integration/security.integration.test.ts` |
+1. **SSL é obrigatório no Supabase.** `new Pool({ connectionString })` não
+   negocia SSL sozinho. Agora é ligado automaticamente quando o host contém
+   `supabase.com`/`neon.tech`/`render.com`, com override `DATABASE_SSL`.
+2. **A conexão pooled (6543) usa transaction pooling**, que não suporta
+   prepared statements e quebra Drizzle/drizzle-kit. O app **avisa no log** se
+   detectar a 6543. O recomendado é a conexão direta (5432).
 
 ---
 
@@ -319,56 +355,65 @@ contraditório:
 ```bash
 COOKIE_SAME_SITE=none npm run check
 ```
-✅ **exit 0** — lint 0/0 · tsc 0 · **84 testes unitários** (7 novos de CSRF) · build 14 rotas.
-✅ Integração com `COOKIE_SAME_SITE=none`: **43 testes** (31 segurança + 12 PvP).
-   **Total: 127 testes.**
+✅ **exit 0** — lint 0/0 · tsc 0 · **84 unit** · build 14 rotas.
+✅ Integração: **50 testes** (31 segurança + 12 PvP + **7 novos de Bearer**).
+   **Total: 134 testes.**
 
-### 4.2 Cookie antes × depois
+### 4.2 Simulando o iframe: SEM cookie, só Bearer
 ```
-ANTES  deluge_session=...; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000
-AGORA  deluge_session=...; Path=/; HttpOnly; SameSite=None; Max-Age=2592000; Secure
+login → token de 43 caracteres devolvido no corpo
+
+sem cookie e sem token          GET /api/auth → 401
+só Authorization: Bearer        GET /api/auth → 200
+                                GET /api/pvp  → 200
+                                POST /api/pvp (create_room) → 200  sala DLG-9527
+                                POST /api/battle (start_gym) → 200 vs Geodude lvl 12
+                                POST /api/pokemon/heal → 200
+token falso                     GET /api/auth → 401
+cookie (deploy normal)          GET /api/auth → 200  ← não regrediu
 ```
 
-### 4.3 Os três fluxos reportados, testados de ponta a ponta
-```
-1) criar mapa (admin)   → 200 · "Mapa do Teste" id 4, autor teste_mapa · 4 mapas
-2) criar sala PvP       → 200 · sala DLG-6918
-3) desafiar ginásio     → 200 · batalha vs Geodude lvl 12
-```
+### 4.3 Os três fluxos reportados, com Bearer
+| Fluxo | Resultado |
+|---|---|
+| Criar mapa (admin) | **200** · `createdMap.id = 4`, `creatorId` gravado |
+| Criar sala PvP | **200** · sala `DLG-9527` |
+| Desafiar ginásio | **200** · "Brock enviou Geodude (LV. 12)!" |
 
-### 4.4 CSRF não foi sacrificado
-```
-POST /api/pvp com Origin: https://evil.example.com
-  → 403 {"error":"Requisição bloqueada: origem não corresponde ao servidor."}
-```
-Coberto por teste: Origin igual ao Host passa; Origin diferente bloqueia (403);
-porta diferente bloqueia; sem Origin passa; GET/HEAD ignoram; PUT/DELETE também
-são checados; Origin malformado não quebra.
+### 4.4 Segurança não regrediu
+- `passwordHash` continua fora da resposta (teste assertando).
+- IDOR continua bloqueado: Bearer de outro usuário tentando vender Pokémon
+  alheio → **404**.
+- CSRF por `Origin` mantido: origem externa → **403**.
 
 ### 4.5 O que **não** foi validado
-**A confirmação final é sua, no navegador.** Eu provei que o servidor emite o
-cookie com os atributos certos, que o fluxo inteiro funciona com ele, e que o
-CSRF continua bloqueando origem externa. Mas **não tenho navegador aqui** para
-confirmar que o iframe do preview agora aceita e reenvia o cookie. É exatamente
-o ponto que falhou da primeira vez, então vale você repetir os três testes.
+**Novamente, a confirmação final é no navegador.** Provei que o servidor aceita
+Bearer, que os três fluxos funcionam com ele, e que cookie/CSRF/IDOR não
+regrdiram. Mas **não tenho navegador aqui** para confirmar que o `localStorage`
+do iframe guarda e reenvia o token.
+
+⚠️ Risco residual honesto: se o iframe do preview também bloquear
+`localStorage` (Safari com ITP faz isso em alguns casos), o Bearer falha igual.
+**É exatamente para isso que o painel 🐞 existe** — se ainda falhar, abra o 🐞 e
+me diga o que aparece em "token no localStorage" e o status das requests.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🎮 FASE 6 — Conteúdo e mundo
+### ⏸️ Aguardando duas coisas do mantenedor
 
-**⏸️ Antes dela: aguardando a revalidação manual desta correção no navegador.**
+1. **Reteste no navegador** com o painel 🐞 aberto. Se ainda falhar, o painel
+   diz exatamente onde.
+2. **Credencial do Supabase** (ou a decisão de não usar). Ver `docs/SUPABASE.md`.
 
-Depois disso, a ordem sugerida da Fase 6 (decisão do mantenedor):
+### Depois disso: FASE 6 — Conteúdo e mundo
 
-1. **Balanceamento do início do jogo** *(o mais urgente na prática)* — inicial
-   lvl 5 nocauteia outro inicial lvl 5 em **um** golpe. Sem isso toda batalha
-   dura um turno.
+1. **Balanceamento do início do jogo** *(o mais urgente)* — inicial lvl 5
+   nocauteia outro inicial lvl 5 em **um** golpe.
 2. **XP e evolução** — Charmander nunca vira Charizard.
 3. **Pokédex 21 → 50+** e mais golpes.
-4. **Sistema de status** (veneno, queimadura, paralisia) — o Antídoto voltaria
-   com coluna própria.
+4. **Sistema de status** (veneno, queimadura, paralisia).
 5. **Arena PvP ranqueada** — `mode: "ranked"` e `users.elo` já existem dormentes.
 6. **NPCs editáveis no Editor de Mundos.**
 7. **Premium** — `isPremium`/`premiumSkins` continuam colunas mortas.
@@ -391,7 +436,8 @@ Depois disso, a ordem sugerida da Fase 6 (decisão do mantenedor):
 | 2026-08-26 | **Fase 5** — Infraestrutura e qualidade | ✅ Concluída e validada | commit `a559f1a` |
 | 2026-08-26 | **CI ativado** pelo mantenedor | ✅ 5/5 jobs success | commit `e02bb30` |
 | 2026-08-27 | **Fase 4** — PvP assíncrono | ✅ Concluída e validada | commit `c1e8187` |
-| 2026-08-27 | **Correção** — cookie SameSite no iframe + CSRF | ✅ Validada no servidor; **aguardando revalidação no navegador** | 127 testes |
+| 2026-08-27 | **Correção 1** — `SameSite=None` | ❌ **Não resolveu** (problema era política do navegador, não atributo) | commit `7f6b806` |
+| 2026-08-27 | **Correção 2** — Bearer token + painel de debug + Supabase-ready | ✅ Validada no servidor; **aguardando reteste no navegador** | 134 testes |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

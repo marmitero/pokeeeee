@@ -14,6 +14,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 export interface GameMapData {
   id: number;
@@ -146,7 +147,7 @@ export function WorldMapEditor({
     setSaving(true);
     retroSfx.playStep();
     try {
-      const res = await fetch(`/api/maps/${activeMapId}`, {
+      const res = await api(`/api/maps/${activeMapId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,7 +192,7 @@ export function WorldMapEditor({
     const originMap = maps.find((m) => m.id === activeMapId) || maps[0];
 
     try {
-      const res = await fetch("/api/maps", {
+      const res = await api("/api/maps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

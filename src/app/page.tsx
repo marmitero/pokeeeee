@@ -23,6 +23,7 @@ import {
   Map, Volume2, VolumeX, Swords, Sparkles, User,
   Heart, Compass, LogOut, Package, ShoppingBag, Shield,
 } from "lucide-react";
+import { api, clearToken } from "@/lib/api-client";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ async function fetchCurrentSession(
   if (typeof window === "undefined") return;
 
   try {
-    const res = await fetch("/api/auth", {
+    const res = await api("/api/auth", {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       credentials: "same-origin",
@@ -211,7 +212,7 @@ export default function DelugeRPGPage() {
   // ── Load maps ──────────────────────────────────────────────────────────
   const fetchMaps = useCallback(async () => {
     try {
-      const res = await fetch("/api/maps");
+      const res = await api("/api/maps");
       const d = await res.json();
       if (d.maps?.length) setMaps(d.maps);
     } catch { /* ignore */ }
@@ -221,7 +222,7 @@ export default function DelugeRPGPage() {
   const fetchBadges = useCallback(async () => {
     try {
       // Sem `userId` na query: o servidor deriva o treinador da sessão.
-      const res = await fetch("/api/gym", { credentials: "same-origin" });
+      const res = await api("/api/gym", { credentials: "same-origin" });
       const d = await res.json();
       setUserBadges(d.badges || []);
     } catch { /* ignore */ }
@@ -253,7 +254,7 @@ export default function DelugeRPGPage() {
    */
   const refreshSession = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth", { credentials: "same-origin" });
+      const res = await api("/api/auth", { credentials: "same-origin" });
       if (!res.ok) return;
       const data = await res.json();
       if (data.user) {
@@ -274,10 +275,9 @@ export default function DelugeRPGPage() {
   }, [fetchMaps, applyLogin, requestAuth]);
 
   const handleLogout = useCallback(async () => {
-    // Logout de verdade: revoga a sessão no banco e limpa o cookie.
-    // Antes só apagava o localStorage e o token continuava válido.
+    // Logout de verdade: revoga a sessão no banco e limpa cookie E token.
     try {
-      await fetch("/api/auth", {
+      await api("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
@@ -285,6 +285,7 @@ export default function DelugeRPGPage() {
       });
     } catch { /* o estado local é limpo de qualquer forma */ }
 
+    clearToken();
     setIsLoggedIn(false);
     setUser(GUEST_USER);
     setAllPokemon([]);
@@ -300,7 +301,7 @@ export default function DelugeRPGPage() {
     showBanner("✚ Toda a equipe foi curada no Centro Pokémon!");
     if (!isLoggedIn) return;
     try {
-      const res = await fetch("/api/pokemon/heal", {
+      const res = await api("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currentMapId, playerX, playerY }),
@@ -338,7 +339,7 @@ export default function DelugeRPGPage() {
     async (mapId: number, x: number, y: number) => {
       retroSfx.playEncounterFlash();
       try {
-        const res = await fetch("/api/battle", {
+        const res = await api("/api/battle", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "same-origin",
@@ -382,7 +383,7 @@ export default function DelugeRPGPage() {
     // a cada SAVE_EVERY_STEPS passos, de forma determinística.
     stepCount.current += 1;
     if (isLoggedIn && stepCount.current % SAVE_EVERY_STEPS === 0) {
-      fetch("/api/pokemon/heal", {
+      api("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",

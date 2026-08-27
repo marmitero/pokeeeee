@@ -18,7 +18,7 @@ export function client() {
 
   async function call(
     path: string,
-    init: { method?: string; body?: unknown } = {}
+    init: { method?: string; body?: unknown; headers?: Record<string, string> } = {}
   ): Promise<CallResult> {
     const [pathname, query] = path.split("?");
     const method = init.method ?? (init.body ? "POST" : "GET");
@@ -35,6 +35,7 @@ export function client() {
       headers: {
         ...(init.body ? { "Content-Type": "application/json" } : {}),
         ...(cookie ? { Cookie: cookie } : {}),
+        ...init.headers,
       },
       body: init.body ? JSON.stringify(init.body) : undefined,
     });

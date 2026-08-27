@@ -85,7 +85,7 @@ export async function revokeUserSessions(userId: number): Promise<void> {
 
 // ─── Leitura ──────────────────────────────────────────────────────────────
 
-export function readSessionToken(req: Request): string | null {
+function tokenFromCookie(req: Request): string | null {
   const header = req.headers.get("cookie");
   if (!header) return null;
 
@@ -98,6 +98,33 @@ export function readSessionToken(req: Request): string | null {
     return value ? decodeURIComponent(value) : null;
   }
   return null;
+}
+
+function tokenFromBearer(req: Request): string | null {
+  const header = req.headers.get("authorization");
+  if (!header) return null;
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  return match ? match[1].trim() : null;
+}
+
+/**
+ * Lê o token de sessão do cookie **ou** do header `Authorization: Bearer`.
+ *
+ * **Por que dois caminhos:** o cookie `httpOnly` é o ideal (inacessível a
+ * JavaScript), mas **não funciona dentro de iframe cross-site** quando o
+ * navegador aplica bloqueio de cookies de terceiros — e nenhum atributo de
+ * cookie contorna isso, nem `SameSite=None; Secure`. Foi exatamente o que
+ * quebrou o preview: login ok, toda request seguinte 401.
+ *
+ * O Bearer token resolve porque não depende de cookie. E é **mais** seguro
+ * contra CSRF, não menos: um site externo não consegue setar header
+ * `Authorization` em requisição cross-origin sem aprovação de CORS.
+ *
+ * O cookie continua sendo emitido e aceito, então deployments normais seguem
+ * com o comportamento padrão.
+ */
+export function readSessionToken(req: Request): string | null {
+  return tokenFromCookie(req) ?? tokenFromBearer(req);
 }
 
 /** Resolve o usuário dono da sessão, ou `null` se não houver sessão válida. */

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { POKEDEX } from "@/lib/pokedex";
 import { retroSfx } from "@/lib/sound";
 import { Shield, UserPlus, LogIn } from "lucide-react";
+import { api, setToken } from "@/lib/api-client";
 
 interface AuthModalProps {
   onSuccess: (user: unknown, party: unknown[]) => void;
@@ -55,7 +56,7 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
     retroSfx.playStep();
 
     try {
-      const res = await fetch("/api/auth", {
+      const res = await api("/api/auth", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: tab, username, password, starterId, avatarSprite }),
@@ -63,8 +64,10 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao conectar");
       retroSfx.playCatchSuccess();
-      // A sessão passa a viver num cookie httpOnly definido pelo servidor —
-      // nenhum token é guardado em JavaScript (Fase 1).
+      // O token é guardado para o fluxo Bearer. O cookie httpOnly continua
+      // sendo emitido pelo servidor; dentro de iframe cross-site é o Bearer
+      // que carrega a sessão (ver src/lib/api-client.ts).
+      if (data.token) setToken(data.token);
       onSuccess(data.user, data.party || []);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
