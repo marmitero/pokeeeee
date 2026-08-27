@@ -50,7 +50,12 @@
 > | Histórico de commits local (`.git`) | ❌ **reseta** para `6d70b24` | `git fetch docs/repo-backup.bundle 'refs/heads/*:refs/remotes/backup/*'` e depois `git reset --hard backup/arena/01a03ad9-pokeeeee` |
 > | `.env` (gitignored) | ❌ some | `cp .env.example .env` |
 > | `.pgdata/`, `node_modules/` | ❌ somem | `npm install` e `npm run db:local` |
-> | Branch remota no GitHub | ✅ até onde houve push | `git fetch origin` |
+> | Branch remota no GitHub | ✅ **fonte da verdade** | `git fetch origin` |
+>
+> **Estado em 2026-08-27:** tudo até `0799cb9` está no GitHub, com o histórico
+> completo de fases preservado. O `.git` local foi resetado duas vezes e
+> realinhado com `git fetch` + `git reset --soft origin/...` (mantém os
+> arquivos, reposiciona o HEAD). **Prefira sempre o remoto.**
 >
 > **Se o `.git` resetou:** os arquivos continuam corretos no disco. Basta
 > `git add -A && git commit` de novo — não é preciso reescrever nada.
@@ -437,7 +442,8 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 | 2026-08-26 | **CI ativado** pelo mantenedor | ✅ 5/5 jobs success | commit `e02bb30` |
 | 2026-08-27 | **Fase 4** — PvP assíncrono | ✅ Concluída e validada | commit `c1e8187` |
 | 2026-08-27 | **Correção 1** — `SameSite=None` | ❌ **Não resolveu** (problema era política do navegador, não atributo) | commit `7f6b806` |
-| 2026-08-27 | **Correção 2** — Bearer token + painel de debug + Supabase-ready | ✅ Validada no servidor; **aguardando reteste no navegador** | 134 testes |
+| 2026-08-27 | **Correção 2** — Bearer token + painel de debug + Supabase-ready | ✅ Validada no servidor; **aguardando reteste no navegador** | commit `0799cb9` |
+| 2026-08-27 | **Supabase** testado | ❌ Bloqueado pelo egress do sandbox (código pronto) | `docs/SUPABASE.md` |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
