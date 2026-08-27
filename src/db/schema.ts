@@ -97,6 +97,15 @@ export const users = pgTable("users", {
   playerY: integer("player_y").notNull().default(12),
   wins: integer("wins").notNull().default(0),
   losses: integer("losses").notNull().default(0),
+  /**
+   * Rating ELO (Fase 4).
+   *
+   * Entra **dormente de propósito**: nenhuma batalha amistosa escreve aqui.
+   * Só a futura "Arena PvP" ranqueada vai atualizá-lo, e o ranking global será
+   * derivado dele — nunca de `wins`, que é um contador misto (PvE + amistoso).
+   * Há teste garantindo que o amistoso não toca neste campo.
+   */
+  elo: integer("elo").notNull().default(1000),
   // premium flag – future use (skin unlocks, etc.)
   isPremium: boolean("is_premium").notNull().default(false),
   premiumSkins: jsonb("premium_skins").notNull().default("[]"),
@@ -227,6 +236,14 @@ export const pvpBattles = pgTable("pvp_battles", {
   player1Username: text("player1_username").notNull(),
   player2Id: integer("player2_id"),
   player2Username: text("player2_username"),
+  /**
+   * "friendly" — amistoso. Não mexe em ELO nem entra em ranking.
+   * "ranked"   — Arena PvP (futuro). Atualiza ELO e ranking global.
+   *
+   * O campo nasce na Fase 4 mesmo só havendo amistoso, para que a Arena seja
+   * apenas lógica de atualização, sem migração nem retrabalho.
+   */
+  mode: text("mode").notNull().default("friendly"),
   status: text("status").notNull().default("WAITING"),
   currentTurnPlayerId: integer("current_turn_player_id"),
   battleState: jsonb("battle_state").notNull(),

@@ -170,41 +170,51 @@ const roomCodeSchema = z
   .max(32, "Código da sala muito longo")
   .regex(/^[A-Z0-9-]+$/, "Use apenas letras maiúsculas, números e hífen");
 
-const battlePokemonSchema = z.object({
-  id: z.number().int().optional(),
-  pokedexId: idSchema,
-  name: z.string().trim().min(1).max(40),
-  variant: variantSchema.default("Normal"),
-  level: levelSchema,
-  hp: z.coerce.number().int().min(0).max(9999),
-  maxHp: z.coerce.number().int().min(1).max(9999),
-  attack: z.coerce.number().int().min(0).max(9999).optional(),
-  defense: z.coerce.number().int().min(0).max(9999).optional(),
-  spAttack: z.coerce.number().int().min(0).max(9999).optional(),
-  spDefense: z.coerce.number().int().min(0).max(9999).optional(),
-  speed: z.coerce.number().int().min(0).max(9999).optional(),
-  move1: z.string().trim().max(60).optional(),
-  move2: z.string().trim().max(60).optional(),
-  move3: z.string().trim().max(60).optional(),
-  move4: z.string().trim().max(60).optional(),
-});
-
 export const pvpActionSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("chat"),
     message: z.string().trim().min(1, "Mensagem vazia").max(200, "Máximo de 200 caracteres"),
   }),
+
+  /**
+   * Fase 4: `pokemonId` substitui o antigo `player1Pokemon`.
+   *
+   * Antes o cliente mandava o Pokémon INTEIRO (hp, attack, level...) e o
+   * servidor gravava como veio — dava para entrar numa sala com hp 9999.
+   * Agora manda só o id e o servidor lê o registro do banco.
+   */
   z.object({
     action: z.literal("create_room"),
     roomCode: roomCodeSchema.optional(),
-    player1Pokemon: battlePokemonSchema,
+    pokemonId: idSchema,
   }),
   z.object({
     action: z.literal("join_room"),
     roomCode: roomCodeSchema,
-    player1Pokemon: battlePokemonSchema,
+    pokemonId: idSchema,
   }),
+  z.object({
+    action: z.literal("submit_turn"),
+    roomCode: roomCodeSchema,
+    // União discriminada: ou ataca com um golpe válido, ou troca de Pokémon.
+    turnAction: z.discriminatedUnion("kind", [
+      z.object({
+        kind: z.literal("attack"),
+        moveIndex: z.coerce.number().int().min(0).max(3, "Golpe inválido"),
+      }),
+      z.object({ kind: z.literal("switch"), userPokemonId: idSchema }),
+    ]),
+  }),
+  z.object({
+    action: z.literal("switch"),
+    roomCode: roomCodeSchema,
+    userPokemonId: idSchema,
+  }),
+  z.object({ action: z.literal("forfeit"), roomCode: roomCodeSchema }),
+  z.object({ action: z.literal("list_rooms") }),
 ]);
+
+export const pvpQuerySchema = z.object({ roomCode: roomCodeSchema });
 
 // ─── /api/maps ────────────────────────────────────────────────────────────
 

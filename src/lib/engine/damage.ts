@@ -2,6 +2,20 @@ import type { PokemonMove } from "../pokedex";
 import { effectivenessLabel, typeMultiplier } from "./types";
 
 /**
+ * O mínimo que a fórmula de dano precisa de um golpe.
+ *
+ * Declarado estruturalmente (e não como `PokemonMove`) para que o PvP possa
+ * passar os golpes vindos do `SideState`, que não carregam `sfx`.
+ */
+export interface DamageMove {
+  name: string;
+  type: string;
+  power: number;
+  accuracy: number;
+  category: string;
+}
+
+/**
  * Fórmula de dano (Fase 2).
  *
  * Substitui `(level * 2.4 + 14) * crit`, que ignorava `power`, `accuracy`,
@@ -41,7 +55,7 @@ const STAB_MULT = 1.5;
 const MIN_RANDOM = 0.85;
 const MAX_RANDOM = 1.0;
 
-export function rollHit(move: PokemonMove): boolean {
+export function rollHit(move: DamageMove): boolean {
   if (move.accuracy >= 100) return true;
   return Math.random() * 100 < move.accuracy;
 }
@@ -53,7 +67,7 @@ export function rollCritical(): boolean {
 export function computeDamage(
   attacker: Combatant,
   defender: Combatant,
-  move: PokemonMove
+  move: DamageMove
 ): DamageResult {
   if (!rollHit(move)) {
     return { damage: 0, missed: true, critical: false, multiplier: 1, label: null };

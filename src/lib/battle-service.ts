@@ -651,7 +651,15 @@ export async function flee(userId: number, battleId: number): Promise<BattleView
 
 // ─── Persistência ─────────────────────────────────────────────────────────
 
-/** Grava o turno: estado da batalha + HP/XP/nível do Pokémon do jogador. */
+/**
+ * Grava o turno: estado da batalha + HP/XP/nível do Pokémon do jogador.
+ *
+ * Regressão corrigida na Fase 4: `users.losses` **nunca era incrementado**.
+ * O incremento vivia no `POST /api/gym {action:"battle_result"}`, removido na
+ * Fase 2 por ser farmável; os caminhos `status: "LOST"` deste módulo não
+ * assumiram o contador. Centralizado aqui para cobrir todas as derrotas
+ * (ginásio, selvagem e falha de captura) num lugar só.
+ */
 async function persistTurn(
   userId: number,
   battleId: number,
@@ -680,6 +688,13 @@ async function persistTurn(
             eq(userPokemon.userId, userId)
           )
         );
+    }
+
+    if (status === "LOST") {
+      await tx
+        .update(users)
+        .set({ losses: sql`${users.losses} + 1` })
+        .where(eq(users.id, userId));
     }
 
     await tx

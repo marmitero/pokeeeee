@@ -16,7 +16,7 @@ MMORPG 16-bit jogável no navegador, inspirado no Pokémon Deluge. Explore mapas
 - **3 ginásios** (Brock, Misty, Lance) com insígnias e pré-requisitos.
 - **Lojas** com progressão de itens por região.
 - **Editor de Mundos**: pinte tiles, crie mapas, ligue portais e defina encontros — tudo persistido.
-- **Arena PvP** com salas por código e chat global.
+- **Arena PvP** amistosa: turnos assíncronos às cegas, salas por código, chat global. O dano persiste; não conta para ranking (a Arena ranqueada com ELO é futura).
 - **Efeitos sonoros 8-bit** sintetizados em tempo real.
 
 ---
@@ -214,8 +214,8 @@ O estado completo, a última etapa aplicada e a próxima a executar estão em **
 | **3** | Consertar o que já está construído | ✅ Concluída |
 | **2** | Motor de jogo no servidor | ✅ Concluída |
 | **5** | Infraestrutura: testes, rate limit real, painel admin, migrations | ✅ Concluída (CI pronto, inativo — ver `docs/CI.md`) |
-| **4** | PvP de verdade | ⬜ Próxima |
-| **6** | Conteúdo e mundo | ⬜ |
+| **4** | PvP de verdade (turnos assíncronos) | ✅ Concluída |
+| **6** | Conteúdo e mundo (balanceamento, evoluções, Arena ranqueada) | ⬜ Próxima |
 
 > A ordem é por **dependência**, não numérica: não adicione conteúdo novo antes da Fase 1. O motor de combate ainda não valida nada no servidor.
 

@@ -13,6 +13,8 @@ import { retroSfx } from "@/lib/sound";
 import { AuthModal } from "@/components/AuthModal";
 import { WorldMapEditor, GameMapData } from "@/components/WorldMapEditor";
 import { BattleArenaModal } from "@/components/BattleArenaModal";
+import { PvpLobby } from "@/components/PvpLobby";
+import { PvpArena } from "@/components/PvpArena";
 import { SpritePackModal } from "@/components/SpritePackModal";
 import { PokemonBox, BoxPokemon } from "@/components/PokemonBox";
 import { ShopModal } from "@/components/ShopModal";
@@ -167,9 +169,14 @@ export default function DelugeRPGPage() {
     active: false,
     battleId: null,
   });
+  // PvP (Fase 4): lobby e sala ativa são estados separados do combate PvE.
+  const [pvpLobby, setPvpLobby] = useState(false);
+  const [pvpRoom, setPvpRoom] = useState<string | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
 
-  const anyModalOpen = showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || battleState.active;
+  const anyModalOpen =
+    showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx ||
+    battleState.active || pvpLobby || pvpRoom !== null;
 
   // O Editor de Mundos mexe no mundo compartilhado: só para administradores.
   // Escondemos a entrada na UI para o jogador não montar um mapa e levar 403.
@@ -236,6 +243,27 @@ export default function DelugeRPGPage() {
   );
 
   const requestAuth = useCallback(() => setShowAuth(true), []);
+
+  /**
+   * Recarrega usuário e time do servidor.
+   *
+   * Usado ao sair de uma batalha PvP: o dano persiste no banco (decisão da
+   * Fase 4), então o estado local precisa ser sincronizado. Não mostra banner
+   * nem força o modal de login — é só uma sincronização silenciosa.
+   */
+  const refreshSession = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth", { credentials: "same-origin" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.user) {
+        setUser(data.user as UserState);
+        if (Array.isArray(data.party)) setAllPokemon(data.party as BoxPokemon[]);
+      }
+    } catch {
+      /* sincronização opcional: falhar não pode travar a UI */
+    }
+  }, []);
 
   // ── Session resume on mount ────────────────────────────────────────────
   useEffect(() => {
@@ -837,6 +865,33 @@ export default function DelugeRPGPage() {
 
       {/* SPRITES */}
       {showSprites && <SpritePackModal onClose={() => setShowSprites(false)} />}
+
+      {/* PVP LOBBY */}
+      {pvpLobby && (
+        <PvpLobby
+          party={party}
+          onEnterRoom={(code) => {
+            setPvpLobby(false);
+            setPvpRoom(code);
+          }}
+          onClose={() => setPvpLobby(false)}
+        />
+      )}
+
+      {/* PVP ARENA */}
+      {pvpRoom && (
+        <PvpArena
+          roomCode={pvpRoom}
+          onStateChange={(updatedUser) => {
+            if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
+          }}
+          onExit={() => {
+            setPvpRoom(null);
+            // Recarrega o time: o dano de PvP persiste no banco.
+            void refreshSession();
+          }}
+        />
+      )}
 
       {/* BATTLE */}
       {battleState.active && (
