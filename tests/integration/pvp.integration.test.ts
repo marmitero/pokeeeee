@@ -122,6 +122,41 @@ describe("PvP — salas", () => {
   });
 });
 
+describe("PvP — código de sala", () => {
+  it("não colide ao criar muitas salas seguidas", async () => {
+    // Antes o código era DLG- + 4 dígitos (9 mil combinações): colidia com
+    // frequência pelo paradoxo do aniversário e aparecia como falha
+    // intermitente no CI.
+    const a = await register(`rc${Date.now()}`);
+    const codes = new Set<string>();
+
+    for (let i = 0; i < 40; i++) {
+      const r = await a.c.call("/api/pvp", {
+        body: { action: "create_room", pokemonId: a.pokemonId },
+      });
+      expect(r.status, `sala ${i} falhou: ${JSON.stringify(r.body)}`).toBe(200);
+      codes.add((r.body as { roomCode: string }).roomCode);
+    }
+
+    expect(codes.size).toBe(40); // nenhum duplicado
+  });
+
+  it("código escolhido pelo usuário que já existe é rejeitado", async () => {
+    const a = await register(`rd${Date.now()}`);
+    const code = `TST-${Date.now().toString(36).toUpperCase()}`;
+
+    const first = await a.c.call("/api/pvp", {
+      body: { action: "create_room", roomCode: code, pokemonId: a.pokemonId },
+    });
+    expect(first.status).toBe(200);
+
+    const second = await a.c.call("/api/pvp", {
+      body: { action: "create_room", roomCode: code, pokemonId: a.pokemonId },
+    });
+    expect(second.status).toBe(400);
+  });
+});
+
 describe("PvP — sigilo da ação travada", () => {
   it("o estado NÃO expõe qual golpe o oponente escolheu", async () => {
     const a = await register(`sa${Date.now()}`);

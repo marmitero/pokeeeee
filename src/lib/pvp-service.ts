@@ -156,6 +156,33 @@ function opponentPublic(side: PvpSide) {
 
 // ─── Criação e entrada ────────────────────────────────────────────────────
 
+const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // sem 0/O/1/I: fáceis de confundir ao digitar
+const CODE_LENGTH = 5;
+const CODE_MAX_TRIES = 8;
+
+/**
+ * Gera um código de sala.
+ *
+ * 32^5 ≈ 33 milhões de combinações. Antes eram 4 dígitos (9 mil), o que causava
+ * colisão frequente pelo paradoxo do aniversário — apareceu como falha
+ * intermitente no CI ("Já existe uma sala com esse código").
+ */
+function generateRoomCode(): string {
+  let out = "";
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    out += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return `DLG-${out}`;
+}
+
+async function roomCodeExists(roomCode: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: pvpBattles.id })
+    .from(pvpBattles)
+    .where(eq(pvpBattles.roomCode, roomCode));
+  return rows.length > 0;
+}
+
 export async function createRoom(
   userId: number,
   username: string,
@@ -164,13 +191,23 @@ export async function createRoom(
 ) {
   const snapshot = await loadSideSnapshot(userId, pokemonId);
 
-  const roomCode = roomCodeInput || `DLG-${Math.floor(1000 + Math.random() * 9000)}`;
-
-  const existing = await db
-    .select({ id: pvpBattles.id })
-    .from(pvpBattles)
-    .where(eq(pvpBattles.roomCode, roomCode));
-  if (existing.length > 0) throw badRequest("Já existe uma sala com esse código.");
+  let roomCode: string;
+  if (roomCodeInput) {
+    // Código escolhido pelo usuário: colisão é erro dele, não nosso.
+    if (await roomCodeExists(roomCodeInput)) {
+      throw badRequest("Já existe uma sala com esse código.");
+    }
+    roomCode = roomCodeInput;
+  } else {
+    // Código automático: tenta de novo em vez de falhar.
+    roomCode = generateRoomCode();
+    for (let tries = 0; tries < CODE_MAX_TRIES && (await roomCodeExists(roomCode)); tries++) {
+      roomCode = generateRoomCode();
+    }
+    if (await roomCodeExists(roomCode)) {
+      throw badRequest("Não foi possível gerar um código de sala. Tente novamente.");
+    }
+  }
 
   const state: PvpState = {
     turn: 1,
