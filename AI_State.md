@@ -52,7 +52,7 @@
 > | `.pgdata/`, `node_modules/` | ❌ somem | `npm install` e `npm run db:local` |
 > | Branch remota no GitHub | ✅ **fonte da verdade** | `git fetch origin` |
 >
-> **Estado em 2026-08-27:** tudo até `0799cb9` está no GitHub, com o histórico
+> **Estado em 2026-08-27:** tudo até `0080c84` está no GitHub (CI 5/5 verde), com o histórico
 > completo de fases preservado. O `.git` local foi resetado duas vezes e
 > realinhado com `git fetch` + `git reset --soft origin/...` (mantém os
 > arquivos, reposiciona o HEAD). **Prefira sempre o remoto.**
@@ -444,6 +444,7 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 | 2026-08-27 | **Correção 1** — `SameSite=None` | ❌ **Não resolveu** (problema era política do navegador, não atributo) | commit `7f6b806` |
 | 2026-08-27 | **Correção 2** — Bearer token + painel de debug + Supabase-ready | ✅ Validada no servidor; **aguardando reteste no navegador** | commit `0799cb9` |
 | 2026-08-27 | **Supabase** testado | ❌ Bloqueado pelo egress do sandbox (código pronto) | `docs/SUPABASE.md` |
+| 2026-08-27 | **Correção 3** — colisão de código de sala PvP (bug real achado pelo CI) | ✅ Concluída e validada | commit `0080c84` |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
