@@ -108,6 +108,7 @@ Abra <http://localhost:3000>.
 | `DATABASE_URL` | ✅ | String de conexão PostgreSQL. Usada por `src/db/index.ts` (runtime) e `drizzle.config.ts` (schema). |
 | `RATE_LIMIT_STORE` | — | `postgres` (padrão quando há `DATABASE_URL`) ou `memory`. |
 | `ALLOWED_DEV_ORIGINS` | — | Hosts extras aceitos pelo `next dev` (separados por vírgula). |
+| `COOKIE_SAME_SITE` | — | `lax` (padrão) ou `none`. Use **`none`** quando o app for acessado dentro de iframe de outro site (caso do preview embutido): com `lax` o navegador não reenvia o cookie e toda request devolve 401. `none` exige HTTPS e ativa a validação de `Origin` (`src/lib/csrf.ts`) como proteção CSRF. |
 | `TEST_PG_URL` | — | Postgres usado pelos testes de integração. Padrão: local. |
 
 `.env` está no `.gitignore` e **nunca** deve ser commitado. Use `.env.example` como modelo.

@@ -125,6 +125,17 @@ responde, com a API respondendo 200 normalmente via curl. Afeta só `next dev`.
 
 **Dependências adicionadas:** `zod` (runtime), `tsx` (dev).
 
+### Sessão em iframe cross-site (correção de 2026-08-27)
+| Item | Onde |
+|---|---|
+| `COOKIE_SAME_SITE` = `lax` \| `none` | `.env` — use `none` quando o app roda dentro de iframe de outro site |
+| Validação de `Origin` (CSRF) | `src/lib/csrf.ts`, chamada dentro de `requireUser()` |
+
+O preview embutido é um iframe cross-site: com `SameSite=Lax` o navegador **não
+reenvia o cookie**, então o login parecia funcionar (a UI é preenchida pela
+resposta) mas toda request seguinte devolvia 401. Com `none` o cookie exige
+`Secure` e a proteção CSRF é refeita validando o `Origin`.
+
 ### PvP assíncrono (Fase 4)
 | Módulo | Responsabilidade |
 |---|---|
@@ -231,70 +242,74 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
-### ✅ FASE 4 — PvP de verdade (2026-08-27)
+### ✅ Correção — sessão quebrada no preview (2026-08-27)
 
-Desenho completo em [`docs/pvp-design.md`](../docs/pvp-design.md). Modelo
-escolhido: **turnos assíncronos com polling** (2,5 s), sem WebSocket — não há
-servidor com estado em memória nem conexão longa, e para um jogo por turnos a
-latência é imperceptível.
+Reportado pelo mantenedor durante a validação manual: criar mapa não fazia nada,
+criar sala PvP dava "Sessão inválida ou expirada", e desafiar ginásio idem —
+mesmo logado, e mesmo com conta recém-criada.
 
-#### Como funciona
+#### Diagnóstico (a partir dos logs, não de suposição)
 
-Os dois jogadores travam a ação **às cegas**; quando ambos travaram, o servidor
-resolve a troca de uma vez e os dois veem o resultado no próximo poll.
+O padrão nos logs era inequívoco:
 
 ```
-P1 trava "Lança-Chamas"  → gravado (P2 não vê o quê)
-P2 trava "Jato d'Água"   → gravado
-   ↓ ambos travaram
-RESOLUÇÃO (transação única com SELECT ... FOR UPDATE)
-  1. trocas acontecem antes; quem troca não ataca no turno
-  2. ordem dos golpes pela velocidade (empate → aleatório)
-  3. se o alvo desmaiou, a 2ª ação é descartada
-  4. desmaiou → phase = "SWITCH" para aquele lado
-  5. sem Pokémon de pé → FINISHED + wins/losses
-   ↓
-HP gravado em user_pokemon · turn++ · version++
+POST /api/auth 200      ← login funciona
+GET  /api/auth 401      ← mas a sessão seguinte já não existe
+POST /api/maps 401 · POST /api/pvp 401 · POST /api/battle 401
+POST /api/pokemon/heal 401 · GET /api/pvp 401
 ```
+
+E com o cookie enviado manualmente, tudo funcionava:
+
+```
+curl -b cookie  GET  /api/auth  → 200
+curl -b cookie  POST /api/maps  → 400 (validação — ou seja, PASSOU na auth)
+```
+
+Logo o servidor estava correto e o problema era o cookie não sobreviver no
+navegador. O cabeçalho emitido era:
+
+```
+set-cookie: deluge_session=...; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000
+```
+
+#### Causa raiz
+
+**O preview é um iframe cross-site** (`arena.ai` incorporando
+`https://3000-<sandbox>.e2b.app`). Em contexto de terceiro, o navegador **não
+reenvia cookies `SameSite=Lax`**.
+
+Isso explica os três relatos de uma vez, e também um detalhe que parecia
+contraditório:
+
+- o login **parecia** funcionar porque `applyLogin()` preenche a interface com o
+  usuário vindo da **resposta** — os botões ADMIN/EDITOR aparecem por estado em
+  memória, não por sessão;
+- toda request seguinte ia sem cookie → 401;
+- "não chega a deslogar verdadeiramente" porque o estado em memória continua
+  intacto — só o servidor discorda.
+
+#### Correção
+
+1. **`COOKIE_SAME_SITE`** (`lax` padrão · `none` para iframe). Com `none` o
+   cookie sai `SameSite=None; Secure` — o navegador exige `Secure` junto.
+2. **CSRF por validação de `Origin`** (`src/lib/csrf.ts`), chamada dentro de
+   `requireUser()`. Necessário porque `SameSite=None` desliga a proteção CSRF do
+   navegador. Se o `Origin` vier e não bater com o `Host` → 403. Sem `Origin`,
+   permite (preserva curl e testes sem abrir o vetor clássico, que depende
+   justamente do navegador enviar o Origin).
+3. **Erro visível no drawer de criar mapa.** Bug de UX separado, encontrado no
+   caminho: a falha ia para `statusMsg`, que renderiza em **outro painel**. O
+   usuário clicava, a request falhava e a tela não dava sinal — daí o "carrega
+   e para". Agora o erro aparece dentro do próprio drawer, com estado de
+   "Salvando mapa...".
 
 #### Arquivos
 
 | | |
 |---|---|
-| **Novos** | `src/lib/pvp-service.ts` · `src/components/PvpLobby.tsx` · `src/components/PvpArena.tsx` · `tests/integration/{client,routes,pvp.integration.test}.ts` · `drizzle/0002_long_squadron_sinister.sql` |
-| **Alterados** | `schema.ts` (`users.elo`, `pvp_battles.mode`) · `api/pvp/route.ts` (reescrita) · `validation.ts` · `battle-service.ts` (losses) · `engine/damage.ts` (`DamageMove`) · `page.tsx` |
-
-#### Decisões do mantenedor implementadas
-
-| Decisão | Implementação |
-|---|---|
-| Recompensa = `wins`/`losses`/ranking só | `awardResult()` incrementa `wins` e `losses`; nada mais |
-| Amistoso não conta ranking | `mode: "friendly"`; **nenhum código escreve em `users.elo`** |
-| Dano persiste | `persistHp()` grava os dois lados em `user_pokemon` a cada turno |
-| ELO entra como complemento | Coluna criada (default 1000), dormente, com teste garantindo |
-
-#### Vetor de trapaça fechado
-
-`create_room`/`join_room` aceitavam o Pokémon **inteiro do cliente**
-(`battlePokemonSchema`: `hp` e `attack` até 9999). Agora aceitam só
-`pokemonId` e o servidor lê o registro com `sideFromUserPokemon()`.
-
-#### Regressão corrigida
-
-`users.losses` **nunca era incrementado** (regressão da Fase 2, quando removi o
-`POST /api/gym battle_result` farmável e os caminhos `LOST` não assumiram o
-contador). Centralizado em `persistTurn()`, cobrindo ginásio, selvagem e falha
-de captura num lugar só.
-
-#### Limitações assumidas (não são bugs)
-
-- **Troca tática** só existe como ação do turno ou troca forçada pós-desmaio;
-  não há "trocar e ainda atacar".
-- **Timeout** é preguiçoso: só dispara quando alguém consulta a sala. Se
-  ninguém abrir, a sala fica pendurada — aceitável, some da listagem.
-- **Balanceamento**: inicial lvl 5 nocauteia outro inicial lvl 5 em um golpe
-  (Squirtle deu 28–32 em Charmander: Água×Fogo + STAB). É matemática correta,
-  mas o jogo fica rápido demais. Assunto da **Fase 6**.
+| **Novos** | `src/lib/csrf.ts` · `src/lib/csrf.test.ts` |
+| **Alterados** | `src/lib/session.ts` (SameSite configurável + CSRF em `requireUser`) · `src/components/WorldMapEditor.tsx` (erro no drawer) · `.env.example` (documentação) · `tests/integration/security.integration.test.ts` |
 
 ---
 
@@ -302,68 +317,40 @@ de captura num lugar só.
 
 ### 4.1 Checagens
 ```bash
-npm run check                     # lint + typecheck + test + build
-npm run test:integration
+COOKIE_SAME_SITE=none npm run check
 ```
-✅ `npm run check` **exit 0** — lint 0/0 · tsc 0 · **77 unit** · build 14 rotas.
-✅ Integração: **41 testes** (29 de segurança + **12 novos de PvP**).
+✅ **exit 0** — lint 0/0 · tsc 0 · **84 testes unitários** (7 novos de CSRF) · build 14 rotas.
+✅ Integração com `COOKIE_SAME_SITE=none`: **43 testes** (31 segurança + 12 PvP).
+   **Total: 127 testes.**
 
-### 4.2 Os testes que importam
-
-| Teste | O que garante |
-|---|---|
-| `o estado NÃO expõe qual golpe o oponente escolheu` | `opponentCommitted: true`, mas nem `moveIndex` nem `turnAction` aparecem no payload; `opponent.moves` é `undefined` |
-| `envio SIMULTÂNEO resolve a troca exatamente uma vez` | `Promise.all` com os dois `submit_turn`; **ambos 200** e `turn` avança **1** (não 2) |
-| `não aceita stats forjados` | mandar `{hp: 9999}` é ignorado; o estado traz `hp < 100` e `level 5` do banco |
-| `o dano PERSISTE em user_pokemon` | `monA.hp === view.you.hp` e `monB.hp === view.opponent.hp` |
-| `amistoso NÃO mexe em users.elo` | elo continua **1000** para vencedor e perdedor |
-| `forfeit dá a vitória e registra wins/losses` | `ub.wins === 1` e `ua.losses === 1` |
-| `quem não participa não lê nem age na sala` | 403 em GET e em submit |
-| `não deixa entrar na própria sala nem em sala cheia` | 400 nos dois casos |
-
-> O teste de concorrência foi **fortalecido depois de escrito**: a primeira
-> versão passaria mesmo se uma das requests tivesse falhado. Agora asserta que
-> as duas retornaram 200.
-
-### 4.3 Teste de ponta a ponta no app rodando (dois clientes HTTP reais)
-
+### 4.2 Cookie antes × depois
 ```
-sala DLG-8274 · A=Charmander lvl5 (19 HP) · B=Squirtle lvl5 (20 HP)
-
-turno 1 → log:
-  ▸ Squirtle usou Jato d'Água!
-  ▸ É super efetivo!          ← Água×Fogo = 2
-  ▸ Causou 28 de dano.
-  ▸ Charmander desmaiou!
-  ▸ 🏆 live_b venceu a batalha!
-  ▸ live_a ficou sem Pokémon em condições de lutar.
-status: FINISHED · phase: ACTION · turn: 2
+ANTES  deluge_session=...; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000
+AGORA  deluge_session=...; Path=/; HttpOnly; SameSite=None; Max-Age=2592000; Secure
 ```
 
-Banco depois:
+### 4.3 Os três fluxos reportados, testados de ponta a ponta
 ```
-username    | wins | losses | elo
-live_a      |  0   |   1    | 1000   ← ELO intacto (amistoso)
-live_b      |  1   |   0    | 1000
-
-Charmander hp 0/19 · Squirtle hp 15/20   ← dano persistido
+1) criar mapa (admin)   → 200 · "Mapa do Teste" id 4, autor teste_mapa · 4 mapas
+2) criar sala PvP       → 200 · sala DLG-6918
+3) desafiar ginásio     → 200 · batalha vs Geodude lvl 12
 ```
 
-Agir depois de encerrada → `400 "Esta batalha não está ativa."`
-
-### 4.4 Migrations
-`npm run db:generate` → `drizzle/0002_long_squadron_sinister.sql`.
-Aplicada: `users.elo` default `1000`, `pvp_battles.mode` default `'friendly'`.
+### 4.4 CSRF não foi sacrificado
+```
+POST /api/pvp com Origin: https://evil.example.com
+  → 403 {"error":"Requisição bloqueada: origem não corresponde ao servidor."}
+```
+Coberto por teste: Origin igual ao Host passa; Origin diferente bloqueia (403);
+porta diferente bloqueia; sem Origin passa; GET/HEAD ignoram; PUT/DELETE também
+são checados; Origin malformado não quebra.
 
 ### 4.5 O que **não** foi validado
-1. **A interface do lobby e da arena não foi aberta num navegador** — o motor,
-   os payloads e o sigilo foram verificados por HTTP e por testes; a pintura
-   não. Acrescentado às pendências manuais.
-2. **O timeout de 60 s não foi testado em tempo real** (exigiria esperar um
-   minuto por caso). A lógica `applyTimeoutIfNeeded` está coberta por
-   inspeção, não por teste automatizado.
-3. **Troca tática e forçada** têm endpoint e validação, mas nenhum teste de
-   integração as exercita ainda.
+**A confirmação final é sua, no navegador.** Eu provei que o servidor emite o
+cookie com os atributos certos, que o fluxo inteiro funciona com ele, e que o
+CSRF continua bloqueando origem externa. Mas **não tenho navegador aqui** para
+confirmar que o iframe do preview agora aceita e reenvia o cookie. É exatamente
+o ponto que falhou da primeira vez, então vale você repetir os três testes.
 
 ---
 
@@ -371,25 +358,19 @@ Aplicada: `users.elo` default `1000`, `pvp_battles.mode` default `'friendly'`.
 
 ### 🎮 FASE 6 — Conteúdo e mundo
 
-Fases 0 a 5 e a 4 estão concluídas: segurança, motor autoritativo, PvP, testes,
-CI e painel admin. O que falta é **conteúdo e equilíbrio**, não infraestrutura.
+**⏸️ Antes dela: aguardando a revalidação manual desta correção no navegador.**
 
-**Sugestão de ordem (a decidir com o mantenedor):**
+Depois disso, a ordem sugerida da Fase 6 (decisão do mantenedor):
 
-1. **Balanceamento do início do jogo** *(o mais urgente na prática)*
-   Inicial lvl 5 nocauteia outro inicial lvl 5 em **um** golpe. Opções: subir o
-   nível inicial, reduzir o poder dos golpes iniciais, ou dar mais HP. Sem isso
-   toda batalha dura um turno.
-2. **XP e evolução** — Charmander nunca vira Charizard; a curva de XP existe mas
-   o ganho por vitória selvagem é baixo perto do necessário.
-3. **Pokédex 21 → 50+** e golpes novos (o catálogo tem 19 golpes para 21 espécies).
-4. **Sistema de status** (veneno, queimadura, paralisia) — o Antídoto foi
-   removido na Fase 3 por não ter o que curar; voltaria com coluna própria.
-5. **Arena PvP ranqueada** — o `mode: "ranked"` e o `users.elo` já existem
-   dormentes; falta o cálculo de ELO, o ranking global e as recompensas por
-   posição.
-6. **NPCs editáveis no Editor de Mundos** (o campo `npcs` existe no schema, mas
-   o editor não o expõe).
+1. **Balanceamento do início do jogo** *(o mais urgente na prática)* — inicial
+   lvl 5 nocauteia outro inicial lvl 5 em **um** golpe. Sem isso toda batalha
+   dura um turno.
+2. **XP e evolução** — Charmander nunca vira Charizard.
+3. **Pokédex 21 → 50+** e mais golpes.
+4. **Sistema de status** (veneno, queimadura, paralisia) — o Antídoto voltaria
+   com coluna própria.
+5. **Arena PvP ranqueada** — `mode: "ranked"` e `users.elo` já existem dormentes.
+6. **NPCs editáveis no Editor de Mundos.**
 7. **Premium** — `isPremium`/`premiumSkins` continuam colunas mortas.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
@@ -409,7 +390,8 @@ CI e painel admin. O que falta é **conteúdo e equilíbrio**, não infraestrutu
 | 2026-08-26 | **Fase 2** — Motor de jogo no servidor | ✅ Concluída e validada | commit `003ef41` |
 | 2026-08-26 | **Fase 5** — Infraestrutura e qualidade | ✅ Concluída e validada | commit `a559f1a` |
 | 2026-08-26 | **CI ativado** pelo mantenedor | ✅ 5/5 jobs success | commit `e02bb30` |
-| 2026-08-27 | **Fase 4** — PvP assíncrono | ✅ Concluída e validada | 12 testes novos |
+| 2026-08-27 | **Fase 4** — PvP assíncrono | ✅ Concluída e validada | commit `c1e8187` |
+| 2026-08-27 | **Correção** — cookie SameSite no iframe + CSRF | ✅ Validada no servidor; **aguardando revalidação no navegador** | 127 testes |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Próxima | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

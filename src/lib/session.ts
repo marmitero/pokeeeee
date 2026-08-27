@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { ROLE_LEVEL, sessions, toRole, users } from "@/db/schema";
 import type { Role } from "@/db/schema";
 import { forbidden, unauthorized } from "./api";
+import { assertSameOrigin } from "./csrf";
 
 /**
  * Sessões baseadas em cookie `httpOnly`.
@@ -122,6 +123,10 @@ export async function getSessionUser(req: Request): Promise<SessionUser | null> 
  * É o ponto único por onde toda rota autenticada passa.
  */
 export async function requireUser(req: Request): Promise<SessionUser> {
+  // Como o cookie pode rodar com SameSite=None (necessário no iframe do
+  // preview), a proteção CSRF é refeita aqui validando o Origin.
+  assertSameOrigin(req);
+
   const user = await getSessionUser(req);
   if (!user) {
     throw unauthorized("Sessão inválida ou expirada. Faça login novamente.");
@@ -161,10 +166,35 @@ export async function destroySession(req: Request): Promise<void> {
 
 // ─── Cookies ──────────────────────────────────────────────────────────────
 
+/**
+ * Atributos do cookie de sessão.
+ *
+ * `COOKIE_SAME_SITE` controla o `SameSite`:
+ *
+ *  - `lax` (padrão) — correto para acesso direto ao site. **Não funciona
+ *    dentro de iframe cross-site**, porque o navegador não envia cookies
+ *    `Lax` em contexto de terceiro.
+ *  - `none` — necessário para o preview embutido em iframe. Exige `Secure`,
+ *    e por desligar a proteção CSRF do navegador vem acompanhado da validação
+ *    de `Origin` em `src/lib/csrf.ts`.
+ *
+ * Esse foi exatamente o bug que fazia login "funcionar" e toda request
+ * seguinte devolver 401 no preview: o cookie era emitido com `Lax`, o iframe
+ * não o reenviava, e a interface continuava logada só pelo estado em memória.
+ */
+function sameSite(): "Lax" | "None" {
+  return process.env.COOKIE_SAME_SITE?.toLowerCase() === "none" ? "None" : "Lax";
+}
+
 function cookieAttributes(maxAge: number): string {
-  const attrs = ["Path=/", "HttpOnly", "SameSite=Lax", `Max-Age=${maxAge}`];
-  // Em dev o sandbox usa HTTP; Secure só em produção para não quebrar o preview.
-  if (process.env.NODE_ENV === "production") attrs.push("Secure");
+  const attrs = ["Path=/", "HttpOnly", `SameSite=${sameSite()}`, `Max-Age=${maxAge}`];
+
+  // `SameSite=None` só é aceito pelo navegador junto com `Secure`.
+  // Em produção `Secure` é sempre ligado.
+  if (sameSite() === "None" || process.env.NODE_ENV === "production") {
+    attrs.push("Secure");
+  }
+
   return attrs.join("; ");
 }
 

@@ -145,6 +145,32 @@ describe("autenticação (V1)", () => {
   });
 });
 
+describe("cookie de sessão", () => {
+  it("é HttpOnly e tem Max-Age de 30 dias", async () => {
+    const { r } = await register(`ck${Date.now()}`);
+    const setCookie = r.headers.get("set-cookie") ?? "";
+
+    expect(setCookie).toContain("deluge_session=");
+    expect(setCookie.toLowerCase()).toContain("httponly");
+    expect(setCookie).toContain("Max-Age=2592000");
+    expect(setCookie.toLowerCase()).toContain("path=/");
+  });
+
+  it("SameSite segue COOKIE_SAME_SITE, e None vem sempre com Secure", async () => {
+    const { sessionCookie } = await import("@/lib/session");
+    const mode = process.env.COOKIE_SAME_SITE?.toLowerCase();
+    const cookie = sessionCookie("token-de-teste");
+
+    if (mode === "none") {
+      expect(cookie).toContain("SameSite=None");
+      // Sem Secure o navegador recusa o cookie — é obrigatório junto com None.
+      expect(cookie).toContain("Secure");
+    } else {
+      expect(cookie).toContain("SameSite=Lax");
+    }
+  });
+});
+
 describe("autorização (V2)", () => {
   it("toda rota que escreve exige sessão", async () => {
     const c = client();
