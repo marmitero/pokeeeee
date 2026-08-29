@@ -140,3 +140,30 @@ vulnerabilidades conhecidas.
 Atualizações major não relacionadas (ESLint 10, TypeScript 7 e tipos do Node
 26) foram deliberadamente adiadas para não misturar risco de migração com a
 correção de segurança.
+
+## Registro da 5.1-A — concluída em 2026-08-29
+
+A camada local de segurança para produção foi concluída sem iniciar staging:
+
+- schema reforçado por migration `0003` com 15 foreign keys, 16 índices e
+  constraints de domínio/integridade para usuários, inventário, Pokémon,
+  mapas, lojas, ginásios, batalhas, PvP, chat e rate limit;
+- slot de time único por usuário e insígnia única por usuário/ginásio;
+- produção direta usa somente cookie `HttpOnly`, `Secure` e `SameSite=Lax`;
+- Bearer/localStorage fica desligado em produção e disponível apenas em
+  desenvolvimento/testes ou opt-in explícito;
+- logout passou a validar CSRF; produção bloqueia mutação por cookie sem Origin
+  e requisições marcadas como `Sec-Fetch-Site: cross-site`;
+- CSP, HSTS, `nosniff`, Referrer Policy, Permissions Policy, bloqueio de iframe,
+  remoção de `X-Powered-By` e `no-store` nas APIs;
+- painel de debug removido do bundle renderizado em produção;
+- documentação corrigida para as 11 tabelas reais.
+
+Validação local: migration em banco vazio, 87 testes unitários, 52 testes de
+integração, lint, typecheck, build das 14 rotas e audit sem vulnerabilidades.
+Headers foram verificados no servidor de produção local; registro em produção
+não devolve `token`, e mutação sem Origin retorna 403.
+
+**Próxima etapa, não iniciada:** 5.1-B — criação/configuração de staging no
+Supabase e na Vercel. Exige autorização do mantenedor e ações guiadas nos
+painéis.

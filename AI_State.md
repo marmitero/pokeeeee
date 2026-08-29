@@ -113,11 +113,11 @@ src/
 │   ├── globals.css           # fontes, overlay CRT, image-rendering: pixelated
 │   └── api/                  # 10 rotas: auth, maps, maps/[id], pokemon/{catch,heal,manage}, gym, shop, pvp, health
 ├── components/               # AuthModal, BattleArenaModal, GymModal, PokemonBox, ShopModal, SpritePackModal, WorldMapEditor
-├── db/                       # schema.ts (9 tabelas) + index.ts (Pool global)
+├── db/                       # schema.ts (11 tabelas) + index.ts (Pool global)
 └── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop
 ```
 
-### Banco de dados — 9 tabelas
+### Banco de dados — 11 tabelas
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
@@ -300,6 +300,18 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
+### ✅ Fase 5.1-A — segurança básica de produção (2026-08-29)
+
+Concluída sem iniciar staging. A migration `0003` adiciona foreign keys,
+índices, unicidade e constraints de integridade. Produção direta usa cookie
+HttpOnly e não entrega/consome Bearer em localStorage. CSRF foi reforçado,
+headers de segurança e `no-store` foram adicionados, e o painel de debug não é
+renderizado em produção. Validação completa e decisões estão em
+`docs/PRODUCAO-5.1.md`.
+
+Próxima etapa: 5.1-B (Supabase/Vercel staging), **não iniciar sem autorização do
+mantenedor** e fornecer passo a passo para toda ação manual.
+
 ### ✅ Fase 5.1.1 — baseline e atualização de dependências (2026-08-29)
 
 A preparação para produção foi documentada em `docs/PRODUCAO-5.1.md`. O audit
@@ -419,13 +431,12 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### Fase 5.1.2 — endurecimento do banco
+### ⏸️ Fase 5.1-B — staging no Supabase e na Vercel
 
-Adicionar relações, constraints, unicidade e índices por migrations
-versionadas. Como não há dados a preservar, validar primeiro em banco local
-vazio e depois no Supabase de staging. Quando uma ação manual no Supabase ou
-Vercel for necessária, entregar ao mantenedor um passo a passo completo sem
-pedir segredos pelo chat. Plano: `docs/PRODUCAO-5.1.md`.
+Aguardar autorização explícita do mantenedor. A próxima etapa cria o Supabase
+de staging, separa conexões de runtime/migrations e publica um Preview na
+Vercel. Toda ação manual deve vir com passo a passo completo, sem pedir segredos
+pelo chat. Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
@@ -461,7 +472,8 @@ pedir segredos pelo chat. Plano: `docs/PRODUCAO-5.1.md`.
 | 2026-08-27 | **Supabase** testado | ❌ Bloqueado pelo egress do sandbox (código pronto) | `docs/SUPABASE.md` |
 | 2026-08-27 | **Correção 3** — colisão de código de sala PvP (bug real achado pelo CI) | ✅ Concluída e validada | commit `0080c84` |
 | 2026-08-29 | **Fase 5.1.1** — baseline e dependências | ✅ Concluída e validada | `docs/PRODUCAO-5.1.md` |
-| — | **Fase 5.1.2** — endurecimento do banco | ⬜ Próxima | — |
+| 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
+| — | **Fase 5.1-B** — staging Supabase/Vercel | ⏸️ Aguardando autorização | — |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

@@ -19,7 +19,9 @@ const TOKEN_KEY = "deluge_token";
 // ─── Token ────────────────────────────────────────────────────────────────
 
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined" || process.env.NODE_ENV === "production") {
+    return null;
+  }
   try {
     return window.localStorage.getItem(TOKEN_KEY);
   } catch {
@@ -28,7 +30,7 @@ export function getToken(): string | null {
 }
 
 export function setToken(token: string): void {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined" || process.env.NODE_ENV === "production") return;
   try {
     window.localStorage.setItem(TOKEN_KEY, token);
   } catch {

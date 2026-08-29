@@ -37,11 +37,32 @@ function hostOf(value: string | null): string | null {
 export function assertSameOrigin(req: Request): void {
   if (SAFE_METHODS.has(req.method.toUpperCase())) return;
 
+  const fetchSite = req.headers.get("sec-fetch-site")?.toLowerCase();
+  if (fetchSite === "cross-site") {
+    console.warn("[csrf] requisição cross-site bloqueada por Sec-Fetch-Site");
+    throw forbidden("Requisição bloqueada: origem externa.");
+  }
+
   const origin = hostOf(req.headers.get("origin"));
-  if (!origin) return; // sem Origin: cliente não-navegador
+  // Em produção pública, mutações de navegador por cookie devem trazer uma
+  // origem verificável. Dev/testes e clientes Bearer continuam compatíveis.
+  if (!origin) {
+    if (
+      process.env.NODE_ENV === "production" &&
+      !req.headers.get("authorization")
+    ) {
+      throw forbidden("Requisição bloqueada: origem ausente.");
+    }
+    return;
+  }
 
   const host = req.headers.get("host");
-  if (!host) return;
+  if (!host) {
+    if (process.env.NODE_ENV === "production") {
+      throw forbidden("Requisição bloqueada: host ausente.");
+    }
+    return;
+  }
 
   if (origin !== host) {
     console.warn(`[csrf] origem cruzada bloqueada: origin=${origin} host=${host}`);

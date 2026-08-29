@@ -9,9 +9,11 @@ import { ApiError } from "./api";
  * (iframe cross-site), o que desliga a proteção CSRF do navegador.
  */
 
-function req(init: { method?: string; origin?: string; host?: string } = {}): Request {
+function req(init: { method?: string; origin?: string; host?: string; fetchSite?: string; authorization?: string } = {}): Request {
   const headers: Record<string, string> = { host: init.host ?? "app.example.com" };
   if (init.origin) headers.origin = init.origin;
+  if (init.fetchSite) headers["sec-fetch-site"] = init.fetchSite;
+  if (init.authorization) headers.authorization = init.authorization;
 
   return new Request(`http://${headers.host}/api/pvp`, {
     method: init.method ?? "POST",
@@ -23,6 +25,7 @@ function req(init: { method?: string; origin?: string; host?: string } = {}): Re
 describe("assertSameOrigin", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("aceita Origin igual ao Host (o caso normal, inclusive no preview)", () => {
@@ -71,7 +74,23 @@ describe("assertSameOrigin", () => {
     }
   });
 
-  it("não quebra com Origin malformado", () => {
+  it("não quebra com Origin malformado fora de produção", () => {
     expect(() => assertSameOrigin(req({ origin: "não-é-uma-url" }))).not.toThrow();
+  });
+
+  it("bloqueia Sec-Fetch-Site cross-site mesmo sem Origin", () => {
+    expect(() => assertSameOrigin(req({ fetchSite: "cross-site" }))).toThrow(ApiError);
+  });
+
+  it("em produção exige Origin para mutação autenticada por cookie", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(() => assertSameOrigin(req())).toThrow(ApiError);
+  });
+
+  it("em produção mantém cliente Bearer não-navegador compatível", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    expect(() =>
+      assertSameOrigin(req({ authorization: "Bearer token-de-teste" }))
+    ).not.toThrow();
   });
 });

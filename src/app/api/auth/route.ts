@@ -18,6 +18,7 @@ import {
   withSessionCookie,
 } from "@/lib/session";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { assertSameOrigin } from "@/lib/csrf";
 import {   authSchema   } from "@/lib/validation";
 import {   parse, badRequest, notFound, publicUser, routeError   } from "@/lib/api";
 
@@ -75,6 +76,7 @@ export async function POST(req: Request) {
 
     // ── LOGOUT ───────────────────────────────────────────────────────────
     if (action === "logout") {
+      assertSameOrigin(req);
       const user = await getSessionUser(req);
 
       // `?all=1` derruba todos os dispositivos; senão só a sessão atual.
@@ -154,12 +156,15 @@ export async function POST(req: Request) {
         .from(userPokemon)
         .where(eq(userPokemon.userId, newUser.id));
 
-      // O token vai no corpo TAMBÉM: é o que permite o fluxo Bearer dentro de
-      // iframe cross-site, onde o cookie não é reenviado. Não é vazamento —
-      // é a credencial do próprio usuário logado. O que era vazamento de
-      // verdade (passwordHash) continua fora da resposta.
+      // Produção direta usa apenas cookie HttpOnly: o token não fica acessível
+      // ao JavaScript. O Bearer permanece somente em dev/teste ou por opt-in.
+      const bearerToken =
+        process.env.NODE_ENV !== "production" ||
+        process.env.SESSION_BEARER_ENABLED === "true"
+          ? token
+          : undefined;
       return withSessionCookie(
-        NextResponse.json({ user: publicUser(newUser), party, token }),
+        NextResponse.json({ user: publicUser(newUser), party, token: bearerToken }),
         token
       );
     }
@@ -209,8 +214,13 @@ export async function POST(req: Request) {
       .from(userPokemon)
       .where(eq(userPokemon.userId, user.id));
 
+    const bearerToken =
+      process.env.NODE_ENV !== "production" ||
+      process.env.SESSION_BEARER_ENABLED === "true"
+        ? token
+        : undefined;
     return withSessionCookie(
-      NextResponse.json({ user: publicUser(user), party, token }),
+      NextResponse.json({ user: publicUser(user), party, token: bearerToken }),
       token
     );
   } catch (err: unknown) {

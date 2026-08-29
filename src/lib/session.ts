@@ -100,7 +100,18 @@ function tokenFromCookie(req: Request): string | null {
   return null;
 }
 
+function bearerEnabled(): boolean {
+  // Produção é acessada diretamente e usa exclusivamente cookie HttpOnly.
+  // O fallback continua disponível em desenvolvimento/testes para o preview
+  // legado em iframe, ou por opt-in explícito fora da produção pública.
+  return (
+    process.env.NODE_ENV !== "production" ||
+    process.env.SESSION_BEARER_ENABLED === "true"
+  );
+}
+
 function tokenFromBearer(req: Request): string | null {
+  if (!bearerEnabled()) return null;
   const header = req.headers.get("authorization");
   if (!header) return null;
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());

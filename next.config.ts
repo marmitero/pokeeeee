@@ -1,27 +1,6 @@
 import type { NextConfig } from "next";
 
-/**
- * Hosts aceitos pelo `next dev` para os recursos de desenvolvimento
- * (HMR, client runtime, chunks).
- *
- * O Next 16 **bloqueia origens cruzadas por padrão**. Como o preview é servido
- * por um proxy num host próprio (`https://{porta}-{sandbox}.e2b.app`), sem esta
- * configuração o client do React é bloqueado e a página quebra de um jeito bem
- * específico e enganoso:
- *
- *   - o HTML chega renderizado pelo servidor (a interface "aparece");
- *   - mas o React **nunca hidrata** → nenhum event handler é ligado e nenhum
- *     `useEffect` roda.
- *
- * Sintoma observado: o mapa não carregava nunca (é buscado em `useEffect`) e
- * os botões de Sprites / PVP / Login não respondiam, com a API respondendo 200
- * normalmente via curl. Não é bug do jogo — é o dev server recusando o host.
- *
- * ⚠️ Afeta **apenas** `next dev`. É ignorado em build de produção.
- *
- * Para adicionar hosts, use a variável de ambiente:
- *   ALLOWED_DEV_ORIGINS="meu-host.com,outro.dev"
- */
+/** Hosts extras aceitos apenas pelo dev server (preview legado em proxy). */
 const allowedDevOrigins = [
   "*.e2b.app",
   ...(process.env.ALLOWED_DEV_ORIGINS?.split(",")
@@ -29,8 +8,59 @@ const allowedDevOrigins = [
     .filter(Boolean) ?? []),
 ];
 
+const production = process.env.NODE_ENV === "production";
+
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  // Next ainda injeta bootstrap/estilos inline. Remover unsafe-inline exigirá
+  // nonces por request; por ora a política já bloqueia scripts de terceiros.
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "img-src 'self' https://raw.githubusercontent.com data: blob:",
+  "connect-src 'self'",
+  "media-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  ...(production ? ["upgrade-insecure-requests"] : []),
+].join("; ");
+
+const securityHeaders = [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
+  },
+  { key: "X-Frame-Options", value: "DENY" },
+  ...(production
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=31536000; includeSubDomains",
+        },
+      ]
+    : []),
+];
+
 const nextConfig: NextConfig = {
   allowedDevOrigins,
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: securityHeaders,
+      },
+      {
+        source: "/api/:path*",
+        headers: [{ key: "Cache-Control", value: "no-store, max-age=0" }],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -29,6 +29,12 @@ function useDebugLog() {
 }
 
 export function DebugPanel() {
+  // O painel expõe diagnóstico operacional e existe apenas para desenvolvimento.
+  if (process.env.NODE_ENV === "production") return null;
+  return <DebugPanelContent />;
+}
+
+function DebugPanelContent() {
   const log = useDebugLog();
 
   // Inicialização preguiçosa em vez de useEffect: `sessionDiagnostics()` lê
