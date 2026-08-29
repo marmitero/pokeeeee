@@ -87,6 +87,10 @@ jobs:
             sleep 1
           done
           docker exec restore-db pg_isready -U postgres
+          # PostgreSQL cria o schema public por padrão; o dump também o contém.
+          # Removê-lo reproduz um destino realmente vazio e evita colisão no restore.
+          docker exec restore-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "DROP SCHEMA public CASCADE"
           docker cp "$RUNNER_TEMP/staging.dump" restore-db:/tmp/staging.dump
           docker exec restore-db pg_restore \
             -U postgres -d postgres --no-owner --no-privileges \
