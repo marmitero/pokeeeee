@@ -167,3 +167,20 @@ não devolve `token`, e mutação sem Origin retorna 403.
 **Próxima etapa, não iniciada:** 5.1-B — criação/configuração de staging no
 Supabase e na Vercel. Exige autorização do mantenedor e ações guiadas nos
 painéis.
+
+## Registro da 5.1-B — preparação local (2026-08-29)
+
+Antes da criação do staging, a aplicação foi preparada para o Supabase/Vercel:
+
+- `DATABASE_URL` agora é exclusiva do runtime (Session Pooler 5432);
+- `DIRECT_DATABASE_URL` é preferida pelo Drizzle Kit para migrations;
+- pool de produção limitado por padrão a 3 conexões por instância;
+- timeouts de conexão e ociosidade configuráveis;
+- Transaction Pooler 6543 é detectado e desaconselhado;
+- Session Pooler 5432 não é mais confundido com Transaction Pooler;
+- TLS valida certificado por padrão;
+- `.env.example` e `docs/SUPABASE.md` foram reescritos sem recomendar segredo
+  em Git/chat.
+
+Validação local: lint, typecheck, 87 testes unitários, build de 14 rotas e audit
+sem vulnerabilidades. Próximo bloqueio: criação manual do Supabase staging.

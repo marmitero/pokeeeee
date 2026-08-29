@@ -431,12 +431,13 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### ⏸️ Fase 5.1-B — staging no Supabase e na Vercel
+### 🟡 Fase 5.1-B — staging no Supabase e na Vercel
 
-Aguardar autorização explícita do mantenedor. A próxima etapa cria o Supabase
-de staging, separa conexões de runtime/migrations e publica um Preview na
-Vercel. Toda ação manual deve vir com passo a passo completo, sem pedir segredos
-pelo chat. Plano: `docs/PRODUCAO-5.1.md`.
+Em andamento. O código já separa `DATABASE_URL` (runtime/Session Pooler) de
+`DIRECT_DATABASE_URL` (migrations), limita o pool serverless e valida TLS por
+padrão. Aguardando o mantenedor criar o projeto Supabase de staging seguindo o
+passo a passo fornecido. Depois serão aplicadas as migrations, configurada a
+Vercel e executados os smoke tests. Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
@@ -473,7 +474,7 @@ pelo chat. Plano: `docs/PRODUCAO-5.1.md`.
 | 2026-08-27 | **Correção 3** — colisão de código de sala PvP (bug real achado pelo CI) | ✅ Concluída e validada | commit `0080c84` |
 | 2026-08-29 | **Fase 5.1.1** — baseline e dependências | ✅ Concluída e validada | `docs/PRODUCAO-5.1.md` |
 | 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
-| — | **Fase 5.1-B** — staging Supabase/Vercel | ⏸️ Aguardando autorização | — |
+| 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | 🟡 Em andamento; aguardando projeto staging | — |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

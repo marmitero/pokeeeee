@@ -3,11 +3,13 @@ import { config } from "dotenv";
 
 config();
 
-const databaseUrl = process.env.DATABASE_URL;
+// Migrations preferem a conexão direta. Em desenvolvimento local, o fallback
+// mantém a configuração simples com apenas DATABASE_URL.
+const databaseUrl = process.env.DIRECT_DATABASE_URL ?? process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error(
-    "DATABASE_URL não definida. Copie .env.example para .env e preencha o valor."
+    "DIRECT_DATABASE_URL ou DATABASE_URL não definida. Copie .env.example para .env."
   );
 }
 

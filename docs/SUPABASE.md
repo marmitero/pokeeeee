@@ -1,124 +1,86 @@
-# Migrar o banco para o Supabase
+# Supabase — staging e produção
 
-**Resumo:** Supabase **é** PostgreSQL. Não muda nada no código — só o
-`DATABASE_URL`. O ganho real é que os dados **param de sumir** a cada reset do
-ambiente de desenvolvimento.
+O Supabase fornece o PostgreSQL. O navegador não acessa suas tabelas: toda regra
+do jogo continua passando pelas APIs Next.js.
 
----
+## Ambientes
 
-## Por que vale
-
-Hoje o banco roda num PostgreSQL local embutido, em `.pgdata/`. Esse diretório
-é *gitignored*, e arquivos ignorados **não sobrevivem** ao reset do sandbox.
-Resultado: a cada sessão é preciso recriar o cluster, reaplicar as migrations e
-recriar as contas de teste.
-
-Com Supabase, o banco fica fora do sandbox e persiste.
-
----
-
-## Passo a passo
-
-### 1. Criar o projeto
-
-<https://supabase.com> → *New project*. Anote a senha do banco.
-
-### 2. Pegar a connection string
-
-*Project Settings → Database → Connection string → URI*.
-
-```
-postgresql://postgres.SEU_REF:SUA_SENHA@aws-0-sa-east-1.pooler.supabase.com:5432/postgres
-```
-
-### 3. ⚠️ Usar a conexão DIRETA (porta 5432), não a pooled (6543)
-
-A conexão pooled usa **transaction pooling**, que **não suporta prepared
-statements** — e isso quebra parte do Drizzle e do `drizzle-kit`.
-
-O app detecta a 6543 e **avisa no log**, mas não corrige sozinho.
-
-### 4. Colocar no `.env`
-
-```bash
-DATABASE_URL="postgresql://postgres.SEU_REF:SUA_SENHA@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
-```
-
-**SSL é ligado automaticamente** quando o host contém `supabase.com`
-(ver `src/db/index.ts`). Para forçar: `DATABASE_SSL=true|false`.
-
-### 5. Aplicar o schema
-
-```bash
-npm run db:migrate     # aplica as migrations versionadas de drizzle/
-```
-
-Ou, se preferir começar do zero:
-
-```bash
-npm run db:push
-```
-
----
-
-## O que continua não persistindo
-
-⚠️ **O `.env` também é gitignored**, então ele some junto. O banco persiste, mas
-a *configuração que aponta para ele* não.
-
-Duas saídas:
-
-| Opção | Como | Risco |
+| Ambiente | Banco | Uso |
 |---|---|---|
-| **A. Colar a URL a cada sessão** | Você me passa a connection string quando o ambiente resetar | Nenhum. Custa 10 segundos. |
-| **B. Commitar a URL** | Tirar `.env` do `.gitignore` (ou criar `.env.defaults` rastreado) | A senha do banco fica no histórico do git. Se o repo um dia ficar público, é preciso rotacionar. |
+| local/CI | PostgreSQL descartável | desenvolvimento e testes |
+| staging | projeto Supabase separado | Preview e validação |
+| produção | projeto Supabase separado | usuários reais |
 
-**Recomendação:** opção A. Se o incômodo pesar, a opção B é aceitável num repo
-privado de projeto pessoal — mas é uma decisão sua, não minha.
+Nunca aponte Preview ou testes para produção.
 
----
+## Duas conexões, duas finalidades
 
-## O que **não** muda
+### `DATABASE_URL` — runtime
 
-- Nenhuma linha de código de negócio.
-- As migrations em `drizzle/` funcionam iguais.
-- Os testes de integração continuam usando um banco local descartável
-  (`TEST_PG_URL`), para não poluir o banco real.
+Na Vercel, use o **Session Pooler**, porta **5432**. Ele oferece IPv4 e reutiliza
+conexões sem as limitações do Transaction Pooler. O pool local do app fica
+limitado a três conexões por instância em produção.
 
-## ⚠️ Status: testado e BLOQUEADO no sandbox de desenvolvimento (2026-08-27)
+Formato exibido pelo painel (pode variar por região):
 
-A conexão foi tentada de verdade com a URL do projeto. **Não falhou por
-credencial nem por configuração** — foi o proxy de saída do sandbox:
-
-```
-TLS github.com:443                            → ✅ OK
-TLS aws-0-*.pooler.supabase.com:5432          → ❌ ECONNRESET
-db.<ref>.supabase.co                          → só tem registro AAAA (IPv6);
-                                                o sandbox não tem rota IPv6 global
+```text
+postgresql://postgres.PROJECT_REF:SENHA@REGIAO.pooler.supabase.com:5432/postgres
 ```
 
-O TCP chega a abrir, mas o TLS é derrubado para hosts fora da allowlist do
-sandbox (só `github.com` e `registry.npmjs.org` passam). Foram varridas
-17 regiões × 2 portas do pooler, todas com o mesmo erro.
+### `DIRECT_DATABASE_URL` — migrations
 
-**Consequência:** o suporte a Supabase está implementado e correto, mas não pôde
-ser exercitado neste ambiente. Deve funcionar normalmente onde o app rodar com
-saída irrestrita — máquina local, Vercel, etc.
+Use a conexão direta exibida pelo Supabase, exclusivamente para
+`drizzle-kit migrate` e administração:
 
-### O que está implementado e é independente disso
+```text
+postgresql://postgres:SENHA@db.PROJECT_REF.supabase.co:5432/postgres
+```
 
-- detecção de host e ativação automática de SSL (lógica pura, testável);
-- aviso no log quando a URL aponta para a porta 6543 (transaction pooling);
-- o restante do código não distingue Supabase de PostgreSQL local.
+A conexão direta pode exigir IPv6. Se o ambiente que executa migrations não
+tiver IPv6, use temporariamente o Session Pooler 5432 também para a migration;
+nunca use o Transaction Pooler 6543 neste projeto.
 
-### Primeiro passo ao rodar fora do sandbox
+## Regras de segurança
+
+- Nunca colocar URLs reais em Git, issue, log ou chat.
+- Nunca usar prefixo `NEXT_PUBLIC_` em segredo.
+- Nunca expor senha do banco ou chave `service_role` no navegador.
+- TLS e validação de certificado permanecem habilitados.
+- Staging e produção usam senhas diferentes.
+- Aplicar somente migrations versionadas: `npm run db:migrate`.
+- O runtime deve usar papel de privilégio mínimo quando essa etapa for criada.
+- Data API/RLS deve permanecer fechada para acesso anônimo às tabelas do jogo.
+
+## Variáveis da Vercel
+
+```text
+DATABASE_URL=<Session Pooler 5432>
+DATABASE_SSL=true
+DATABASE_SSL_REJECT_UNAUTHORIZED=true
+DATABASE_POOL_MAX=3
+DATABASE_CONNECTION_TIMEOUT_MS=10000
+DATABASE_IDLE_TIMEOUT_MS=30000
+RATE_LIMIT_STORE=postgres
+COOKIE_SAME_SITE=lax
+SESSION_BEARER_ENABLED=false
+```
+
+`DIRECT_DATABASE_URL` não é necessária para servir o jogo. Cadastre-a somente
+no ambiente controlado que executará migrations; se for cadastrada na Vercel,
+nunca deve ser pública.
+
+## Aplicar e validar
 
 ```bash
-npm run db:migrate     # aplica as migrations versionadas de drizzle/
+DIRECT_DATABASE_URL="..." npm run db:migrate
 ```
 
-## 🔒 A senha foi exposta
+Depois, o endpoint `/api/health` deve responder `200` com `{ "ok": true }`.
+Cadastro, login, mapa, batalha e PvP precisam ser testados no staging antes de
+qualquer projeto de produção.
 
-A connection string foi colada no chat durante a configuração, então a senha do
-banco deve ser considerada exposta. **Rotacionar** em
-*Project Settings → Database → Reset database password* e atualizar o `.env`.
+## Credencial antiga
+
+Uma connection string foi enviada em chat em 2026-08-27. A senha correspondente
+é considerada comprometida e não pode ser reutilizada. Como não há dados a
+preservar, o staging novo deve nascer com senha nova e exclusiva.

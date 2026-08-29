@@ -2,28 +2,18 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 
 /**
- * Conexão com o PostgreSQL.
- *
- * Funciona com PostgreSQL local **e com Supabase** sem mudança de código —
- * basta trocar `DATABASE_URL`. Mas há duas armadilhas do Supabase tratadas
- * aqui:
- *
- * **1. SSL é obrigatório no Supabase.** `new Pool({ connectionString })` não
- * negocia SSL sozinho; é preciso passar `ssl`. Sem isso a conexão falha com
- * "no pg_hba.conf entry ... no encryption". Detectamos pelo host/`sslmode` e
- * ligamos automaticamente, com override por `DATABASE_SSL`.
- *
- * **2. A conexão pooled (porta 6543) usa transaction pooling**, que não
- * suporta prepared statements — várias operações do Drizzle/drizzle-kit
- * quebram. Por isso o recomendado é a conexão **direta (porta 5432)**.
- * Se a URL apontar para a 6543, avisamos no log em vez de falhar de forma
- * críptica.
+ * Conexão de runtime. Em Vercel, DATABASE_URL deve usar o Session Pooler do
+ * Supabase (porta 5432); DIRECT_DATABASE_URL fica reservada às migrations.
  */
-
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error("DATABASE_URL is required");
+}
+
+function envInteger(name: string, fallback: number): number {
+  const parsed = Number.parseInt(process.env[name] ?? "", 10);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
 function shouldUseSsl(url: string): boolean {
@@ -32,40 +22,55 @@ function shouldUseSsl(url: string): boolean {
   if (override === "false") return false;
 
   const lower = url.toLowerCase();
-  if (lower.includes("sslmode=require") || lower.includes("sslmode=verify-full")) {
-    return true;
-  }
-  // Hosts gerenciados que exigem TLS.
-  return lower.includes("supabase.com") || lower.includes("neon.tech") || lower.includes("render.com");
+  return (
+    lower.includes("sslmode=require") ||
+    lower.includes("sslmode=verify-full") ||
+    lower.includes("supabase.com") ||
+    lower.includes("neon.tech") ||
+    lower.includes("render.com")
+  );
 }
 
-function warnIfPooled(url: string): void {
+function warnIfTransactionPooler(url: string): void {
   try {
-    const u = new URL(url);
-    if (u.port === "6543" || u.host.includes("pooler.supabase.com")) {
+    const parsed = new URL(url);
+    if (parsed.port === "6543") {
       console.warn(
-        "[db] DATABASE_URL aponta para a conexão POOLED do Supabase (6543). " +
-          "Ela usa transaction pooling, que não suporta prepared statements e " +
-          "quebra parte do Drizzle e do drizzle-kit. Use a conexão DIRETA " +
-          "(porta 5432) em Project Settings → Database → Connection string."
+        "[db] DATABASE_URL usa o Transaction Pooler (porta 6543). " +
+          "Este projeto usa o driver pg/Drizzle e deve apontar o runtime para " +
+          "o Session Pooler do Supabase (porta 5432)."
       );
     }
   } catch {
-    /* URL malformada: o pg vai reclamar com mensagem própria */
+    // URL malformada: o driver pg produzirá a mensagem apropriada.
   }
 }
 
-warnIfPooled(databaseUrl);
+warnIfTransactionPooler(databaseUrl);
 
 const globalForDb = globalThis as typeof globalThis & {
   __delugeRpgPool?: Pool;
 };
 
+const ssl = shouldUseSsl(databaseUrl)
+  ? {
+      // Certificados devem ser validados por padrão. O escape existe apenas
+      // para diagnóstico de ambientes legados e nunca deve ser usado na Vercel.
+      rejectUnauthorized:
+        process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false",
+    }
+  : undefined;
+
 export const pool =
   globalForDb.__delugeRpgPool ??
   new Pool({
     connectionString: databaseUrl,
-    ssl: shouldUseSsl(databaseUrl) ? { rejectUnauthorized: false } : undefined,
+    ssl,
+    // Uma instância serverless não deve consumir todo o limite do Supabase.
+    max: envInteger("DATABASE_POOL_MAX", process.env.NODE_ENV === "production" ? 3 : 10),
+    connectionTimeoutMillis: envInteger("DATABASE_CONNECTION_TIMEOUT_MS", 10_000),
+    idleTimeoutMillis: envInteger("DATABASE_IDLE_TIMEOUT_MS", 30_000),
+    allowExitOnIdle: process.env.NODE_ENV !== "production",
   });
 
 if (process.env.NODE_ENV !== "production") {
