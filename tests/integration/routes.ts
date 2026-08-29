@@ -8,6 +8,7 @@ import { POST as managePost } from "@/app/api/pokemon/manage/route";
 import { POST as healPost } from "@/app/api/pokemon/heal/route";
 import { POST as adminPost } from "@/app/api/admin/route";
 import { POST as pvpPost, GET as pvpGet } from "@/app/api/pvp/route";
+import { GET as maintenanceGet } from "@/app/api/maintenance/route";
 
 export type Ctx = { params: Promise<{ id: string }> };
 export type Handler = (req: Request, ctx: Ctx) => Promise<Response> | Response;
@@ -24,4 +25,5 @@ export const ROUTES: Record<string, Record<string, Handler>> = {
   "/api/pokemon/heal": { POST: healPost },
   "/api/admin": { POST: adminPost },
   "/api/pvp": { POST: pvpPost, GET: pvpGet },
+  "/api/maintenance": { GET: maintenanceGet },
 };

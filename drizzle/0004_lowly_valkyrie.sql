@@ -1,0 +1,2 @@
+ALTER TABLE "pvp_battles" DROP CONSTRAINT "pvp_battles_status_check";--> statement-breakpoint
+ALTER TABLE "pvp_battles" ADD CONSTRAINT "pvp_battles_status_check" CHECK ("pvp_battles"."status" IN ('WAITING', 'ACTIVE', 'FINISHED', 'ABANDONED'));

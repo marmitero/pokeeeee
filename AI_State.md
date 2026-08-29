@@ -441,11 +441,12 @@ padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi apli
 ao Session Pooler 5432 por parâmetros separados e CA validada; health, mapas,
 cadastro, cookie HttpOnly, persistência e logout passaram no smoke test.
 
-Painel Admin, entrada PvP e orientação do ginásio validados no staging. Em
-validação: PvP com seleção manual de 1–3 integrantes, troca forçada quando o
-ativo desmaia, tela final de vitória/derrota e revanche com aceite dos dois e
-cura total do time selecionado. 54 testes de integração passam. Plano:
-`docs/PRODUCAO-5.1.md`.
+A Fase 5.1-B foi validada no staging, incluindo Admin, PvP em equipes e
+revanche. A Fase 5.1-C está em andamento: manutenção diária protegida por
+`CRON_SECRET`, migration `0004` para salas ABANDONED e retenção de dados
+efêmeros. Validação local: 87 testes unitários e 56 de integração. Aguardando o
+mantenedor aplicar `docs/supabase-staging-0004.sql` e configurar o segredo do
+cron na Vercel. Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 

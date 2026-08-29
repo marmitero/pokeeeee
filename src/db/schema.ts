@@ -290,7 +290,7 @@ export const pvpBattles = pgTable("pvp_battles", {
   index("pvp_battles_player2_idx").on(table.player2Id),
   index("pvp_battles_status_idx").on(table.status),
   check("pvp_battles_mode_check", sql`${table.mode} IN ('friendly', 'ranked')`),
-  check("pvp_battles_status_check", sql`${table.status} IN ('WAITING', 'ACTIVE', 'FINISHED')`),
+  check("pvp_battles_status_check", sql`${table.status} IN ('WAITING', 'ACTIVE', 'FINISHED', 'ABANDONED')`),
   check("pvp_battles_players_distinct", sql`${table.player2Id} IS NULL OR ${table.player1Id} <> ${table.player2Id}`),
 ]);
 

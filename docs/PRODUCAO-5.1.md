@@ -216,3 +216,13 @@ tela final distingue vitória/derrota, oferece SAIR e REVANCHE e não é
 substituída por erro transitório de polling. A revanche exige aceite dos dois e
 cura completamente os integrantes selecionados antes de reiniciar a mesma sala.
 Salas legadas são normalizadas como times de um integrante.
+
+## Registro da 5.1-C — operação (em andamento, 2026-08-29)
+
+Implementada manutenção diária protegida por `CRON_SECRET`, agendada para 03:00
+UTC (00:00 em São Paulo). Em uma transação idempotente ela remove sessões e
+rate limits expirados, marca salas WAITING/ACTIVE com mais de 24h como
+ABANDONED, encerra batalhas PvE ACTIVE antigas como FLED e remove chat com mais
+de 90 dias. Não toca em usuários, Pokémon, inventário, mapas, insígnias ou
+resultados concluídos. Foram adicionados testes de autorização e preservação do
+usuário. A migration `0004` amplia o domínio de status PvP.
