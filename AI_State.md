@@ -300,6 +300,19 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
+### ✅ Fase 5.1.1 — baseline e atualização de dependências (2026-08-29)
+
+A preparação para produção foi documentada em `docs/PRODUCAO-5.1.md`. O audit
+inicial tinha 7 vulnerabilidades (3 altas e 4 moderadas). Next.js,
+`eslint-config-next`, React, React DOM, PostCSS, pg, dotenv, lucide-react e Zod
+foram atualizados. Um override limitado atualiza o esbuild vulnerável carregado
+pela cadeia legada do Drizzle Kit sem fazer o downgrade incorreto sugerido por
+`npm audit fix --force`.
+
+Validação final: lint e typecheck aprovados, 84 testes unitários, 52 testes de
+integração, build de 14 rotas e `npm audit` com zero vulnerabilidades. Próxima
+subetapa: 5.1.2, endurecimento do schema PostgreSQL.
+
 ### ✅ Correção 2 — sessão por Bearer token + painel de debug (2026-08-27)
 
 A correção anterior (`SameSite=None; Secure`) **não resolveu**. O mantenedor
@@ -406,13 +419,15 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### ⏸️ Aguardando duas coisas do mantenedor
+### Fase 5.1.2 — endurecimento do banco
 
-1. **Reteste no navegador** com o painel 🐞 aberto. Se ainda falhar, o painel
-   diz exatamente onde.
-2. **Credencial do Supabase** (ou a decisão de não usar). Ver `docs/SUPABASE.md`.
+Adicionar relações, constraints, unicidade e índices por migrations
+versionadas. Como não há dados a preservar, validar primeiro em banco local
+vazio e depois no Supabase de staging. Quando uma ação manual no Supabase ou
+Vercel for necessária, entregar ao mantenedor um passo a passo completo sem
+pedir segredos pelo chat. Plano: `docs/PRODUCAO-5.1.md`.
 
-### Depois disso: FASE 6 — Conteúdo e mundo
+### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
 1. **Balanceamento do início do jogo** *(o mais urgente)* — inicial lvl 5
    nocauteia outro inicial lvl 5 em **um** golpe.
@@ -445,7 +460,9 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 | 2026-08-27 | **Correção 2** — Bearer token + painel de debug + Supabase-ready | ✅ Validada no servidor; **aguardando reteste no navegador** | commit `0799cb9` |
 | 2026-08-27 | **Supabase** testado | ❌ Bloqueado pelo egress do sandbox (código pronto) | `docs/SUPABASE.md` |
 | 2026-08-27 | **Correção 3** — colisão de código de sala PvP (bug real achado pelo CI) | ✅ Concluída e validada | commit `0080c84` |
-| — | **Fase 6** — Conteúdo e mundo | ⬜ Próxima | — |
+| 2026-08-29 | **Fase 5.1.1** — baseline e dependências | ✅ Concluída e validada | `docs/PRODUCAO-5.1.md` |
+| — | **Fase 5.1.2** — endurecimento do banco | ⬜ Próxima | — |
+| — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e
