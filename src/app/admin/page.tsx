@@ -67,18 +67,23 @@ export default function AdminPage() {
   const [targetUsername, setTargetUsername] = useState("");
   const [targetRole, setTargetRole] = useState<Role>("moderator");
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadStaff = useCallback(async () => {
     const r = await adminCall({ action: "list_staff" });
-    if (r.ok) {
-      setStaff(r.data.staff ?? []);
-      setRoles(r.data.roles ?? roles);
+    if (!r.ok) {
+      throw new Error(r.data.error ?? `Falha ao carregar equipe (HTTP ${r.status})`);
     }
-  }, [roles]);
+    setStaff(r.data.staff ?? []);
+    setRoles(r.data.roles ?? ["player", "moderator", "admin"]);
+  }, []);
 
   const loadChat = useCallback(async () => {
     const r = await adminCall({ action: "list_chat", limit: 50 });
-    if (r.ok) setChat(r.data.messages ?? []);
+    if (!r.ok) {
+      throw new Error(r.data.error ?? `Falha ao carregar chat (HTTP ${r.status})`);
+    }
+    setChat(r.data.messages ?? []);
   }, []);
 
   useEffect(() => {
@@ -87,7 +92,13 @@ export default function AdminPage() {
     (async () => {
       try {
         const res = await api("/api/auth", { credentials: "same-origin" });
-        if (!res.ok) return;
+        if (!res.ok) {
+          throw new Error(
+            res.status === 401
+              ? "Sessão não encontrada. Volte ao jogo e faça login novamente."
+              : `Falha ao validar sessão (HTTP ${res.status}).`
+          );
+        }
         const data = await res.json();
         if (cancelled) return;
 
@@ -95,8 +106,16 @@ export default function AdminPage() {
         setRole(r);
         setUsername(data.user?.username ?? "");
 
-        if (r === "admin") await loadStaff();
-        if (r === "admin" || r === "moderator") await loadChat();
+        const loads: Promise<void>[] = [];
+        if (r === "admin") loads.push(loadStaff());
+        if (r === "admin" || r === "moderator") loads.push(loadChat());
+        await Promise.all(loads);
+      } catch (err) {
+        if (!cancelled) {
+          setLoadError(
+            err instanceof Error ? err.message : "Falha ao carregar o painel."
+          );
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -154,6 +173,12 @@ export default function AdminPage() {
         {feedback && (
           <div className="border-2 border-slate-700 bg-slate-900 px-4 py-2 font-['VT323'] text-xl text-amber-300">
             {feedback}
+          </div>
+        )}
+
+        {loadError && (
+          <div className="border-2 border-rose-600 bg-rose-950/40 px-4 py-3 font-['VT323'] text-xl text-rose-300">
+            ✗ {loadError}
           </div>
         )}
 

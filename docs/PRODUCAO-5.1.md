@@ -184,3 +184,13 @@ Antes da criação do staging, a aplicação foi preparada para o Supabase/Verce
 
 Validação local: lint, typecheck, 87 testes unitários, build de 14 rotas e audit
 sem vulnerabilidades. Próximo bloqueio: criação manual do Supabase staging.
+
+### Correção do painel Admin durante o smoke test
+
+O Editor funcionava, mas `/admin` permanecia carregando porque `loadStaff`
+tinha `roles` como dependência e chamava `setRoles`. Cada resposta criava novo
+array, recriava o callback e disparava novamente o `useEffect`, formando um
+loop de requests até o rate limit. A dependência circular foi removida, equipe
+e chat carregam em paralelo e falhas de sessão/API agora são exibidas na tela.
+A autorização continua exclusivamente no servidor e os testes existentes de
+papéis permanecem aprovados.

@@ -436,11 +436,16 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 Em andamento. O projeto Supabase staging foi criado em São Paulo no plano Free.
 O código separa `DATABASE_URL` (runtime/Session Pooler) de
 `DIRECT_DATABASE_URL` (migrations), limita o pool serverless e valida TLS por
-padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi
-validado localmente: 11 tabelas, 4 migrations no journal, RLS nas 11 tabelas e
-`db:migrate` posterior sem reaplicação. Aguardando execução guiada desse script
-no SQL Editor do staging. Depois será configurada a Vercel e serão executados
-os smoke tests. Plano: `docs/PRODUCAO-5.1.md`.
+padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi aplicado:
+11 tabelas, 4 migrations no journal e RLS nas 11 tabelas. Vercel está conectada
+ao Session Pooler 5432 por parâmetros separados e CA validada; health, mapas,
+cadastro, cookie HttpOnly, persistência e logout passaram no smoke test.
+
+Correção em validação: o painel Admin entrava em loop porque `loadStaff`
+dependia do estado `roles` e também atualizava esse estado, recriando o callback
+e o `useEffect` indefinidamente até o rate limit. Dependência circular removida
+e erros de carga agora aparecem na UI. Aguardando reteste do painel no staging.
+Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
