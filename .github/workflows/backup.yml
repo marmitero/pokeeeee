@@ -1,0 +1,117 @@
+name: Encrypted staging backup
+
+on:
+  schedule:
+    # 04:00 UTC = 01:00 em São Paulo; roda depois da manutenção diária.
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: staging-database-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup-and-verify:
+    name: Dump, restore test and encrypted artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PGHOST: ${{ secrets.STAGING_DB_HOST }}
+      PGPORT: "5432"
+      PGDATABASE: postgres
+      PGUSER: ${{ secrets.STAGING_DB_USER }}
+      PGPASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+      DB_CA_CERT: ${{ secrets.STAGING_DB_CA_CERT }}
+      BACKUP_PASSPHRASE: ${{ secrets.STAGING_BACKUP_PASSPHRASE }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in PGHOST PGUSER PGPASSWORD DB_CA_CERT BACKUP_PASSPHRASE; do
+            if [ -z "${!name:-}" ]; then
+              echo "Secret required by $name is missing" >&2
+              exit 1
+            fi
+          done
+
+      - name: Write trusted CA
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s\n' "$DB_CA_CERT" > "$RUNNER_TEMP/supabase-ca.crt"
+
+      - name: Create PostgreSQL dump through Session Pooler
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            -e PGHOST -e PGPORT -e PGDATABASE -e PGUSER -e PGPASSWORD \
+            -e PGSSLMODE=verify-full \
+            -e PGSSLROOTCERT=/certs/supabase-ca.crt \
+            -v "$RUNNER_TEMP/supabase-ca.crt:/certs/supabase-ca.crt:ro" \
+            -v "$RUNNER_TEMP:/backup" \
+            postgres:18 \
+            pg_dump --format=custom --compress=9 --no-owner --no-privileges \
+              --schema=public --schema=drizzle \
+              --file=/backup/staging.dump
+          test -s "$RUNNER_TEMP/staging.dump"
+
+      - name: Encrypt backup before artifact upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          openssl enc -aes-256-cbc -salt -pbkdf2 -iter 200000 \
+            -in "$RUNNER_TEMP/staging.dump" \
+            -out "$RUNNER_TEMP/staging-${GITHUB_RUN_ID}.dump.enc" \
+            -pass env:BACKUP_PASSPHRASE
+          test -s "$RUNNER_TEMP/staging-${GITHUB_RUN_ID}.dump.enc"
+
+      - name: Verify restoration in isolated PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run -d --name restore-db \
+            -e POSTGRES_PASSWORD=restore-test-only \
+            postgres:18
+          for attempt in {1..30}; do
+            if docker exec restore-db pg_isready -U postgres >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          docker exec restore-db pg_isready -U postgres
+          docker cp "$RUNNER_TEMP/staging.dump" restore-db:/tmp/staging.dump
+          docker exec restore-db pg_restore \
+            -U postgres -d postgres --no-owner --no-privileges \
+            /tmp/staging.dump
+
+          tables=$(docker exec restore-db psql -U postgres -d postgres -Atc \
+            "select count(*) from information_schema.tables where table_schema='public' and table_name in ('users','sessions','user_pokemon','game_maps','shop_items','gym_leaders','user_badges','pvp_battles','battles','rate_limits','chat_messages')")
+          migrations=$(docker exec restore-db psql -U postgres -d postgres -Atc \
+            "select count(*) from drizzle.__drizzle_migrations")
+          test "$tables" = "11"
+          test "$migrations" -ge "5"
+          echo "Restore verified: $tables game tables, $migrations migrations"
+
+      - name: Upload encrypted backup
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-db-${{ github.run_id }}
+          path: ${{ runner.temp }}/staging-${{ github.run_id }}.dump.enc
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Remove plaintext and secrets
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP/staging.dump" "$RUNNER_TEMP/supabase-ca.crt"
+          docker rm -f restore-db >/dev/null 2>&1 || true
