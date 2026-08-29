@@ -431,21 +431,16 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🟡 Fase 5.1-B — staging no Supabase e na Vercel
+### ⏸️ Fase 5.1-D — produção controlada
 
-Em andamento. O projeto Supabase staging foi criado em São Paulo no plano Free.
-O código separa `DATABASE_URL` (runtime/Session Pooler) de
-`DIRECT_DATABASE_URL` (migrations), limita o pool serverless e valida TLS por
-padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi aplicado:
-11 tabelas, 4 migrations no journal e RLS nas 11 tabelas. Vercel está conectada
-ao Session Pooler 5432 por parâmetros separados e CA validada; health, mapas,
-cadastro, cookie HttpOnly, persistência e logout passaram no smoke test.
+As Fases 5.1-A/B/C estão concluídas. Staging Supabase/Vercel, TLS, cookies,
+Admin, jogo, PvP em equipes, manutenção, cron e backup criptografado com teste
+de restauração foram validados. Logs nativos bastaram; nenhum SDK externo foi
+adicionado.
 
-A Fase 5.1-B foi validada. Na 5.1-C, manutenção diária, migration `0004` e
-`CRON_SECRET` foram aplicados e validados no staging. Como Supabase Free não
-tem backup, foi preparado workflow diário de dump criptografado, teste de
-restauração isolado e artifact de 14 dias. Aguardando cadastro guiado dos cinco
-GitHub Secrets e primeira execução manual. Plano: `docs/PRODUCAO-5.1.md`.
+Aguardar autorização do mantenedor para criar Supabase e Vercel de produção.
+Repetir o processo com novas senhas/segredos, banco vazio, lançamento gradual e
+passo a passo manual. Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
@@ -482,7 +477,9 @@ GitHub Secrets e primeira execução manual. Plano: `docs/PRODUCAO-5.1.md`.
 | 2026-08-27 | **Correção 3** — colisão de código de sala PvP (bug real achado pelo CI) | ✅ Concluída e validada | commit `0080c84` |
 | 2026-08-29 | **Fase 5.1.1** — baseline e dependências | ✅ Concluída e validada | `docs/PRODUCAO-5.1.md` |
 | 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
-| 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | 🟡 Em andamento; aguardando projeto staging | — |
+| 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | ✅ Concluída e validada | Supabase + Vercel |
+| 2026-08-29 | **Fase 5.1-C** — operação, cron e backup | ✅ Concluída e validada | workflow `backup.yml` |
+| — | **Fase 5.1-D** — produção controlada | ⏸️ Aguardando autorização | — |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

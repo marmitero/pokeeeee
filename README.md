@@ -228,7 +228,7 @@ O estado completo, a última etapa aplicada e a próxima a executar estão em **
 | **2** | Motor de jogo no servidor | ✅ Concluída |
 | **5** | Infraestrutura: testes, rate limit real, painel admin, migrations | ✅ Concluída (CI pronto, inativo — ver `docs/CI.md`) |
 | **4** | PvP de verdade (turnos assíncronos) | ✅ Concluída |
-| **5.1** | Preparação para produção (segurança, Supabase e Vercel) | 🟡 5.1-A concluída; aguardando autorização para 5.1-B |
+| **5.1** | Preparação para produção (segurança, Supabase e Vercel) | 🟡 5.1-A/B/C concluídas; próxima: produção controlada |
 | **6** | Conteúdo e mundo (balanceamento, evoluções, Arena ranqueada) | ⬜ Depois da 5.1 |
 
 > A ordem é por **dependência**, não numérica: não adicione conteúdo novo antes da Fase 1. O motor de combate ainda não valida nada no servidor.

@@ -237,3 +237,12 @@ dump plaintext em PostgreSQL 18 isolado e exige 11 tabelas e pelo menos 5
 migrations; só então publica o arquivo cifrado como artifact por 14 dias. O
 dump e a CA em plaintext são removidos sempre. Cinco GitHub Actions Secrets são
 necessários. Nenhuma chave da Data API é usada.
+
+### Validação final da 5.1-C
+
+Execução GitHub Actions `33263808649`: job completo com sucesso. As etapas de
+dump, criptografia, restauração isolada, verificação e upload passaram; como os
+comandos `test` exigem 11 tabelas e ao menos 5 migrations, sucesso da etapa
+confirma ambos. Artifact `staging-db-33263808649` criado com 56.970 bytes,
+criptografado (`.dump.enc`) e expiração em 2026-09-12. Supabase Free não oferece
+backup, PITR ou restore; nenhuma contratação foi feita.
