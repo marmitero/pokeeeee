@@ -441,10 +441,11 @@ padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi apli
 ao Session Pooler 5432 por parâmetros separados e CA validada; health, mapas,
 cadastro, cookie HttpOnly, persistência e logout passaram no smoke test.
 
-Painel Admin corrigido e validado. Duas correções finais aguardam reteste: o
-botão PVP agora abre o `PvpLobby` real (a modal legada não enviava `pokemonId`)
-e o palco exclusivo do ginásio foi invertido para oponente à direita/jogador à
-esquerda, sem alterar batalhas selvagens. Plano: `docs/PRODUCAO-5.1.md`.
+Painel Admin, entrada PvP e orientação do ginásio validados no staging. Em
+validação: PvP com seleção manual de 1–3 integrantes, troca forçada quando o
+ativo desmaia, tela final de vitória/derrota e revanche com aceite dos dois e
+cura total do time selecionado. 54 testes de integração passam. Plano:
+`docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 

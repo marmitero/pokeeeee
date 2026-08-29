@@ -39,7 +39,11 @@ interface BattleView {
   opponentCommitted: boolean;
   youCommitted: boolean;
   yourNeedsSwitch: boolean;
+  yourActivePokemonId: number;
   winnerId: number | null;
+  youWon: boolean;
+  youRequestedRematch: boolean;
+  opponentRequestedRematch: boolean;
   log: string[];
   version: number;
   party: Array<{ id: number; name: string; pokedexId: number; level: number; hp: number; maxHp: number }>;
@@ -64,6 +68,7 @@ export function PvpArena({
   const [error, setError] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   const versionRef = useRef(0);
+  const finishedRef = useRef(false);
 
   const load = useCallback(
     async (
@@ -90,13 +95,20 @@ export function PvpArena({
 
       const next = data.battle as BattleView;
       versionRef.current = next.version;
+      finishedRef.current = next.status === "FINISHED" || next.status === "ABANDONED";
+      setError(null);
       apply(next);
     },
     [roomCode]
   );
 
   useEffect(() => {
-    const tick = () => void load(setView, setError);
+    const tick = () =>
+      void load(setView, (message) => {
+        // A tela final já tem estado suficiente; uma falha transitória de poll
+        // não deve substituir vitória/derrota por "Erro ao carregar arena".
+        if (!finishedRef.current) setError(message);
+      });
     tick();
     const timer = setInterval(tick, POLL_MS);
     return () => clearInterval(timer);
@@ -120,6 +132,8 @@ export function PvpArena({
       if (data.user) onStateChange(data.user);
       if (data.battle) {
         versionRef.current = data.battle.version;
+        finishedRef.current =
+          data.battle.status === "FINISHED" || data.battle.status === "ABANDONED";
         setView(data.battle);
       }
     } catch {
@@ -179,7 +193,47 @@ export function PvpArena({
           </div>
         )}
 
-        {waiting ? (
+        {finished ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 p-10 text-center">
+            <div className="text-6xl">{view.youWon ? "🏆" : "🎖️"}</div>
+            <h2 className={`font-['Press_Start_2P'] text-lg ${view.youWon ? "text-amber-300" : "text-cyan-300"}`}>
+              {view.youWon ? "VITÓRIA!" : "FIM DE BATALHA"}
+            </h2>
+            <p className="font-['VT323'] text-2xl text-slate-300">
+              {view.youWon
+                ? `Você venceu ${view.opponentUsername}!`
+                : `${view.opponentUsername} venceu desta vez.`}
+            </p>
+            <div className="max-h-28 w-full max-w-xl overflow-y-auto border-2 border-slate-700 bg-slate-950 p-3 text-left font-['VT323'] text-lg text-amber-300">
+              {view.log.slice(-5).map((line, index) => <div key={index}>▸ {line}</div>)}
+            </div>
+            {view.youRequestedRematch && !view.opponentRequestedRematch && (
+              <p className="animate-pulse font-['Press_Start_2P'] text-[9px] text-cyan-300">
+                AGUARDANDO O OPONENTE ACEITAR A REVANCHE...
+              </p>
+            )}
+            {view.opponentRequestedRematch && !view.youRequestedRematch && (
+              <p className="font-['VT323'] text-xl text-emerald-300">
+                Seu oponente pediu revanche!
+              </p>
+            )}
+            <div className="flex flex-wrap justify-center gap-3">
+              <button
+                disabled={busy || view.youRequestedRematch}
+                onClick={() => call({ action: "rematch" })}
+                className="border-2 border-amber-400 bg-amber-500 px-5 py-2.5 font-['Press_Start_2P'] text-[10px] text-slate-950 shadow-[3px_3px_0px_#000] disabled:opacity-50"
+              >
+                REVANCHE
+              </button>
+              <button
+                onClick={onExit}
+                className="border-2 border-slate-500 bg-slate-800 px-5 py-2.5 font-['Press_Start_2P'] text-[10px] text-slate-200"
+              >
+                SAIR
+              </button>
+            </div>
+          </div>
+        ) : waiting ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 p-10 text-center">
             <div className="text-5xl">⏳</div>
             <p className="font-['Press_Start_2P'] text-xs text-amber-400">AGUARDANDO RIVAL</p>
@@ -303,7 +357,7 @@ export function PvpArena({
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {view.party
-                        .filter((m) => m.hp > 0 && m.id !== view.you.pokedexId)
+                        .filter((m) => m.hp > 0 && m.id !== view.yourActivePokemonId)
                         .map((m) => {
                           const sp = getPokemonSpecies(m.pokedexId);
                           return (

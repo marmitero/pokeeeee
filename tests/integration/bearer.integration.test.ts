@@ -58,7 +58,7 @@ describe("Bearer token", () => {
 
     // Sala PvP
     const room = await call("/api/pvp", {
-      body: { action: "create_room", pokemonId },
+      body: { action: "create_room", pokemonIds: [pokemonId] },
     });
     expect(room.status).toBe(200);
 

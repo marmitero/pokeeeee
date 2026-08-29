@@ -31,15 +31,29 @@ async function register(username: string) {
 
 const state = (r: CallResult) => (r.body as { battle: Record<string, never> }).battle;
 
+async function addTeammate(
+  player: Awaited<ReturnType<typeof register>>,
+  partySlot: number
+): Promise<number> {
+  const [user] = await db.select().from(users).where(eq(users.username, player.username));
+  const [starter] = await db.select().from(userPokemon).where(eq(userPokemon.id, player.pokemonId));
+  const { id: _id, caughtAt: _caughtAt, ...copy } = starter;
+  const [created] = await db
+    .insert(userPokemon)
+    .values({ ...copy, userId: user.id, partySlot, isStarter: false })
+    .returning({ id: userPokemon.id });
+  return created.id;
+}
+
 async function openRoom(a: Awaited<ReturnType<typeof register>>, b: Awaited<ReturnType<typeof register>>) {
   const created = await a.c.call("/api/pvp", {
-    body: { action: "create_room", pokemonId: a.pokemonId },
+    body: { action: "create_room", pokemonIds: [a.pokemonId] },
   });
   expect(created.status, JSON.stringify(created.body)).toBe(200);
   const roomCode = (created.body as { roomCode: string }).roomCode;
 
   const joined = await b.c.call("/api/pvp", {
-    body: { action: "join_room", roomCode, pokemonId: b.pokemonId },
+    body: { action: "join_room", roomCode, pokemonIds: [b.pokemonId] },
   });
   expect(joined.status, JSON.stringify(joined.body)).toBe(200);
 
@@ -73,7 +87,7 @@ describe("PvP — salas", () => {
     const r = await a.c.call("/api/pvp", {
       body: {
         action: "create_room",
-        pokemonId: a.pokemonId,
+        pokemonIds: [a.pokemonId],
         player1Pokemon: { name: "Hack", hp: 9999, maxHp: 9999, attack: 9999, level: 99 },
       },
     });
@@ -94,13 +108,13 @@ describe("PvP — salas", () => {
     const roomCode = await openRoom(a, b);
 
     const selfJoin = await a.c.call("/api/pvp", {
-      body: { action: "join_room", roomCode, pokemonId: a.pokemonId },
+      body: { action: "join_room", roomCode, pokemonIds: [a.pokemonId] },
     });
     expect(selfJoin.status).toBe(400);
 
     const c = await register(`pf${Date.now()}`);
     const full = await c.c.call("/api/pvp", {
-      body: { action: "join_room", roomCode, pokemonId: c.pokemonId },
+      body: { action: "join_room", roomCode, pokemonIds: [c.pokemonId] },
     });
     expect(full.status).toBe(400);
   });
@@ -132,7 +146,7 @@ describe("PvP — código de sala", () => {
 
     for (let i = 0; i < 40; i++) {
       const r = await a.c.call("/api/pvp", {
-        body: { action: "create_room", pokemonId: a.pokemonId },
+        body: { action: "create_room", pokemonIds: [a.pokemonId] },
       });
       expect(r.status, `sala ${i} falhou: ${JSON.stringify(r.body)}`).toBe(200);
       codes.add((r.body as { roomCode: string }).roomCode);
@@ -146,12 +160,12 @@ describe("PvP — código de sala", () => {
     const code = `TST-${Date.now().toString(36).toUpperCase()}`;
 
     const first = await a.c.call("/api/pvp", {
-      body: { action: "create_room", roomCode: code, pokemonId: a.pokemonId },
+      body: { action: "create_room", roomCode: code, pokemonIds: [a.pokemonId] },
     });
     expect(first.status).toBe(200);
 
     const second = await a.c.call("/api/pvp", {
-      body: { action: "create_room", roomCode: code, pokemonId: a.pokemonId },
+      body: { action: "create_room", roomCode: code, pokemonIds: [a.pokemonId] },
     });
     expect(second.status).toBe(400);
   });
@@ -288,6 +302,69 @@ describe("PvP — resolução do turno", () => {
     });
 
     expect(r.status).toBe(400);
+  });
+});
+
+describe("PvP — equipes e revanche", () => {
+  it("restringe a batalha aos até 3 Pokémon escolhidos e permite troca forçada", async () => {
+    const a = await register(`ta${Date.now()}`);
+    const b = await register(`tb${Date.now()}`);
+    const backupB = await addTeammate(b, 2);
+
+    // O ativo de B entra debilitado para exercitar a troca forçada.
+    await db.update(userPokemon).set({ hp: 1 }).where(eq(userPokemon.id, b.pokemonId));
+
+    const created = await a.c.call("/api/pvp", {
+      body: { action: "create_room", pokemonIds: [a.pokemonId] },
+    });
+    const roomCode = (created.body as { roomCode: string }).roomCode;
+    const joined = await b.c.call("/api/pvp", {
+      body: { action: "join_room", roomCode, pokemonIds: [b.pokemonId, backupB] },
+    });
+    expect(joined.status).toBe(200);
+
+    await a.c.call("/api/pvp", {
+      body: { action: "submit_turn", roomCode, turnAction: { kind: "attack", moveIndex: 0 } },
+    });
+    await b.c.call("/api/pvp", {
+      body: { action: "submit_turn", roomCode, turnAction: { kind: "attack", moveIndex: 0 } },
+    });
+
+    const beforeSwitch = state(await b.c.call(`/api/pvp?roomCode=${roomCode}`)) as unknown as {
+      status: string;
+      yourNeedsSwitch: boolean;
+      party: Array<{ id: number }>;
+    };
+    expect(beforeSwitch.status).toBe("ACTIVE");
+    expect(beforeSwitch.yourNeedsSwitch).toBe(true);
+    expect(beforeSwitch.party.map((m) => m.id)).toEqual([b.pokemonId, backupB]);
+
+    const switched = await b.c.call("/api/pvp", {
+      body: { action: "switch", roomCode, userPokemonId: backupB },
+    });
+    expect(switched.status).toBe(200);
+  });
+
+  it("só reinicia com aceite dos dois e cura completamente os times", async () => {
+    const a = await register(`va${Date.now()}`);
+    const b = await register(`vb${Date.now()}`);
+    const roomCode = await openRoom(a, b);
+
+    await a.c.call("/api/pvp", { body: { action: "forfeit", roomCode } });
+    const first = await a.c.call("/api/pvp", { body: { action: "rematch", roomCode } });
+    const waiting = state(first) as unknown as { status: string; youRequestedRematch: boolean };
+    expect(waiting.status).toBe("FINISHED");
+    expect(waiting.youRequestedRematch).toBe(true);
+
+    const second = await b.c.call("/api/pvp", { body: { action: "rematch", roomCode } });
+    const restarted = state(second) as unknown as {
+      status: string;
+      turn: number;
+      you: { hp: number; maxHp: number };
+    };
+    expect(restarted.status).toBe("ACTIVE");
+    expect(restarted.turn).toBe(1);
+    expect(restarted.you.hp).toBe(restarted.you.maxHp);
   });
 });
 

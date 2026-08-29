@@ -186,12 +186,12 @@ export const pvpActionSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("create_room"),
     roomCode: roomCodeSchema.optional(),
-    pokemonId: idSchema,
+    pokemonIds: z.array(idSchema).min(1).max(3),
   }),
   z.object({
     action: z.literal("join_room"),
     roomCode: roomCodeSchema,
-    pokemonId: idSchema,
+    pokemonIds: z.array(idSchema).min(1).max(3),
   }),
   z.object({
     action: z.literal("submit_turn"),
@@ -211,6 +211,7 @@ export const pvpActionSchema = z.discriminatedUnion("action", [
     userPokemonId: idSchema,
   }),
   z.object({ action: z.literal("forfeit"), roomCode: roomCodeSchema }),
+  z.object({ action: z.literal("rematch"), roomCode: roomCodeSchema }),
   z.object({ action: z.literal("list_rooms") }),
 ]);
 

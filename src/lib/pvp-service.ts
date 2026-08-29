@@ -36,9 +36,12 @@ export interface PvpSide {
   userId: number;
   username: string;
   userPokemonId: number;
+  /** Equipe fechada no lobby: de 1 a 3 Pokémon do time. */
+  teamPokemonIds: number[];
   snapshot: SideState;
   committed: CommittedAction | null;
   needsSwitch: boolean;
+  rematchRequested: boolean;
 }
 
 export interface PvpState {
@@ -74,7 +77,11 @@ export interface PvpPublicView {
   opponentCommitted: boolean;
   youCommitted: boolean;
   yourNeedsSwitch: boolean;
+  yourActivePokemonId: number;
   winnerId: number | null;
+  youWon: boolean;
+  youRequestedRematch: boolean;
+  opponentRequestedRematch: boolean;
   log: string[];
   version: number;
   /** Sua party, para permitir troca. */
@@ -89,27 +96,35 @@ function pushLog(log: string[], ...lines: string[]): string[] {
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-async function loadSideSnapshot(userId: number, pokemonId: number): Promise<SideState> {
+async function loadTeamSelection(userId: number, pokemonIds: number[]) {
+  const ids = [...new Set(pokemonIds)];
+  if (ids.length < 1 || ids.length > 3) {
+    throw badRequest("Escolha de 1 a 3 Pokémon para o time PvP.");
+  }
+
   const rows = await db
     .select()
     .from(userPokemon)
-    .where(and(eq(userPokemon.id, pokemonId), eq(userPokemon.userId, userId)));
+    .where(and(eq(userPokemon.userId, userId), isNotNull(userPokemon.partySlot)));
+  const byId = new Map(rows.map((mon) => [mon.id, mon]));
+  const team = ids.map((id) => byId.get(id));
 
-  if (rows.length === 0) throw notFound("Pokémon não encontrado.");
-  const mon = rows[0];
-  if (mon.hp <= 0) throw badRequest("Esse Pokémon está desmaiado.");
-  if (mon.partySlot === null) throw badRequest("Esse Pokémon está no PC, não no time.");
+  if (team.some((mon) => !mon)) throw notFound("Pokémon do time não encontrado.");
+  if (team.some((mon) => mon!.hp <= 0)) {
+    throw badRequest("O time PvP não pode incluir Pokémon desmaiado.");
+  }
 
-  return sideFromUserPokemon(mon);
+  return { ids, first: sideFromUserPokemon(team[0]!) };
 }
 
-async function loadParty(userId: number) {
+async function loadParty(userId: number, teamPokemonIds?: number[]) {
   const rows = await db
     .select()
     .from(userPokemon)
     .where(and(eq(userPokemon.userId, userId), isNotNull(userPokemon.partySlot)));
 
   return rows
+    .filter((m) => !teamPokemonIds || teamPokemonIds.includes(m.id))
     .sort((a, b) => (a.partySlot ?? 99) - (b.partySlot ?? 99))
     .map((m) => ({
       id: m.id,
@@ -141,6 +156,16 @@ function sideKeyFor(state: PvpState, userId: number): SideKey {
 
 function otherKey(key: SideKey): SideKey {
   return key === "p1" ? "p2" : "p1";
+}
+
+/** Compatibilidade com salas criadas antes do PvP em equipes. */
+function normalizeState(raw: PvpState): PvpState {
+  for (const key of ["p1", "p2"] as SideKey[]) {
+    const side = raw[key];
+    side.teamPokemonIds ??= side.userPokemonId ? [side.userPokemonId] : [];
+    side.rematchRequested ??= false;
+  }
+  return raw;
 }
 
 function opponentPublic(side: PvpSide) {
@@ -187,9 +212,11 @@ export async function createRoom(
   userId: number,
   username: string,
   roomCodeInput: string | undefined,
-  pokemonId: number
+  pokemonIds: number[]
 ) {
-  const snapshot = await loadSideSnapshot(userId, pokemonId);
+  const team = await loadTeamSelection(userId, pokemonIds);
+  const pokemonId = team.ids[0];
+  const snapshot = team.first;
 
   let roomCode: string;
   if (roomCodeInput) {
@@ -216,18 +243,22 @@ export async function createRoom(
       userId,
       username,
       userPokemonId: pokemonId,
+      teamPokemonIds: team.ids,
       snapshot,
       committed: null,
       needsSwitch: false,
+      rematchRequested: false,
     },
-    // p2 é preenchido no join; o tipo exige algo, então espelha p1 com hp 0.
+    // p2 é preenchido no join; o tipo exige um placeholder enquanto espera.
     p2: {
       userId: 0,
       username: "",
       userPokemonId: 0,
+      teamPokemonIds: [],
       snapshot: { ...snapshot, hp: 0, userPokemonId: null },
       committed: null,
       needsSwitch: false,
+      rematchRequested: false,
     },
     log: [`${username} abriu a sala ${roomCode} e aguarda um rival!`],
     version: 1,
@@ -250,8 +281,10 @@ export async function createRoom(
   return room;
 }
 
-export async function joinRoom(userId: number, username: string, roomCode: string, pokemonId: number) {
-  const snapshot = await loadSideSnapshot(userId, pokemonId);
+export async function joinRoom(userId: number, username: string, roomCode: string, pokemonIds: number[]) {
+  const team = await loadTeamSelection(userId, pokemonIds);
+  const pokemonId = team.ids[0];
+  const snapshot = team.first;
 
   return db.transaction(async (tx) => {
     const room = await lockRoom(tx, roomCode);
@@ -260,14 +293,16 @@ export async function joinRoom(userId: number, username: string, roomCode: strin
     if (room.player1Id === userId) throw badRequest("Você não pode entrar na própria sala.");
     if (room.player2Id !== null) throw badRequest("Sala já está cheia.");
 
-    const state = room.battleState as unknown as PvpState;
+    const state = normalizeState(room.battleState as unknown as PvpState);
     state.p2 = {
       userId,
       username,
       userPokemonId: pokemonId,
+      teamPokemonIds: team.ids,
       snapshot,
       committed: null,
       needsSwitch: false,
+      rematchRequested: false,
     };
     state.log = pushLog(
       state.log,
@@ -300,6 +335,9 @@ export async function joinRoom(userId: number, username: string, roomCode: strin
  */
 async function applySwitch(tx: Tx, state: PvpState, key: SideKey, newPokemonId: number) {
   const side = state[key];
+  if (!side.teamPokemonIds.includes(newPokemonId)) {
+    throw forbidden("Esse Pokémon não faz parte do time escolhido para esta batalha.");
+  }
 
   const rows = await tx
     .select()
@@ -406,13 +444,13 @@ async function persistHp(tx: Tx, state: PvpState) {
 }
 
 /** Um lado ainda tem Pokémon de pé no time? */
-async function hasUsablePokemon(tx: Tx, userId: number): Promise<boolean> {
+async function hasUsablePokemon(tx: Tx, side: PvpSide): Promise<boolean> {
   const party = await tx
-    .select({ hp: userPokemon.hp })
+    .select({ id: userPokemon.id, hp: userPokemon.hp })
     .from(userPokemon)
-    .where(and(eq(userPokemon.userId, userId), isNotNull(userPokemon.partySlot)));
+    .where(and(eq(userPokemon.userId, side.userId), isNotNull(userPokemon.partySlot)));
 
-  return party.some((m) => m.hp > 0);
+  return party.some((m) => side.teamPokemonIds.includes(m.id) && m.hp > 0);
 }
 
 /**
@@ -450,7 +488,7 @@ export async function submitTurn(
 ) {
   return db.transaction(async (tx) => {
     const room = await lockRoom(tx, roomCode);
-    const state = room.battleState as unknown as PvpState;
+    const state = normalizeState(room.battleState as unknown as PvpState);
     const key = sideKeyFor(state, userId);
 
     if (room.status !== "ACTIVE") throw badRequest("Esta batalha não está ativa.");
@@ -478,8 +516,8 @@ export async function submitTurn(
       await persistHp(tx, state);
 
       // Alguém ficou sem Pokémon de pé?
-      const p1Ok = await hasUsablePokemon(tx, state.p1.userId);
-      const p2Ok = await hasUsablePokemon(tx, state.p2.userId);
+      const p1Ok = await hasUsablePokemon(tx, state.p1);
+      const p2Ok = await hasUsablePokemon(tx, state.p2);
 
       if (!p1Ok || !p2Ok) {
         status = "FINISHED";
@@ -542,7 +580,7 @@ async function awardResult(tx: Tx, winnerId: number, loserId: number, mode: PvpM
 export async function switchPokemon(userId: number, roomCode: string, pokemonId: number) {
   return db.transaction(async (tx) => {
     const room = await lockRoom(tx, roomCode);
-    const state = room.battleState as unknown as PvpState;
+    const state = normalizeState(room.battleState as unknown as PvpState);
     const key = sideKeyFor(state, userId);
 
     if (room.status !== "ACTIVE") throw badRequest("Esta batalha não está ativa.");
@@ -576,7 +614,7 @@ export async function switchPokemon(userId: number, roomCode: string, pokemonId:
 export async function forfeit(userId: number, roomCode: string) {
   return db.transaction(async (tx) => {
     const room = await lockRoom(tx, roomCode);
-    const state = room.battleState as unknown as PvpState;
+    const state = normalizeState(room.battleState as unknown as PvpState);
     const key = sideKeyFor(state, userId);
 
     if (room.status !== "ACTIVE") throw badRequest("Esta batalha não está ativa.");
@@ -607,12 +645,72 @@ export async function forfeit(userId: number, roomCode: string) {
   });
 }
 
+export async function requestRematch(userId: number, roomCode: string) {
+  return db.transaction(async (tx) => {
+    const room = await lockRoom(tx, roomCode);
+    const state = normalizeState(room.battleState as unknown as PvpState);
+    const key = sideKeyFor(state, userId);
+
+    if (room.status !== "FINISHED") {
+      throw badRequest("A revanche só pode ser solicitada após o fim da batalha.");
+    }
+
+    state[key].rematchRequested = true;
+    state.version += 1;
+
+    const accepted = state.p1.rematchRequested && state.p2.rematchRequested;
+    if (accepted) {
+      for (const sideKey of ["p1", "p2"] as SideKey[]) {
+        const side = state[sideKey];
+        for (const pokemonId of side.teamPokemonIds) {
+          await tx
+            .update(userPokemon)
+            .set({ hp: sql`${userPokemon.maxHp}` })
+            .where(and(eq(userPokemon.id, pokemonId), eq(userPokemon.userId, side.userId)));
+        }
+
+        const firstId = side.teamPokemonIds[0];
+        if (!firstId) throw notFound("Time da revanche não encontrado.");
+        const [first] = await tx
+          .select()
+          .from(userPokemon)
+          .where(and(eq(userPokemon.id, firstId), eq(userPokemon.userId, side.userId)));
+        if (!first) throw notFound("Time da revanche não encontrado.");
+
+        side.userPokemonId = first.id;
+        side.snapshot = sideFromUserPokemon(first);
+        side.committed = null;
+        side.needsSwitch = false;
+        side.rematchRequested = false;
+      }
+
+      state.turn = 1;
+      state.phase = "ACTION";
+      state.log = [`⚡ Revanche aceita! ${state.p1.username} e ${state.p2.username} voltam à arena.`];
+      state.turnStartedAt = new Date().toISOString();
+      state.version += 1;
+    }
+
+    await tx
+      .update(pvpBattles)
+      .set({
+        status: accepted ? "ACTIVE" : "FINISHED",
+        winnerId: accepted ? null : room.winnerId,
+        battleState: state as unknown as Record<string, unknown>,
+        updatedAt: new Date(),
+      })
+      .where(eq(pvpBattles.id, room.id));
+
+    return { accepted };
+  });
+}
+
 // ─── Leitura ──────────────────────────────────────────────────────────────
 
 export async function getState(userId: number, roomCode: string): Promise<PvpPublicView> {
   return db.transaction(async (tx) => {
     const room = await lockRoom(tx, roomCode);
-    const state = room.battleState as unknown as PvpState;
+    const state = normalizeState(room.battleState as unknown as PvpState);
     const key = sideKeyFor(state, userId);
 
     // Timeout preguiçoso também roda na leitura: se ninguém mais abrir a tela,
@@ -622,8 +720,8 @@ export async function getState(userId: number, roomCode: string): Promise<PvpPub
         await resolveExchange(tx, state);
         await persistHp(tx, state);
 
-        const p1Ok = await hasUsablePokemon(tx, state.p1.userId);
-        const p2Ok = await hasUsablePokemon(tx, state.p2.userId);
+        const p1Ok = await hasUsablePokemon(tx, state.p1);
+        const p2Ok = await hasUsablePokemon(tx, state.p2);
         if (!p1Ok || !p2Ok) {
           const winnerId = !p1Ok ? state.p2.userId : state.p1.userId;
           const loserId = !p1Ok ? state.p1.userId : state.p2.userId;
@@ -647,7 +745,7 @@ export async function getState(userId: number, roomCode: string): Promise<PvpPub
 
     const me = state[key];
     const foe = state[otherKey(key)];
-    const party = await loadParty(userId);
+    const party = await loadParty(userId, me.teamPokemonIds);
 
     return {
       roomCode,
@@ -662,7 +760,11 @@ export async function getState(userId: number, roomCode: string): Promise<PvpPub
       opponentCommitted: foe.committed !== null,
       youCommitted: me.committed !== null,
       yourNeedsSwitch: me.needsSwitch,
+      yourActivePokemonId: me.userPokemonId,
       winnerId: room.winnerId,
+      youWon: room.winnerId === userId,
+      youRequestedRematch: me.rematchRequested,
+      opponentRequestedRematch: foe.rematchRequested,
       log: state.log,
       version: state.version,
       party,

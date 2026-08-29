@@ -12,6 +12,7 @@ import {
   getState,
   joinRoom,
   listWaitingRooms,
+  requestRematch,
   submitTurn,
   switchPokemon,
 } from "@/lib/pvp-service";
@@ -97,7 +98,7 @@ export async function POST(req: Request) {
         user.id,
         user.username,
         input.roomCode,
-        input.pokemonId
+        input.pokemonIds
       );
       return NextResponse.json({ roomCode: room.roomCode, room });
     }
@@ -107,7 +108,7 @@ export async function POST(req: Request) {
         user.id,
         user.username,
         input.roomCode,
-        input.pokemonId
+        input.pokemonIds
       );
       return NextResponse.json({ roomCode: room.roomCode, room });
     }
@@ -135,6 +136,11 @@ export async function POST(req: Request) {
       const result = await forfeit(user.id, input.roomCode);
       const view = await getState(user.id, input.roomCode);
       return NextResponse.json({ winnerId: result.winnerId, battle: view });
+    }
+
+    if (input.action === "rematch") {
+      await requestRematch(user.id, input.roomCode);
+      return NextResponse.json({ battle: await getState(user.id, input.roomCode) });
     }
 
     return NextResponse.json({ error: "Ação desconhecida" }, { status: 400 });

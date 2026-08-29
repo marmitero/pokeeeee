@@ -206,3 +206,13 @@ papéis permanecem aprovados.
   inverso ao palco selvagem e à orientação dos sprites. Apenas o layout do
   `GymModal` foi invertido: oponente à direita e jogador à esquerda. Sprites e
   batalha selvagem não foram alterados.
+
+### PvP em equipes e tela final
+
+O PvP agora permite selecionar manualmente de 1 a 3 Pokémon. A seleção é
+validada no servidor e somente seus integrantes podem entrar em campo; quando o
+ativo desmaia e ainda há integrante vivo, o jogador escolhe o substituto. A
+tela final distingue vitória/derrota, oferece SAIR e REVANCHE e não é
+substituída por erro transitório de polling. A revanche exige aceite dos dois e
+cura completamente os integrantes selecionados antes de reiniciar a mesma sala.
+Salas legadas são normalizadas como times de um integrante.

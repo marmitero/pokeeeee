@@ -37,9 +37,10 @@ export function PvpLobby({
 }) {
   const [rooms, setRooms] = useState<WaitingRoom[]>([]);
   const [joinCode, setJoinCode] = useState("");
-  const [selectedId, setSelectedId] = useState<number | null>(
-    party.find((m) => m.hp > 0)?.id ?? null
-  );
+  const [selectedIds, setSelectedIds] = useState<number[]>(() => {
+    const first = party.find((m) => m.hp > 0);
+    return first ? [first.id] : [];
+  });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,8 +63,8 @@ export function PvpLobby({
   const usable = party.filter((m) => m.hp > 0);
 
   const call = async (body: Record<string, unknown>) => {
-    if (selectedId === null) {
-      setError("Escolha um Pokémon para lutar.");
+    if (selectedIds.length === 0) {
+      setError("Escolha de 1 a 3 Pokémon para lutar.");
       return;
     }
     setBusy(true);
@@ -73,7 +74,7 @@ export function PvpLobby({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ ...body, pokemonId: selectedId }),
+        body: JSON.stringify({ ...body, pokemonIds: selectedIds }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -119,7 +120,7 @@ export function PvpLobby({
           {/* Escolha do Pokémon */}
           <section>
             <h3 className="mb-2 border-b-2 border-slate-800 pb-1 font-['Press_Start_2P'] text-[9px] text-amber-400">
-              1. ESCOLHA SEU POKÉMON
+              1. ESCOLHA SEU TIME (1–3)
             </h3>
             {usable.length === 0 ? (
               <p className="font-['VT323'] text-xl text-rose-300">
@@ -129,11 +130,19 @@ export function PvpLobby({
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                 {usable.map((m) => {
                   const sp = getPokemonSpecies(m.pokedexId);
-                  const active = selectedId === m.id;
+                  const active = selectedIds.includes(m.id);
                   return (
                     <button
                       key={m.id}
-                      onClick={() => setSelectedId(m.id)}
+                      onClick={() =>
+                        setSelectedIds((current) =>
+                          current.includes(m.id)
+                            ? current.filter((id) => id !== m.id)
+                            : current.length < 3
+                              ? [...current, m.id]
+                              : current
+                        )
+                      }
                       className={`flex items-center gap-2 border-2 px-2 py-2 text-left transition ${
                         active
                           ? "border-amber-400 bg-amber-500/15"
@@ -161,7 +170,7 @@ export function PvpLobby({
             </h3>
             <div className="flex flex-wrap gap-2">
               <button
-                disabled={busy || usable.length === 0}
+                disabled={busy || selectedIds.length === 0}
                 onClick={() => call({ action: "create_room" })}
                 className="border-2 border-amber-400 bg-amber-500 px-4 py-2 font-['Press_Start_2P'] text-[10px] text-slate-950 shadow-[3px_3px_0px_#000] hover:brightness-110 disabled:opacity-40"
               >
@@ -176,7 +185,7 @@ export function PvpLobby({
                   className="min-w-0 flex-1 border-2 border-slate-700 bg-slate-950 px-3 py-2 font-['IBM_Plex_Mono'] text-sm text-amber-300 outline-none focus:border-amber-400"
                 />
                 <button
-                  disabled={busy || !joinCode || usable.length === 0}
+                  disabled={busy || !joinCode || selectedIds.length === 0}
                   onClick={() => call({ action: "join_room", roomCode: joinCode })}
                   className="border-2 border-cyan-400 bg-cyan-950 px-4 py-2 font-['Press_Start_2P'] text-[10px] text-cyan-300 hover:bg-cyan-900 disabled:opacity-40"
                 >
@@ -205,7 +214,7 @@ export function PvpLobby({
                       <span className="ml-2 text-slate-500">de {r.player1Username}</span>
                     </span>
                     <button
-                      disabled={busy || usable.length === 0}
+                      disabled={busy || selectedIds.length === 0}
                       onClick={() => call({ action: "join_room", roomCode: r.roomCode })}
                       className="border-2 border-cyan-500 bg-cyan-950/60 px-3 py-1 font-['Press_Start_2P'] text-[8px] text-cyan-300 hover:bg-cyan-900 disabled:opacity-40"
                     >
