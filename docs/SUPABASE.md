@@ -46,6 +46,8 @@ nunca use o Transaction Pooler 6543 neste projeto.
 - Nunca usar prefixo `NEXT_PUBLIC_` em segredo.
 - Nunca expor senha do banco ou chave `service_role` no navegador.
 - TLS e validação de certificado permanecem habilitados.
+- A CA de cada projeto é armazenada como segredo `DATABASE_CA_CERT` na Vercel;
+  nunca é necessário definir `NODE_TLS_REJECT_UNAUTHORIZED=0`.
 - Staging e produção usam senhas diferentes.
 - Aplicar somente migrations versionadas: `npm run db:migrate`.
 - O runtime deve usar papel de privilégio mínimo quando essa etapa for criada.
@@ -57,6 +59,7 @@ nunca use o Transaction Pooler 6543 neste projeto.
 DATABASE_URL=<Session Pooler 5432>
 DATABASE_SSL=true
 DATABASE_SSL_REJECT_UNAUTHORIZED=true
+DATABASE_CA_CERT=<conteúdo PEM da CA do projeto>
 DATABASE_POOL_MAX=3
 DATABASE_CONNECTION_TIMEOUT_MS=10000
 DATABASE_IDLE_TIMEOUT_MS=30000

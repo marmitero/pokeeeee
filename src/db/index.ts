@@ -52,12 +52,20 @@ const globalForDb = globalThis as typeof globalThis & {
   __delugeRpgPool?: Pool;
 };
 
+function databaseCaCertificate(): string | undefined {
+  const value = process.env.DATABASE_CA_CERT?.trim();
+  if (!value) return undefined;
+  // A Vercel pode preservar quebras reais ou armazená-las como "\\n".
+  return value.replace(/\\n/g, "\n");
+}
+
 const ssl = shouldUseSsl(databaseUrl)
   ? {
-      // Certificados devem ser validados por padrão. O escape existe apenas
-      // para diagnóstico de ambientes legados e nunca deve ser usado na Vercel.
+      // O Session Pooler apresenta uma cadeia assinada pela CA do projeto.
+      // Fornecer essa CA mantém verificação forte sem aceitar self-signed.
       rejectUnauthorized:
         process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false",
+      ca: databaseCaCertificate(),
     }
   : undefined;
 
