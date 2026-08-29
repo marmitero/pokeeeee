@@ -15,17 +15,21 @@ Nunca aponte Preview ou testes para produção.
 
 ## Duas conexões, duas finalidades
 
-### `DATABASE_URL` — runtime
+### Runtime — parâmetros separados
 
-Na Vercel, use o **Session Pooler**, porta **5432**. Ele oferece IPv4 e reutiliza
-conexões sem as limitações do Transaction Pooler. O pool local do app fica
-limitado a três conexões por instância em produção.
-
-Formato exibido pelo painel (pode variar por região):
+Na Vercel, use os parâmetros exibidos em **Session Pooler → View parameters**,
+porta **5432**. Parâmetros separados evitam erros de URL encoding na senha:
 
 ```text
-postgresql://postgres.PROJECT_REF:SENHA@REGIAO.pooler.supabase.com:5432/postgres
+DATABASE_HOST=<host do Session Pooler>
+DATABASE_PORT=5432
+DATABASE_NAME=postgres
+DATABASE_USER=postgres.PROJECT_REF
+DATABASE_PASSWORD=<senha do banco>
 ```
+
+Esses parâmetros têm precedência sobre `DATABASE_URL`. O pool local do app fica
+limitado a três conexões por instância em produção.
 
 ### `DIRECT_DATABASE_URL` — migrations
 
@@ -56,7 +60,11 @@ nunca use o Transaction Pooler 6543 neste projeto.
 ## Variáveis da Vercel
 
 ```text
-DATABASE_URL=<Session Pooler 5432>
+DATABASE_HOST=<host do Session Pooler>
+DATABASE_PORT=5432
+DATABASE_NAME=postgres
+DATABASE_USER=postgres.PROJECT_REF
+DATABASE_PASSWORD=<senha do banco>
 DATABASE_SSL=true
 DATABASE_SSL_REJECT_UNAUTHORIZED=true
 DATABASE_CA_CERT=<conteúdo PEM da CA do projeto>
