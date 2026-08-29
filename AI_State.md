@@ -441,12 +441,11 @@ padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi apli
 ao Session Pooler 5432 por parâmetros separados e CA validada; health, mapas,
 cadastro, cookie HttpOnly, persistência e logout passaram no smoke test.
 
-A Fase 5.1-B foi validada no staging, incluindo Admin, PvP em equipes e
-revanche. A Fase 5.1-C está em andamento: manutenção diária protegida por
-`CRON_SECRET`, migration `0004` para salas ABANDONED e retenção de dados
-efêmeros. Validação local: 87 testes unitários e 56 de integração. Aguardando o
-mantenedor aplicar `docs/supabase-staging-0004.sql` e configurar o segredo do
-cron na Vercel. Plano: `docs/PRODUCAO-5.1.md`.
+A Fase 5.1-B foi validada. Na 5.1-C, manutenção diária, migration `0004` e
+`CRON_SECRET` foram aplicados e validados no staging. Como Supabase Free não
+tem backup, foi preparado workflow diário de dump criptografado, teste de
+restauração isolado e artifact de 14 dias. Aguardando cadastro guiado dos cinco
+GitHub Secrets e primeira execução manual. Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 

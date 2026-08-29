@@ -226,3 +226,14 @@ ABANDONED, encerra batalhas PvE ACTIVE antigas como FLED e remove chat com mais
 de 90 dias. Não toca em usuários, Pokémon, inventário, mapas, insígnias ou
 resultados concluídos. Foram adicionados testes de autorização e preservação do
 usuário. A migration `0004` amplia o domínio de status PvP.
+
+### Backup gratuito e criptografado
+
+Como o Supabase Free não oferece backups, o workflow
+`.github/workflows/backup.yml` gera diariamente um `pg_dump` dos schemas
+`public` e `drizzle` via Session Pooler. Antes de qualquer upload, o dump é
+criptografado com AES-256-CBC/PBKDF2 (200 mil iterações). O workflow restaura o
+dump plaintext em PostgreSQL 18 isolado e exige 11 tabelas e pelo menos 5
+migrations; só então publica o arquivo cifrado como artifact por 14 dias. O
+dump e a CA em plaintext são removidos sempre. Cinco GitHub Actions Secrets são
+necessários. Nenhuma chave da Data API é usada.
