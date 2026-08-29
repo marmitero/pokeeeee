@@ -71,6 +71,13 @@ nunca deve ser pública.
 
 ## Aplicar e validar
 
+No primeiro staging vazio, execute `docs/supabase-staging-bootstrap.sql` pelo
+SQL Editor. O script é transacional, recusa sobrescrever tabelas existentes,
+habilita RLS sem policies públicas e registra as quatro migrations no journal
+do Drizzle. O resultado esperado é `game_tables = 11` e `migrations = 4`.
+
+Nas migrations futuras, use a conexão direta no ambiente administrativo:
+
 ```bash
 DIRECT_DATABASE_URL="..." npm run db:migrate
 ```

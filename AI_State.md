@@ -433,11 +433,14 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 
 ### 🟡 Fase 5.1-B — staging no Supabase e na Vercel
 
-Em andamento. O código já separa `DATABASE_URL` (runtime/Session Pooler) de
+Em andamento. O projeto Supabase staging foi criado em São Paulo no plano Free.
+O código separa `DATABASE_URL` (runtime/Session Pooler) de
 `DIRECT_DATABASE_URL` (migrations), limita o pool serverless e valida TLS por
-padrão. Aguardando o mantenedor criar o projeto Supabase de staging seguindo o
-passo a passo fornecido. Depois serão aplicadas as migrations, configurada a
-Vercel e executados os smoke tests. Plano: `docs/PRODUCAO-5.1.md`.
+padrão. O bootstrap transacional `docs/supabase-staging-bootstrap.sql` foi
+validado localmente: 11 tabelas, 4 migrations no journal, RLS nas 11 tabelas e
+`db:migrate` posterior sem reaplicação. Aguardando execução guiada desse script
+no SQL Editor do staging. Depois será configurada a Vercel e serão executados
+os smoke tests. Plano: `docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
