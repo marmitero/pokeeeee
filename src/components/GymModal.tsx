@@ -276,7 +276,7 @@ export function GymModal({
         {/* FIGHTING */}
         {phase === "fighting" && opponent && player && opponentSpecies && playerSpecies && (
           <div className="flex flex-1 flex-col">
-            <div className="relative flex h-52 justify-between bg-[radial-gradient(ellipse_at_top,_#1e293b,_#0f172a)] p-5">
+            <div className="relative flex h-52 flex-row-reverse justify-between bg-[radial-gradient(ellipse_at_top,_#1e293b,_#0f172a)] p-5">
               {/* Oponente */}
               <div className="flex flex-col items-start justify-start">
                 <div className="border-2 border-slate-600 bg-slate-950/90 px-3 py-1.5">

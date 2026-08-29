@@ -76,8 +76,6 @@ export function BattleArenaModal({
   const [loading, setLoading] = useState(battleId !== null);
   const [chatInput, setChatInput] = useState("");
   const [chatMessages, setChatMessages] = useState<ArenaChatMessage[]>([]);
-  const [pvpRoomCode, setPvpRoomCode] = useState("ARENA-DELUGE-01");
-  const [roomMsg, setRoomMsg] = useState<string | null>(null);
 
   // Chat global (B11): busca ao abrir + polling.
   useEffect(() => {
@@ -190,27 +188,6 @@ export function BattleArenaModal({
       }
     } catch {
       // ignore
-    }
-  };
-
-  const createRoom = async () => {
-    retroSfx.playCatchSuccess();
-    setRoomMsg(null);
-    try {
-      const res = await api("/api/pvp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ action: "create_room", roomCode: pvpRoomCode }),
-      });
-      const data = await res.json();
-      setRoomMsg(
-        res.ok
-          ? `Sala ${data.battle?.roomCode ?? pvpRoomCode} aberta. A luta PvP real chega na Fase 4.`
-          : (data.error ?? "Não foi possível abrir a sala.")
-      );
-    } catch {
-      setRoomMsg("Falha de rede ao abrir a sala.");
     }
   };
 
@@ -413,7 +390,7 @@ export function BattleArenaModal({
           </>
         )}
 
-        {/* Chat global + sala PvP */}
+        {/* Chat global; criação de sala vive exclusivamente no PvpLobby. */}
         <div className="border-t-2 border-slate-800 bg-slate-950 px-5 py-3">
           <div className="mb-2 max-h-20 space-y-0.5 overflow-y-auto font-['VT323'] text-base text-slate-300">
             {chatMessages.length === 0 ? (
@@ -429,26 +406,8 @@ export function BattleArenaModal({
             )}
           </div>
 
-          {roomMsg && <p className="mb-2 font-['VT323'] text-base text-cyan-300">{roomMsg}</p>}
-
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={pvpRoomCode}
-                onChange={(e) => setPvpRoomCode(e.target.value.toUpperCase())}
-                placeholder="CÓDIGO DA SALA"
-                className="border border-slate-700 bg-slate-900 px-2.5 py-1 font-['IBM_Plex_Mono'] text-xs text-amber-300"
-              />
-              <button
-                onClick={createRoom}
-                className="border-2 border-cyan-400 bg-cyan-600/30 px-3 py-1 font-['Press_Start_2P'] text-[9px] text-cyan-300 hover:bg-cyan-600/50"
-              >
-                + CRIAR SALA PVP
-              </button>
-            </div>
-
-            <form onSubmit={sendChat} className="flex max-w-md flex-1 items-center gap-2">
+          <div className="flex justify-end">
+            <form onSubmit={sendChat} className="flex w-full max-w-md items-center gap-2">
               <input
                 type="text"
                 value={chatInput}

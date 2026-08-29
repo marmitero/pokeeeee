@@ -194,3 +194,15 @@ loop de requests até o rate limit. A dependência circular foi removida, equipe
 e chat carregam em paralelo e falhas de sessão/API agora são exibidas na tela.
 A autorização continua exclusivamente no servidor e os testes existentes de
 papéis permanecem aprovados.
+
+### Correções finais do smoke test da 5.1-B
+
+- O botão PVP ainda abria a modal legada de batalha, cuja criação de sala não
+  enviava `pokemonId`; a API corretamente respondia "Dados inválidos". O botão
+  agora abre `PvpLobby`, fluxo da Fase 4 que exige seleção e envia somente o ID.
+  Os controles legados de sala foram removidos da batalha selvagem, preservando
+  seu motor e chat.
+- O palco do ginásio posicionava o oponente à esquerda e o jogador à direita,
+  inverso ao palco selvagem e à orientação dos sprites. Apenas o layout do
+  `GymModal` foi invertido: oponente à direita e jogador à esquerda. Sprites e
+  batalha selvagem não foram alterados.

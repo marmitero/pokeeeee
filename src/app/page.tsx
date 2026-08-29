@@ -542,7 +542,7 @@ export default function DelugeRPGPage() {
                 <Map className="h-3.5 w-3.5" /> EDITOR
               </button>
             )}
-            <button onClick={() => { retroSfx.playStep(); setBattleState({ active: true, battleId: null }); }}
+            <button onClick={() => { retroSfx.playStep(); setPvpLobby(true); }}
               className="flex items-center gap-1 border-2 border-rose-500 bg-gradient-to-r from-rose-600 to-amber-600 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-white shadow-[2px_2px_0px_#000] hover:brightness-110">
               <Swords className="h-3.5 w-3.5" /> PVP
             </button>
