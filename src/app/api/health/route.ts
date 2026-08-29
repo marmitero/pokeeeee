@@ -1,4 +1,4 @@
-import { db } from "@/db";
+import { db, databaseConfigurationDiagnostics } from "@/db";
 import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +8,15 @@ export async function GET() {
     await db.execute(sql`select 1`);
     return Response.json({ ok: true });
   } catch {
-    return Response.json({ ok: false }, { status: 500 });
+    // Diagnóstico sem host, usuário, senha ou certificado. É opt-in e deve
+    // existir apenas no projeto Vercel de staging.
+    const diagnostics =
+      process.env.APP_ENV === "staging"
+        ? databaseConfigurationDiagnostics()
+        : undefined;
+    return Response.json(
+      { ok: false, ...(diagnostics ? { diagnostics } : {}) },
+      { status: 500 }
+    );
   }
 }

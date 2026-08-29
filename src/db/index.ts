@@ -92,6 +92,26 @@ const connection: PoolConfig = hasSeparateParameters
     }
   : { connectionString: databaseUrl! };
 
+/** Diagnóstico deliberadamente sem valores ou segredos, usado só no staging. */
+export function databaseConfigurationDiagnostics() {
+  return {
+    mode: hasSeparateParameters ? "separate_parameters" : "connection_string",
+    hostIsSupabasePooler:
+      Boolean(databaseHost) && databaseHost!.endsWith(".pooler.supabase.com"),
+    port,
+    databaseIsPostgres: databaseName === "postgres",
+    userLooksLikeSessionPooler:
+      Boolean(databaseUser) && /^postgres\.[a-z0-9]+$/i.test(databaseUser!),
+    userIsPlainPostgres: databaseUser === "postgres",
+    passwordSet: Boolean(databasePassword),
+    passwordHasOuterWhitespace:
+      Boolean(databasePassword) && databasePassword !== databasePassword!.trim(),
+    caConfigured: Boolean(databaseCaCertificate()),
+    certificateVerification:
+      process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false",
+  };
+}
+
 const globalForDb = globalThis as typeof globalThis & {
   __delugeRpgPool?: Pool;
 };
