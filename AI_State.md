@@ -316,8 +316,9 @@ ajustar credenciais/usuário do Session Pooler na Vercel. Depois disso,
 
 Smoke de produção autenticado passou no navegador do mantenedor: mapa, batalha
 selvagem, ginásio, loja, PvP e admin. Endpoints públicos também foram checados
-pelo agente. Pendente antes de fechar a 5.1-D: testar `/api/maintenance` com
-`CRON_SECRET` validado; falta ativar backup criptografado de produção.
+pelo agente. `/api/maintenance` com `CRON_SECRET` foi validado após rotação do
+segredo e redeploy. O papel `catchbound_backup` foi validado e a senha foi
+salva fora do chat. Falta ativar e executar o backup criptografado de produção.
 
 Foram preparados:
 
@@ -517,14 +518,11 @@ com Supabase de produção validado, runtime mínimo `catchbound_runtime`, healt
 ok, smoke manual/autenticado aprovado e `/api/maintenance` validado com
 `CRON_SECRET`. Antes de marcar a 5.1-D como concluída:
 
-1. executar `docs/supabase-production-backup-role.sql` no Supabase produção; se
-   o papel já existir ou a senha tiver sido perdida, usar
-   `docs/supabase-production-backup-rotate-password.sql`; guardar a senha de
-   `catchbound_backup`;
-2. cadastrar os GitHub Actions Secrets de produção;
-3. copiar `docs/backup-production.yml` para
-   `.github/workflows/backup-production.yml` por ação humana;
-4. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
+1. cadastrar os GitHub Actions Secrets de produção;
+2. copiar `docs/backup-production.yml` para
+   `.github/workflows/backup-production.yml` por ação humana; o workflow já
+   cria papéis placeholder no restore isolado para policies/default privileges;
+3. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
 
 Depois disso, atualizar este arquivo marcando 5.1-D como concluída e iniciar a
 Fase 6 apenas após nova leitura deste estado.

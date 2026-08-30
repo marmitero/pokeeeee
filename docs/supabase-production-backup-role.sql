@@ -84,23 +84,19 @@ CREATE POLICY catchbound_backup_select ON public.chat_messages
 
 COMMIT;
 
--- Copie apenas este valor para o gerenciador de senhas e para o GitHub Secret
--- PRODUCTION_DB_PASSWORD. Nunca envie em chat.
-SELECT password AS catchbound_backup_password
-FROM catchbound_backup_secret;
-
--- Resultado esperado: all flags false, 11 policies e grants em public/drizzle.
+-- O SQL Editor do Supabase pode exibir apenas o ÚLTIMO result set. Por isso a
+-- senha e todas as validações saem em uma única tabela final.
+-- Copie apenas `catchbound_backup_password` para o gerenciador de senhas e para
+-- o GitHub Secret PRODUCTION_DB_PASSWORD. Nunca envie em chat.
+-- Resultado esperado: all flags false, 11 policies/grants, escrita/DDL false.
 SELECT
-  rolname,
-  rolsuper,
-  rolcreatedb,
-  rolcreaterole,
-  rolreplication,
-  rolbypassrls
-FROM pg_roles
-WHERE rolname = 'catchbound_backup';
-
-SELECT
+  (SELECT password FROM catchbound_backup_secret) AS catchbound_backup_password,
+  (SELECT rolname FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolname,
+  (SELECT rolsuper FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolsuper,
+  (SELECT rolcreatedb FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolcreatedb,
+  (SELECT rolcreaterole FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolcreaterole,
+  (SELECT rolreplication FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolreplication,
+  (SELECT rolbypassrls FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolbypassrls,
   (SELECT count(*)
    FROM pg_policies
    WHERE schemaname = 'public'
@@ -114,4 +110,10 @@ SELECT
    FROM information_schema.table_privileges
    WHERE grantee = 'catchbound_backup'
      AND table_schema = 'drizzle'
-     AND privilege_type = 'SELECT') AS drizzle_select_grants;
+     AND privilege_type = 'SELECT') AS drizzle_select_grants,
+  (SELECT count(*)
+   FROM information_schema.table_privileges
+   WHERE grantee = 'catchbound_backup'
+     AND table_schema IN ('public', 'drizzle')
+     AND privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE')) AS write_grants,
+  has_schema_privilege('catchbound_backup', 'public', 'CREATE') AS can_create_in_public;

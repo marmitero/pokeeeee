@@ -92,6 +92,11 @@ jobs:
           # Removê-lo reproduz um destino realmente vazio e evita colisão no restore.
           docker exec restore-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "DROP SCHEMA public CASCADE"
+          # O dump de produção inclui RLS policies/default privileges que
+          # referenciam papéis Supabase. Criamos placeholders sem login apenas
+          # no banco isolado para o restore validar schema + dados.
+          docker exec restore-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
+            -c "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE catchbound_runtime; CREATE ROLE catchbound_backup;"
           docker cp "$RUNNER_TEMP/production.dump" restore-db:/tmp/production.dump
           docker exec restore-db pg_restore \
             -U postgres -d postgres --no-owner --no-privileges \

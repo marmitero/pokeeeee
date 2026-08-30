@@ -314,10 +314,16 @@ Foram adicionados artefatos de apoio para backup de produção:
 - `docs/backup-production.yml` é o workflow de referência para copiar para
   `.github/workflows/backup-production.yml`; ele usa `--enable-row-security`
   porque o papel de backup não possui `BYPASSRLS` e depende das policies
-  somente-leitura explícitas.
+  somente-leitura explícitas; no restore isolado cria papéis placeholder para
+  as policies/default privileges do dump.
 
 A ativação exige ação manual do mantenedor porque a integração do agente da
 Arena não tem permissão GitHub `workflows` para criar/alterar arquivos em
 `.github/workflows/`. Secrets necessários no GitHub Actions:
 `PRODUCTION_DB_HOST`, `PRODUCTION_DB_USER`, `PRODUCTION_DB_PASSWORD`,
 `PRODUCTION_DB_CA_CERT` e `PRODUCTION_BACKUP_PASSPHRASE`.
+
+Validação posterior do papel de backup pelo mantenedor: senha apareceu e foi
+salva fora do chat; `catchbound_backup` não tem privilégios elevados, possui 11
+policies RLS de leitura, 11 grants SELECT em `public`, 1 grant SELECT em
+`drizzle`, 0 grants de escrita e sem CREATE no schema `public`.
