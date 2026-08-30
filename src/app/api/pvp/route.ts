@@ -1,193 +1,152 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { pvpBattles, chatMessages, users } from "@/db/schema";
 import { desc, eq } from "drizzle-orm";
+import { db } from "@/db";
+import { chatMessages, users } from "@/db/schema";
+import { requireUser } from "@/lib/session";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { pvpActionSchema } from "@/lib/validation";
+import { parse, publicUser, routeError } from "@/lib/api";
+import {
+  createRoom,
+  forfeit,
+  getState,
+  joinRoom,
+  listWaitingRooms,
+  requestRematch,
+  submitTurn,
+  switchPokemon,
+} from "@/lib/pvp-service";
 
-const LEGENDARY_CHALLENGERS = [
-  {
-    roomCode: "ARENA-RED",
-    username: "Campeão Red [Deluge Master]",
-    pokemon: {
-      name: "Charizard",
-      variant: "Metallic",
-      level: 42,
-      hp: 185,
-      maxHp: 185,
-      pokedexId: 6,
-      sprite:
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif",
-    },
-  },
-  {
-    roomCode: "ARENA-CYNTHIA",
-    username: "Cynthia [Mystic Garchomp]",
-    pokemon: {
-      name: "Lucario",
-      variant: "Mystic",
-      level: 45,
-      hp: 198,
-      maxHp: 198,
-      pokedexId: 448,
-      sprite:
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/448.gif",
-    },
-  },
-  {
-    roomCode: "ARENA-RAYQUAZA",
-    username: "Lance [Shiny Rayquaza]",
-    pokemon: {
-      name: "Rayquaza",
-      variant: "Shiny",
-      level: 50,
-      hp: 245,
-      maxHp: 245,
-      pokedexId: 384,
-      sprite:
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/384.gif",
-    },
-  },
-];
+/**
+ * Arena PvP e chat global (Fase 4).
+ *
+ * Substitui o modelo em que `create_room`/`join_room` gravavam a sala e paravam
+ * aí — a "batalha" nunca acontecia, e o cliente ainda mandava o Pokémon inteiro
+ * (hp/attack até 9999) para o servidor aceitar como veio.
+ *
+ * Agora:
+ *  - o Pokémon é referenciado por **id** e lido do banco (`pvp-service`);
+ *  - `submit_turn` trava a ação às cegas e a troca é resolvida no servidor
+ *    com lock de linha, então não há como resolver duas vezes;
+ *  - `GET /api/pvp?roomCode=` devolve o estado **sem** a ação do oponente.
+ *
+ * Amistoso não mexe em `users.elo` (decisão do mantenedor).
+ */
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
-    const battles = await db
-      .select()
-      .from(pvpBattles)
-      .orderBy(desc(pvpBattles.createdAt))
-      .limit(15);
+    const user = await requireUser(req);
+    const { searchParams } = new URL(req.url);
+    const roomCode = searchParams.get("roomCode");
+
+    // Estado de uma sala específica (polling).
+    if (roomCode) {
+      const view = await getState(user.id, roomCode);
+      return NextResponse.json({ battle: view });
+    }
+
+    // Sem roomCode: chat global + salas aguardando.
     const chats = await db
       .select()
       .from(chatMessages)
       .orderBy(desc(chatMessages.createdAt))
       .limit(30);
 
+    const rooms = await listWaitingRooms();
+
     return NextResponse.json({
-      battles,
-      legendaryChallengers: LEGENDARY_CHALLENGERS,
       chatMessages: chats.reverse(),
+      waitingRooms: rooms,
     });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro ao carregar PvP";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "pvp:get", "Erro ao carregar a Arena.");
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { action, userId, username, message, roomCode, player1Pokemon } =
-      body;
+    const user = await requireUser(req);
+    await enforceRateLimit(req, "pvp", 60, 60_000);
 
-    if (action === "chat") {
-      if (!message || !username) {
-        return NextResponse.json({ error: "Mensagem vazia" }, { status: 400 });
-      }
+    const input = parse(pvpActionSchema, await req.json().catch(() => ({})));
+
+    // ── CHAT ─────────────────────────────────────────────────────────────
+    if (input.action === "chat") {
       await db.insert(chatMessages).values({
-        userId: Number(userId || 1),
-        username,
-        message,
+        userId: user.id,
+        username: user.username, // da sessão: impossível se passar por outro
+        message: input.message,
         channel: "arena-global",
       });
+
       const chats = await db
         .select()
         .from(chatMessages)
         .orderBy(desc(chatMessages.createdAt))
         .limit(30);
+
       return NextResponse.json({ chatMessages: chats.reverse() });
     }
 
-    if (action === "create_room") {
-      const code =
-        roomCode ||
-        `DLG-${Math.floor(1000 + Math.random() * 9000)}`;
-
-      const [newBattle] = await db
-        .insert(pvpBattles)
-        .values({
-          roomCode: code,
-          player1Id: Number(userId),
-          player1Username: username,
-          status: "WAITING",
-          currentTurnPlayerId: Number(userId),
-          battleState: {
-            turn: 1,
-            logs: [`${username} abriu a sala ${code} e aguarda um rival!`],
-            player1Pokemon: player1Pokemon || {
-              name: "Charizard",
-              variant: "Shiny",
-              level: 15,
-              hp: 68,
-              maxHp: 68,
-            },
-          },
-        })
-        .returning();
-
-      return NextResponse.json({ battle: newBattle });
+    // ── SALAS ────────────────────────────────────────────────────────────
+    if (input.action === "list_rooms") {
+      return NextResponse.json({ waitingRooms: await listWaitingRooms() });
     }
 
-    if (action === "join_room") {
-      const existing = await db
-        .select()
-        .from(pvpBattles)
-        .where(eq(pvpBattles.roomCode, roomCode));
-      if (!existing.length) {
-        return NextResponse.json(
-          { error: "Sala PvP não encontrada" },
-          { status: 404 }
-        );
-      }
-
-      const battle = existing[0];
-      const state = (battle.battleState || {}) as {
-        logs?: string[];
-        player1Pokemon?: unknown;
-      };
-
-      const updatedLogs = [
-        ...(state.logs || []),
-        `⚡ ${username} entrou na arena e aceitou o duelo contra ${battle.player1Username}!`,
-      ];
-
-      const [updated] = await db
-        .update(pvpBattles)
-        .set({
-          player2Id: Number(userId),
-          player2Username: username,
-          status: "ACTIVE",
-          battleState: {
-            ...state,
-            player2Pokemon: player1Pokemon || {
-              name: "Gengar",
-              variant: "Mystic",
-              level: 15,
-              hp: 64,
-              maxHp: 64,
-            },
-            logs: updatedLogs,
-          },
-          updatedAt: new Date(),
-        })
-        .where(eq(pvpBattles.id, battle.id))
-        .returning();
-
-      return NextResponse.json({ battle: updated });
+    if (input.action === "create_room") {
+      const room = await createRoom(
+        user.id,
+        user.username,
+        input.roomCode,
+        input.pokemonIds
+      );
+      return NextResponse.json({ roomCode: room.roomCode, room });
     }
 
-    if (action === "reward_win") {
-      await db
-        .update(users)
-        .set({
-          money: 3500 + 750,
-          wins: 1,
-        })
-        .where(eq(users.id, Number(userId)));
-      return NextResponse.json({ ok: true });
+    if (input.action === "join_room") {
+      const room = await joinRoom(
+        user.id,
+        user.username,
+        input.roomCode,
+        input.pokemonIds
+      );
+      return NextResponse.json({ roomCode: room.roomCode, room });
+    }
+
+    // ── TURNO ────────────────────────────────────────────────────────────
+    if (input.action === "submit_turn") {
+      const result = await submitTurn(user.id, input.roomCode, input.turnAction);
+      const view = await getState(user.id, input.roomCode);
+      const [freshUser] = await db.select().from(users).where(eq(users.id, user.id));
+
+      return NextResponse.json({
+        status: result.status,
+        battle: view,
+        user: freshUser ? publicUser(freshUser) : null,
+      });
+    }
+
+    if (input.action === "switch") {
+      await switchPokemon(user.id, input.roomCode, input.userPokemonId);
+      const view = await getState(user.id, input.roomCode);
+      return NextResponse.json({ battle: view });
+    }
+
+    if (input.action === "forfeit") {
+      const result = await forfeit(user.id, input.roomCode);
+      const view = await getState(user.id, input.roomCode);
+      return NextResponse.json({ winnerId: result.winnerId, battle: view });
+    }
+
+    if (input.action === "rematch") {
+      await requestRematch(user.id, input.roomCode);
+      return NextResponse.json({ battle: await getState(user.id, input.roomCode) });
     }
 
     return NextResponse.json({ error: "Ação desconhecida" }, { status: 400 });
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Erro no PvP";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return routeError(err, "pvp:action", "Erro na Arena PvP.");
   }
 }
+
+export const dynamic = "force-dynamic";

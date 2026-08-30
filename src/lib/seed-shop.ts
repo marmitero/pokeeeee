@@ -1,8 +1,17 @@
 import { db } from "@/db";
 import { shopItems } from "@/db/schema";
-import { count } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 
 export async function ensureShopSeeded() {
+  // B10 (Fase 3): o "Antídoto" tinha `itemKey: "potions"` — comprar um antídoto
+  // creditava uma Poção. Não existe sistema de status (veneno/queimadura/
+  // paralisia) para ele curar, então o item foi **removido** em vez de
+  // reaproveitado. A limpeza abaixo é idempotente e cobre bancos já semeados;
+  // quando o sistema de status chegar (roadmap), o item volta com coluna própria.
+  await db
+    .delete(shopItems)
+    .where(and(eq(shopItems.name, "Antídoto"), eq(shopItems.itemKey, "potions")));
+
   const existing = await db.select({ value: count() }).from(shopItems);
   if (existing[0].value > 0) return;
 
@@ -10,7 +19,6 @@ export async function ensureShopSeeded() {
     // ─── Shop 1 – Loja Pallet (basic) ───────────────────────────
     { shopId: 1, name: "Pokébola", description: "Captura Pokémon selvagens.", category: "ball", itemKey: "pokeballs", buyPrice: 200, sellPrice: 100, iconEmoji: "🔴", isPremium: false, stock: 99 },
     { shopId: 1, name: "Poção", description: "Restaura 20 HP de um Pokémon.", category: "potion", itemKey: "potions", buyPrice: 300, sellPrice: 150, iconEmoji: "🧪", isPremium: false, stock: 99 },
-    { shopId: 1, name: "Antídoto", description: "Cura envenenamento.", category: "misc", itemKey: "potions", buyPrice: 100, sellPrice: 50, iconEmoji: "💉", isPremium: false, stock: 20 },
     { shopId: 1, name: "Reviver", description: "Revive um Pokémon com metade do HP.", category: "potion", itemKey: "revives", buyPrice: 1500, sellPrice: 750, iconEmoji: "⚡", isPremium: false, stock: 10 },
 
     // ─── Shop 2 – Loja Viridian (intermediate) ────────────────────

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
 import { TILE_DEFINITIONS, TileId } from "@/lib/tiles";
 import {
   DELUGE_VARIANTS,
@@ -11,7 +12,9 @@ import {
 import { retroSfx } from "@/lib/sound";
 import { AuthModal } from "@/components/AuthModal";
 import { WorldMapEditor, GameMapData } from "@/components/WorldMapEditor";
-import { BattleArenaModal, PlayerPokemonState, WildEncounterState } from "@/components/BattleArenaModal";
+import { BattleArenaModal } from "@/components/BattleArenaModal";
+import { PvpLobby } from "@/components/PvpLobby";
+import { PvpArena } from "@/components/PvpArena";
 import { SpritePackModal } from "@/components/SpritePackModal";
 import { PokemonBox, BoxPokemon } from "@/components/PokemonBox";
 import { ShopModal } from "@/components/ShopModal";
@@ -20,6 +23,7 @@ import {
   Map, Volume2, VolumeX, Swords, Sparkles, User,
   Heart, Compass, LogOut, Package, ShoppingBag, Shield,
 } from "lucide-react";
+import { api, clearToken } from "@/lib/api-client";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -27,6 +31,8 @@ interface UserState {
   id: number;
   username: string;
   avatarSprite: string;
+  /** "player" | "moderator" | "admin" — vem da sessão; nunca é aceito do cliente */
+  role: string;
   money: number;
   pokeballs: number;
   greatballs: number;
@@ -54,6 +60,19 @@ interface NpcDef {
   dialog: string;
 }
 
+/** Visão do time para o HUD (os dados vêm prontos do banco). */
+interface PartyView {
+  id: number;
+  pokedexId: number;
+  name: string;
+  variant: string;
+  level: number;
+  hp: number;
+  maxHp: number;
+  xp: number;
+  xpToNextLevel: number;
+}
+
 interface UserBadge {
   id: number;
   gymLeaderId: number;
@@ -61,12 +80,64 @@ interface UserBadge {
   badgeEmoji: string;
 }
 
+/** A cada quantos passos a posição é persistida (B12). */
+const SAVE_EVERY_STEPS = 10;
+
+/**
+ * Chance de um passo em tile de encontro disparar uma batalha.
+ *
+ * Continua no cliente de propósito: é só ritmo de jogo. O que importa para a
+ * segurança — espécie, variante, nível, dano, XP e captura — é decidido no
+ * servidor, e a rota tem rate limit próprio.
+ */
+const ENCOUNTER_RATE = 0.22;
+
 const GUEST_USER: UserState = {
   id: 0, username: "Treinador", avatarSprite: "red",
   money: 3000, pokeballs: 10, greatballs: 5, ultraballs: 2, masterballs: 0,
   potions: 3, superPotions: 1, maxPotions: 0, revives: 1,
   wins: 0, losses: 0, currentMapId: 1, playerX: 8, playerY: 12,
+  role: "player",
 };
+
+/**
+ * Restaura a sessão a partir do cookie `httpOnly` enviado pelo navegador.
+ *
+ * Fase 1: não existe mais token no `localStorage` — o cookie é inacessível a
+ * JavaScript, então a única forma de saber quem está logado é perguntar ao
+ * servidor (`GET /api/auth`).
+ *
+ * Vive fora do componente para que nenhum `setState` seja chamado
+ * sincronamente dentro do corpo de um `useEffect` (react-hooks/set-state-in-effect).
+ */
+async function fetchCurrentSession(
+  onSession: (user: UserState, party: BoxPokemon[]) => void,
+  onAuthRequired: () => void
+): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  try {
+    const res = await api("/api/auth", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+    });
+
+    if (!res.ok) {
+      onAuthRequired();
+      return;
+    }
+
+    const data = await res.json();
+    if (data.user) {
+      onSession(data.user, data.party || []);
+    } else {
+      onAuthRequired();
+    }
+  } catch {
+    onAuthRequired();
+  }
+}
 
 export default function DelugeRPGPage() {
   // ── Map state ──────────────────────────────────────────────────────────
@@ -85,6 +156,7 @@ export default function DelugeRPGPage() {
   const [allPokemon, setAllPokemon] = useState<BoxPokemon[]>([]);
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const sessionInitialized = useRef(false);
+  const stepCount = useRef(0);
 
   // ── Modal state ────────────────────────────────────────────────────────
   const [showAuth, setShowAuth] = useState(false);
@@ -93,51 +165,105 @@ export default function DelugeRPGPage() {
   const [showBox, setShowBox] = useState(false);
   const [shopCtx, setShopCtx] = useState<{ shopId: number; shopName: string; dialog: string } | null>(null);
   const [gymCtx, setGymCtx] = useState<{ gymLeaderId: number } | null>(null);
-  const [battleState, setBattleState] = useState<{
-    active: boolean; mode: "WILD" | "PVP"; wildTarget?: WildEncounterState;
-  }>({ active: false, mode: "WILD" });
+  // Fase 2: a batalha é criada e resolvida no servidor; aqui só guardamos o id.
+  const [battleState, setBattleState] = useState<{ active: boolean; battleId: number | null }>({
+    active: false,
+    battleId: null,
+  });
+  // PvP (Fase 4): lobby e sala ativa são estados separados do combate PvE.
+  const [pvpLobby, setPvpLobby] = useState(false);
+  const [pvpRoom, setPvpRoom] = useState<string | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
 
-  const anyModalOpen = showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || battleState.active;
+  const anyModalOpen =
+    showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx ||
+    battleState.active || pvpLobby || pvpRoom !== null;
+
+  // O Editor de Mundos mexe no mundo compartilhado: só para administradores.
+  // Escondemos a entrada na UI para o jogador não montar um mapa e levar 403.
+  const isAdmin = user.role === "admin";
+  const isStaff = user.role === "admin" || user.role === "moderator";
 
   // ── Current map ────────────────────────────────────────────────────────
   const currentMap = maps.find((m) => m.id === currentMapId) || maps[0] || null;
 
-  const party: PlayerPokemonState[] = allPokemon
+  const party: PartyView[] = allPokemon
     .filter((p) => p.partySlot !== null)
     .sort((a, b) => (a.partySlot ?? 99) - (b.partySlot ?? 99))
     .map((p) => ({
-      id: p.id, pokedexId: p.pokedexId, name: p.nickname || p.name,
-      variant: p.variant as DelugeVariant,
-      level: p.level, hp: p.hp, maxHp: p.maxHp,
-      attack: p.attack, defense: p.defense,
-      spAttack: 15, spDefense: 13, speed: p.speed,
-      move1: p.move1, move2: p.move2, move3: p.move3, move4: p.move4,
+      id: p.id,
+      pokedexId: p.pokedexId,
+      name: p.nickname || p.name,
+      variant: p.variant,
+      level: p.level,
+      hp: p.hp,
+      maxHp: p.maxHp,
+      xp: p.xp,
+      xpToNextLevel: p.xpToNextLevel,
     }));
 
   // ── Utilities ──────────────────────────────────────────────────────────
-  const showBanner = (msg: string, ms = 4000) => {
+  const showBanner = useCallback((msg: string, ms = 4000) => {
     setBanner(msg);
     if (bannerTimer.current) clearTimeout(bannerTimer.current);
     bannerTimer.current = setTimeout(() => setBanner(""), ms);
-  };
+  }, []);
 
   // ── Load maps ──────────────────────────────────────────────────────────
   const fetchMaps = useCallback(async () => {
     try {
-      const res = await fetch("/api/maps");
+      const res = await api("/api/maps");
       const d = await res.json();
       if (d.maps?.length) setMaps(d.maps);
     } catch { /* ignore */ }
   }, []);
 
   // ── Load badges ────────────────────────────────────────────────────────
-  const fetchBadges = useCallback(async (uid: number) => {
+  const fetchBadges = useCallback(async () => {
     try {
-      const res = await fetch(`/api/gym?userId=${uid}`);
+      // Sem `userId` na query: o servidor deriva o treinador da sessão.
+      const res = await api("/api/gym", { credentials: "same-origin" });
       const d = await res.json();
       setUserBadges(d.badges || []);
     } catch { /* ignore */ }
+  }, []);
+
+  // ── Apply a restored/created session ───────────────────────────────────
+  const applyLogin = useCallback(
+    (u: UserState, pokeList: BoxPokemon[]) => {
+      setUser(u);
+      setAllPokemon(pokeList);
+      setIsLoggedIn(true);
+      setCurrentMapId(u.currentMapId || 1);
+      setPlayerX(u.playerX || 8);
+      setPlayerY(u.playerY || 12);
+      fetchBadges();
+      showBanner(`★ Bem-vindo de volta, ${u.username}!`);
+    },
+    [fetchBadges, showBanner]
+  );
+
+  const requestAuth = useCallback(() => setShowAuth(true), []);
+
+  /**
+   * Recarrega usuário e time do servidor.
+   *
+   * Usado ao sair de uma batalha PvP: o dano persiste no banco (decisão da
+   * Fase 4), então o estado local precisa ser sincronizado. Não mostra banner
+   * nem força o modal de login — é só uma sincronização silenciosa.
+   */
+  const refreshSession = useCallback(async () => {
+    try {
+      const res = await api("/api/auth", { credentials: "same-origin" });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.user) {
+        setUser(data.user as UserState);
+        if (Array.isArray(data.party)) setAllPokemon(data.party as BoxPokemon[]);
+      }
+    } catch {
+      /* sincronização opcional: falhar não pode travar a UI */
+    }
   }, []);
 
   // ── Session resume on mount ────────────────────────────────────────────
@@ -145,48 +271,28 @@ export default function DelugeRPGPage() {
     if (sessionInitialized.current) return;
     sessionInitialized.current = true;
     fetchMaps();
+    void fetchCurrentSession(applyLogin, requestAuth);
+  }, [fetchMaps, applyLogin, requestAuth]);
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("deluge_token") : null;
-    if (!token) { setShowAuth(true); return; }
+  const handleLogout = useCallback(async () => {
+    // Logout de verdade: revoga a sessão no banco e limpa cookie E token.
+    try {
+      await api("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ action: "logout" }),
+      });
+    } catch { /* o estado local é limpo de qualquer forma */ }
 
-    fetch("/api/auth", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "resume", token }),
-    })
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.user) {
-          applyLogin(d.user, d.party || [], token);
-        } else {
-          localStorage.removeItem("deluge_token");
-          setShowAuth(true);
-        }
-      })
-      .catch(() => setShowAuth(true));
-  }, [fetchMaps]);
-
-  const applyLogin = (u: UserState, pokeList: BoxPokemon[], token: string) => {
-    setUser(u);
-    setAllPokemon(pokeList);
-    setIsLoggedIn(true);
-    setCurrentMapId(u.currentMapId || 1);
-    setPlayerX(u.playerX || 8);
-    setPlayerY(u.playerY || 12);
-    localStorage.setItem("deluge_token", token);
-    fetchBadges(u.id);
-    showBanner(`★ Bem-vindo de volta, ${u.username}!`);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("deluge_token");
+    clearToken();
     setIsLoggedIn(false);
     setUser(GUEST_USER);
     setAllPokemon([]);
     setUserBadges([]);
     setShowAuth(true);
     showBanner("Sessão encerrada. Até logo, Treinador!");
-  };
+  }, [showBanner]);
 
   // ── Heal party ────────────────────────────────────────────────────────
   const handleHealParty = useCallback(async () => {
@@ -195,15 +301,15 @@ export default function DelugeRPGPage() {
     showBanner("✚ Toda a equipe foi curada no Centro Pokémon!");
     if (!isLoggedIn) return;
     try {
-      const res = await fetch("/api/pokemon/heal", {
+      const res = await api("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, currentMapId, playerX, playerY }),
+        body: JSON.stringify({ currentMapId, playerX, playerY }),
       });
       const d = await res.json();
       if (d.party) setAllPokemon(d.party);
     } catch { /* ignore */ }
-  }, [isLoggedIn, user.id, currentMapId, playerX, playerY]);
+  }, [isLoggedIn, currentMapId, playerX, playerY, showBanner]);
 
   // ── NPC Interaction ───────────────────────────────────────────────────
   const handleNpcInteraction = useCallback((npc: NpcDef) => {
@@ -222,16 +328,47 @@ export default function DelugeRPGPage() {
       return;
     }
     showBanner(`💬 ${npc.name}: "${npc.dialog}"`);
-  }, [handleHealParty, isLoggedIn]);
+  }, [handleHealParty, isLoggedIn, showBanner]);
 
   // ── Movement ──────────────────────────────────────────────────────────
+  /**
+   * Pede ao servidor para sortear um encontro selvagem.
+   * O backend valida o tile contra a grade gravada do mapa.
+   */
+  const startWildEncounter = useCallback(
+    async (mapId: number, x: number, y: number) => {
+      retroSfx.playEncounterFlash();
+      try {
+        const res = await api("/api/battle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ action: "start_wild", mapId, playerX: x, playerY: y }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showBanner(`⚠️ ${data.error ?? "Não foi possível iniciar a batalha."}`);
+          return;
+        }
+        setBattleState({ active: true, battleId: data.battle.id });
+      } catch {
+        showBanner("⚠️ Falha de rede ao iniciar a batalha.");
+      }
+    },
+    [showBanner]
+  );
+
   const movePlayer = useCallback((dx: number, dy: number, dir: "up" | "down" | "left" | "right") => {
     if (anyModalOpen || !currentMap) return;
     setPlayerDir(dir);
 
     const nextX = playerX + dx;
     const nextY = playerY + dy;
-    if (nextX < 0 || nextX >= 16 || nextY < 0 || nextY >= 16) return;
+    // B12 (Fase 3): antes o limite era o literal 16, ignorando as colunas
+    // width/height que existem no banco e no tipo GameMapData.
+    const mapW = currentMap.width || 16;
+    const mapH = currentMap.height || 16;
+    if (nextX < 0 || nextX >= mapW || nextY < 0 || nextY >= mapH) return;
 
     const tileId = (currentMap.tileGrid[nextY]?.[nextX] || "grass") as TileId;
     const tileDef = TILE_DEFINITIONS[tileId] || TILE_DEFINITIONS.grass;
@@ -241,12 +378,16 @@ export default function DelugeRPGPage() {
     setPlayerX(nextX);
     setPlayerY(nextY);
 
-    // Save position periodically (only if logged in)
-    if (isLoggedIn && Math.random() < 0.15) {
-      fetch("/api/pokemon/heal", {
+    // B12 (Fase 3): antes era `Math.random() < 0.15` — 85% dos passos não eram
+    // gravados e o jogador reabria o jogo em outro lugar ao acaso. Agora salva
+    // a cada SAVE_EVERY_STEPS passos, de forma determinística.
+    stepCount.current += 1;
+    if (isLoggedIn && stepCount.current % SAVE_EVERY_STEPS === 0) {
+      api("/api/pokemon/heal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, currentMapId, playerX: nextX, playerY: nextY }),
+        credentials: "same-origin",
+        body: JSON.stringify({ currentMapId, playerX: nextX, playerY: nextY }),
       }).catch(() => {});
     }
 
@@ -279,27 +420,13 @@ export default function DelugeRPGPage() {
       return;
     }
 
-    // Wild encounter
-    if ((tileId === "tall_grass" || tileId === "water") && Math.random() < 0.22) {
-      const pool = currentMap.encounterTable?.length ? currentMap.encounterTable : [
-        { pokedexId: 4, name: "Charmander", weight: 20, minLevel: 5, maxLevel: 12, tileTypes: ["tall_grass"] },
-      ];
-      const totalW = pool.reduce((a, e) => a + (e.weight || 10), 0);
-      let roll = Math.random() * totalW;
-      let chosen = pool[0];
-      for (const entry of pool) {
-        if (roll <= entry.weight) { chosen = entry; break; }
-        roll -= entry.weight;
-      }
-      const species = getPokemonSpecies(chosen.pokedexId);
-      const variant: DelugeVariant = rollRandomDelugeVariant();
-      const level = Math.floor(Math.random() * (chosen.maxLevel - chosen.minLevel + 1)) + chosen.minLevel;
-      const hp = Math.floor(species.baseHp * 1.25 + level * 3.2);
-
-      retroSfx.playEncounterFlash();
-      setBattleState({ active: true, mode: "WILD", wildTarget: { species, variant, level, hp, maxHp: hp } });
+    // Encontro selvagem (Fase 2): o SORTEIO agora é do servidor.
+    // O cliente só decide "pisei num tile de encontro"; quem escolhe espécie,
+    // variante e nível, e valida o tile contra a grade gravada, é o backend.
+    if (tileDef.hasEncounter && Math.random() < ENCOUNTER_RATE) {
+      void startWildEncounter(currentMapId, nextX, nextY);
     }
-  }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, user.id, currentMapId, handleHealParty, handleNpcInteraction]);
+  }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, currentMapId, handleHealParty, handleNpcInteraction, showBanner, startWildEncounter]);
 
   // ── Keyboard ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -351,6 +478,11 @@ export default function DelugeRPGPage() {
               </div>
               <div className="flex flex-wrap items-center gap-2 font-['IBM_Plex_Mono'] text-[10px] text-slate-300">
                 <span className="font-semibold text-amber-300">👤 {user.username}</span>
+                {isStaff && (
+                  <span className="border border-cyan-400 bg-cyan-950/70 px-1 py-0.5 font-['Press_Start_2P'] text-[7px] text-cyan-300">
+                    {user.role === "admin" ? "ADMIN" : "MOD"}
+                  </span>
+                )}
                 <span>💰 {user.money} Pk$</span>
                 <span>🔴 {user.pokeballs}</span>
                 <span>🔵 {user.greatballs}</span>
@@ -398,11 +530,19 @@ export default function DelugeRPGPage() {
               className="flex items-center gap-1 border-2 border-amber-400 bg-slate-900 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-amber-300 shadow-[2px_2px_0px_#000] hover:bg-slate-800">
               <Sparkles className="h-3.5 w-3.5" /> SPRITES
             </button>
-            <button onClick={() => { retroSfx.playStep(); setShowMapEditor(true); }}
-              className="flex items-center gap-1 border-2 border-cyan-400 bg-cyan-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000] hover:bg-cyan-900">
-              <Map className="h-3.5 w-3.5" /> EDITOR
-            </button>
-            <button onClick={() => { retroSfx.playStep(); setBattleState({ active: true, mode: "PVP" }); }}
+            {isStaff && (
+              <Link href="/admin"
+                className="flex items-center gap-1 border-2 border-purple-400 bg-purple-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-purple-300 shadow-[2px_2px_0px_#000] hover:bg-purple-900">
+                <Shield className="h-3.5 w-3.5" /> ADMIN
+              </Link>
+            )}
+            {isAdmin && (
+              <button onClick={() => { retroSfx.playStep(); setShowMapEditor(true); }}
+                className="flex items-center gap-1 border-2 border-cyan-400 bg-cyan-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000] hover:bg-cyan-900">
+                <Map className="h-3.5 w-3.5" /> EDITOR
+              </button>
+            )}
+            <button onClick={() => { retroSfx.playStep(); setPvpLobby(true); }}
               className="flex items-center gap-1 border-2 border-rose-500 bg-gradient-to-r from-rose-600 to-amber-600 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-white shadow-[2px_2px_0px_#000] hover:brightness-110">
               <Swords className="h-3.5 w-3.5" /> PVP
             </button>
@@ -438,21 +578,54 @@ export default function DelugeRPGPage() {
           <div className="border-4 border-amber-400 bg-slate-900 p-4 shadow-[4px_4px_0px_#000]">
             <div className="flex items-center justify-between border-b-2 border-slate-800 pb-2 mb-3">
               <h2 className="font-['Press_Start_2P'] text-[9px] text-amber-400">MAPAS INTERLIGADOS</h2>
-              <button onClick={() => setShowMapEditor(true)} className="font-['Press_Start_2P'] text-[8px] text-cyan-300 hover:underline">+ CRIAR</button>
+              {isAdmin && (
+                <button onClick={() => setShowMapEditor(true)} className="font-['Press_Start_2P'] text-[8px] text-cyan-300 hover:underline">+ CRIAR</button>
+              )}
             </div>
             <div className="space-y-2">
               {maps.map((m) => {
                 const isCurrent = m.id === currentMapId;
+                // B12 (Fase 3): esta lista era um teleporte livre — clicava-se em
+                // qualquer mapa e ignorava-se portais e progressão. Agora só é
+                // possível viajar para um mapa ligado por portal ao mapa atual.
+                const reachable =
+                  !isCurrent &&
+                  !!currentMap?.portals?.some((p) => p.targetMapId === m.id);
                 return (
-                  <div key={m.id} onClick={() => {
-                    retroSfx.playPortalWarp();
-                    setCurrentMapId(m.id); setPlayerX(8); setPlayerY(12);
-                    showBanner(`🌀 Viajou para ${m.name}`);
-                  }}
-                    className={`cursor-pointer border-2 p-2.5 transition ${isCurrent ? "border-amber-400 bg-amber-500/15" : "border-slate-800 bg-slate-950 hover:border-slate-600"}`}>
+                  <div key={m.id}
+                    onClick={() => {
+                      if (!reachable) {
+                        retroSfx.playStep();
+                        showBanner(`🔒 ${m.name} só é acessível por um portal 🌀 no mapa atual.`);
+                        return;
+                      }
+                      retroSfx.playPortalWarp();
+                      setCurrentMapId(m.id); setPlayerX(8); setPlayerY(12);
+                      showBanner(`🌀 Viajou para ${m.name}`);
+                    }}
+                    title={
+                      isCurrent
+                        ? "Você está aqui"
+                        : reachable
+                          ? `Viajar para ${m.name}`
+                          : "Acesse este mapa por um portal 🌀"
+                    }
+                    className={`border-2 p-2.5 transition ${
+                      isCurrent
+                        ? "border-amber-400 bg-amber-500/15"
+                        : reachable
+                          ? "cursor-pointer border-slate-800 bg-slate-950 hover:border-cyan-500"
+                          : "border-slate-800/60 bg-slate-950/60 opacity-60"
+                    }`}>
                     <div className="flex items-center justify-between">
                       <span className="font-['Press_Start_2P'] text-[9px] text-amber-300">#{m.id} {m.name}</span>
-                      {isCurrent && <span className="bg-amber-500 px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-slate-950">AQUI</span>}
+                      {isCurrent ? (
+                        <span className="bg-amber-500 px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-slate-950">AQUI</span>
+                      ) : reachable ? (
+                        <span className="border border-cyan-500/60 px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-cyan-300">IR →</span>
+                      ) : (
+                        <span className="px-1.5 py-0.5 font-['Press_Start_2P'] text-[7px] text-slate-600">🔒</span>
+                      )}
                     </div>
                     <p className="mt-1 font-['IBM_Plex_Mono'] text-[10px] text-slate-500 truncate">{m.description}</p>
                     {m.portals?.length > 0 && (
@@ -636,8 +809,8 @@ export default function DelugeRPGPage() {
       {/* AUTH */}
       {showAuth && (
         <AuthModal
-          onSuccess={(loggedUser, loggedParty, token) => {
-            applyLogin(loggedUser as UserState, loggedParty as BoxPokemon[], token);
+          onSuccess={(loggedUser, loggedParty) => {
+            applyLogin(loggedUser as UserState, loggedParty as BoxPokemon[]);
             setShowAuth(false);
           }}
         />
@@ -647,7 +820,6 @@ export default function DelugeRPGPage() {
       {showBox && (
         <PokemonBox
           allPokemon={allPokemon}
-          userId={user.id}
           userItems={{ potions: user.potions, superPotions: user.superPotions, maxPotions: user.maxPotions, revives: user.revives }}
           onUpdated={(updated, updatedUser) => {
             setAllPokemon(updated as BoxPokemon[]);
@@ -663,7 +835,6 @@ export default function DelugeRPGPage() {
           shopId={shopCtx.shopId}
           shopName={shopCtx.shopName}
           npcDialog={shopCtx.dialog}
-          userId={user.id}
           userMoney={user.money}
           onPurchase={(updatedUser) => setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }))}
           onClose={() => setShopCtx(null)}
@@ -674,8 +845,6 @@ export default function DelugeRPGPage() {
       {gymCtx && (
         <GymModal
           gymLeaderId={gymCtx.gymLeaderId}
-          userId={user.id}
-          playerParty={party}
           userBadges={userBadges}
           onBattleResult={(updatedUser, badges) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
@@ -685,8 +854,8 @@ export default function DelugeRPGPage() {
         />
       )}
 
-      {/* MAP EDITOR */}
-      {showMapEditor && (
+      {/* MAP EDITOR — apenas admin */}
+      {showMapEditor && isAdmin && (
         <WorldMapEditor
           maps={maps}
           currentMapId={currentMapId}
@@ -698,23 +867,43 @@ export default function DelugeRPGPage() {
       {/* SPRITES */}
       {showSprites && <SpritePackModal onClose={() => setShowSprites(false)} />}
 
+      {/* PVP LOBBY */}
+      {pvpLobby && (
+        <PvpLobby
+          party={party}
+          onEnterRoom={(code) => {
+            setPvpLobby(false);
+            setPvpRoom(code);
+          }}
+          onClose={() => setPvpLobby(false)}
+        />
+      )}
+
+      {/* PVP ARENA */}
+      {pvpRoom && (
+        <PvpArena
+          roomCode={pvpRoom}
+          onStateChange={(updatedUser) => {
+            if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
+          }}
+          onExit={() => {
+            setPvpRoom(null);
+            // Recarrega o time: o dano de PvP persiste no banco.
+            void refreshSession();
+          }}
+        />
+      )}
+
       {/* BATTLE */}
       {battleState.active && (
         <BattleArenaModal
-          mode={battleState.mode}
-          wildTarget={battleState.wildTarget}
-          playerParty={party}
-          userId={user.id}
+          battleId={battleState.battleId}
           username={user.username}
-          pokeballs={user.pokeballs}
-          greatballs={user.greatballs}
-          ultraballs={user.ultraballs}
-          masterballs={user.masterballs}
-          onCaughtPokemon={(_, updatedUser, updatedParty) => {
+          onStateChange={(updatedUser, updatedParty) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
             if (Array.isArray(updatedParty)) setAllPokemon(updatedParty as BoxPokemon[]);
           }}
-          onBattleEnd={() => setBattleState({ active: false, mode: "WILD" })}
+          onBattleEnd={() => setBattleState({ active: false, battleId: null })}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { DebugPanel } from "@/components/DebugPanel";
 
 export const metadata: Metadata = {
   title: "Pokémon Deluge RPG • MMORPG Retro Pixel Online & Editor de Mundos",
@@ -10,8 +11,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-slate-100 text-slate-900 antialiased">{children}</body>
+    <html lang="pt-BR">
+      <body className="bg-slate-100 text-slate-900 antialiased">
+        {children}
+        <DebugPanel />
+      </body>
     </html>
   );
 }

@@ -14,6 +14,7 @@ import {
   Sparkles,
   Trash2,
 } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 export interface GameMapData {
   id: number;
@@ -146,7 +147,7 @@ export function WorldMapEditor({
     setSaving(true);
     retroSfx.playStep();
     try {
-      const res = await fetch(`/api/maps/${activeMapId}`, {
+      const res = await api(`/api/maps/${activeMapId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,7 +192,7 @@ export function WorldMapEditor({
     const originMap = maps.find((m) => m.id === activeMapId) || maps[0];
 
     try {
-      const res = await fetch("/api/maps", {
+      const res = await api("/api/maps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -412,8 +413,8 @@ export function WorldMapEditor({
               <div className="mt-2.5 max-h-40 space-y-1.5 overflow-y-auto">
                 {portals.length === 0 ? (
                   <p className="font-['VT323'] text-lg text-slate-500">
-                    Nenhum portal ainda. Pinte um tile 🌀 ou clique em "+
-                    CONECTAR WARP" para ligar este mapa a outro.
+                    Nenhum portal ainda. Pinte um tile 🌀 ou clique em &ldquo;+
+                    CONECTAR WARP&rdquo; para ligar este mapa a outro.
                   </p>
                 ) : (
                   portals.map((p, idx) => (
@@ -679,6 +680,28 @@ export function WorldMapEditor({
                   CRIAR NOVO MAPA DO MUNDO (MAPA #{maps.length + 1})
                 </h3>
               </div>
+
+              {/*
+                Erro dentro do próprio drawer. Antes a falha ia para `statusMsg`,
+                que renderiza em outro painel — o usuário clicava em criar, a
+                request falhava (ex.: 401 de sessão) e a tela não dava sinal
+                nenhum. Parecia que "carregava e parava".
+              */}
+              {statusMsg && (
+                <div
+                  className={`border-2 px-3 py-2 font-['VT323'] text-lg ${
+                    statusMsg.startsWith("✓")
+                      ? "border-emerald-600 bg-emerald-950/70 text-emerald-300"
+                      : "border-rose-600 bg-rose-950/70 text-rose-300"
+                  }`}
+                >
+                  {statusMsg}
+                </div>
+              )}
+
+              {saving && (
+                <p className="font-['VT323'] text-lg text-amber-300">Salvando mapa...</p>
+              )}
 
               <div>
                 <label className="mb-1 block font-['Press_Start_2P'] text-[9px] text-slate-400">

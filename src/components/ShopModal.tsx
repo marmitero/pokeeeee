@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { retroSfx } from "@/lib/sound";
 import { X, ShoppingCart, Coins } from "lucide-react";
+import { api } from "@/lib/api-client";
 
 interface ShopItem {
   id: number;
@@ -22,13 +23,12 @@ interface ShopModalProps {
   shopId: number;
   shopName: string;
   npcDialog: string;
-  userId: number;
   userMoney: number;
   onPurchase: (updatedUser: unknown) => void;
   onClose: () => void;
 }
 
-export function ShopModal({ shopId, shopName, npcDialog, userId, userMoney, onPurchase, onClose }: ShopModalProps) {
+export function ShopModal({ shopId, shopName, npcDialog, userMoney, onPurchase, onClose }: ShopModalProps) {
   const [items, setItems] = useState<ShopItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState(false);
@@ -36,7 +36,7 @@ export function ShopModal({ shopId, shopName, npcDialog, userId, userMoney, onPu
   const [quantities, setQuantities] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    fetch(`/api/shop?shopId=${shopId}`)
+    api(`/api/shop?shopId=${shopId}`)
       .then((r) => r.json())
       .then((d) => setItems(d.items || []))
       .finally(() => setLoading(false));
@@ -54,10 +54,10 @@ export function ShopModal({ shopId, shopName, npcDialog, userId, userMoney, onPu
     setBuying(true);
     retroSfx.playStep();
     try {
-      const res = await fetch("/api/shop", {
+      const res = await api("/api/shop", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "buy", userId, itemId: item.id, quantity: qty }),
+        body: JSON.stringify({ action: "buy", itemId: item.id, quantity: qty }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -85,7 +85,7 @@ export function ShopModal({ shopId, shopName, npcDialog, userId, userMoney, onPu
               <ShoppingCart className="h-5 w-5 text-amber-400" />
               <h2 className="font-['Press_Start_2P'] text-xs text-amber-400">{shopName}</h2>
             </div>
-            <p className="mt-1 font-['VT323'] text-lg text-slate-300">"{npcDialog}"</p>
+            <p className="mt-1 font-['VT323'] text-lg text-slate-300">&ldquo;{npcDialog}&rdquo;</p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 border-2 border-amber-400/50 bg-amber-500/10 px-3 py-1.5">
