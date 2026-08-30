@@ -59,11 +59,11 @@ jobs:
             -v "$RUNNER_TEMP/supabase-ca.crt:/certs/supabase-ca.crt:ro" \
             -v "$RUNNER_TEMP:/backup" \
             postgres:18 \
-pg_dump --format=custom --compress=9 --no-owner --no-privileges \
-  --enable-row-security \
-  --inserts \
-  --schema=public --schema=drizzle \
-  --file=/backup/production.dump
+            pg_dump --format=custom --compress=9 --no-owner --no-privileges \
+              --enable-row-security \
+              --inserts \
+              --schema=public --schema=drizzle \
+              --file=/backup/production.dump
           test -s "$RUNNER_TEMP/production.dump"
 
       - name: Encrypt backup before artifact upload
@@ -89,20 +89,24 @@ pg_dump --format=custom --compress=9 --no-owner --no-privileges \
             sleep 1
           done
           docker exec restore-db pg_isready -U postgres
+
           # PostgreSQL cria o schema public por padrão; o dump também o contém.
           # Removê-lo reproduz um destino realmente vazio e evita colisão no restore.
           docker exec restore-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "DROP SCHEMA public CASCADE"
+
           # O dump de produção inclui RLS policies/default privileges que
           # referenciam papéis Supabase. Criamos placeholders sem login apenas
           # no banco isolado para o restore validar schema + dados.
           docker exec restore-db psql -U postgres -d postgres -v ON_ERROR_STOP=1 \
             -c "CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE catchbound_runtime; CREATE ROLE catchbound_backup;"
+
           docker cp "$RUNNER_TEMP/production.dump" restore-db:/tmp/production.dump
-docker exec restore-db pg_restore \
-  --verbose --exit-on-error \
-  -U postgres -d postgres --no-owner --no-privileges \
-  /tmp/production.dump
+
+          docker exec restore-db pg_restore \
+            --verbose --exit-on-error \
+            -U postgres -d postgres --no-owner --no-privileges \
+            /tmp/production.dump
 
           tables=$(docker exec restore-db psql -U postgres -d postgres -Atc \
             "select count(*) from information_schema.tables where table_schema='public' and table_name in ('users','sessions','user_pokemon','game_maps','shop_items','gym_leaders','user_badges','pvp_battles','battles','rate_limits','chat_messages')")
