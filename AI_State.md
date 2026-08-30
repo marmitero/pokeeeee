@@ -431,16 +431,14 @@ me diga o que aparece em "token no localStorage" e o status das requests.
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### ⏸️ Fase 5.1-D — produção controlada
+### 🟡 Fase 5.1-D — produção controlada
 
-As Fases 5.1-A/B/C estão concluídas. Staging Supabase/Vercel, TLS, cookies,
-Admin, jogo, PvP em equipes, manutenção, cron e backup criptografado com teste
-de restauração foram validados. Logs nativos bastaram; nenhum SDK externo foi
-adicionado.
-
-Aguardar autorização do mantenedor para criar Supabase e Vercel de produção.
-Repetir o processo com novas senhas/segredos, banco vazio, lançamento gradual e
-passo a passo manual. Plano: `docs/PRODUCAO-5.1.md`.
+Em andamento. O produto oficial se chama **Catchbound** e o Supabase de produção
+Free foi criado vazio em São Paulo. Preparados e validados localmente o
+bootstrap 0000–0004 com RLS e o papel `catchbound_runtime` de privilégio mínimo
+(sem DDL, superuser, BYPASSRLS ou acesso a segredos do sistema). Próximo passo:
+aplicação guiada dos dois scripts no Supabase de produção. Plano:
+`docs/PRODUCAO-5.1.md`.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
@@ -479,7 +477,7 @@ passo a passo manual. Plano: `docs/PRODUCAO-5.1.md`.
 | 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
 | 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | ✅ Concluída e validada | Supabase + Vercel |
 | 2026-08-29 | **Fase 5.1-C** — operação, cron e backup | ✅ Concluída e validada | workflow `backup.yml` |
-| — | **Fase 5.1-D** — produção controlada | ⏸️ Aguardando autorização | — |
+| 2026-08-30 | **Fase 5.1-D** — produção controlada | 🟡 Em andamento | Catchbound |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

@@ -246,3 +246,16 @@ comandos `test` exigem 11 tabelas e ao menos 5 migrations, sucesso da etapa
 confirma ambos. Artifact `staging-db-33263808649` criado com 56.970 bytes,
 criptografado (`.dump.enc`) e expiração em 2026-09-12. Supabase Free não oferece
 backup, PITR ou restore; nenhuma contratação foi feita.
+
+## Registro da 5.1-D — produção controlada (em andamento, 2026-08-30)
+
+O produto oficial se chamará **Catchbound**. Foi criado um projeto Supabase de
+produção vazio, Free, em São Paulo. O bootstrap de produção reúne as migrations
+0000–0004, ativa RLS nas 11 tabelas, revoga Data API pública e registra o journal
+Drizzle. Um segundo script cria `catchbound_runtime` com senha aleatória gerada
+no PostgreSQL, sem superuser/DDL/BYPASSRLS/acesso a schemas internos; concede
+somente DML e sequences das tabelas do jogo por policies explícitas.
+
+Validação local em banco vazio: 11 tabelas, 5 migrations, RLS em 11 tabelas,
+login do papel runtime, leitura permitida; CREATE TABLE e leitura de `pg_authid`
+recusadas com `42501`.
