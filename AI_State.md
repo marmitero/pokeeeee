@@ -323,6 +323,9 @@ Foram preparados:
 
 - `docs/supabase-production-backup-role.sql` — cria `catchbound_backup`, papel
   somente-leitura para `pg_dump` sem usar `postgres` nem `catchbound_runtime`;
+- `docs/supabase-production-backup-rotate-password.sql` — rotaciona a senha se
+  `catchbound_backup` já existir ou a senha tiver sido perdida, reaplicando
+  grants/policies idempotentes sem conceder escrita;
 - `docs/backup-production.yml` — workflow de referência para copiar manualmente
   para `.github/workflows/backup-production.yml`; usa `--enable-row-security`
   porque o papel de backup não possui `BYPASSRLS` e depende das policies de
@@ -510,8 +513,10 @@ com Supabase de produção validado, runtime mínimo `catchbound_runtime`, healt
 ok, smoke manual/autenticado aprovado e `/api/maintenance` validado com
 `CRON_SECRET`. Antes de marcar a 5.1-D como concluída:
 
-1. executar `docs/supabase-production-backup-role.sql` no Supabase produção e
-   guardar a senha de `catchbound_backup`;
+1. executar `docs/supabase-production-backup-role.sql` no Supabase produção; se
+   o papel já existir ou a senha tiver sido perdida, usar
+   `docs/supabase-production-backup-rotate-password.sql`; guardar a senha de
+   `catchbound_backup`;
 2. cadastrar os GitHub Actions Secrets de produção;
 3. copiar `docs/backup-production.yml` para
    `.github/workflows/backup-production.yml` por ação humana;

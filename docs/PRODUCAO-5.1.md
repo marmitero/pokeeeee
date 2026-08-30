@@ -304,6 +304,9 @@ Foram adicionados artefatos de apoio para backup de produção:
 - `docs/supabase-production-backup-role.sql` cria `catchbound_backup`, papel
   somente-leitura para dump dos schemas `public` e `drizzle`, sem superuser,
   DDL, escrita ou `BYPASSRLS`;
+- `docs/supabase-production-backup-rotate-password.sql` rotaciona a senha de
+  `catchbound_backup` quando o papel já existe ou a senha foi perdida, e
+  reaplica grants/policies idempotentes sem conceder escrita;
 - `docs/backup-production.yml` é o workflow de referência para copiar para
   `.github/workflows/backup-production.yml`; ele usa `--enable-row-security`
   porque o papel de backup não possui `BYPASSRLS` e depende das policies
