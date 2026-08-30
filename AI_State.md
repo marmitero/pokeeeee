@@ -325,7 +325,9 @@ Foram preparados:
   somente-leitura para `pg_dump` sem usar `postgres` nem `catchbound_runtime`;
 - `docs/supabase-production-backup-rotate-password.sql` — rotaciona a senha se
   `catchbound_backup` já existir ou a senha tiver sido perdida, reaplicando
-  grants/policies idempotentes sem conceder escrita;
+  grants/policies idempotentes sem conceder escrita. No Supabase a rotação
+  altera apenas senha/login, pois o usuário administrativo do projeto não pode
+  tocar novamente em flags como `NOSUPERUSER`;
 - `docs/backup-production.yml` — workflow de referência para copiar manualmente
   para `.github/workflows/backup-production.yml`; usa `--enable-row-security`
   porque o papel de backup não possui `BYPASSRLS` e depende das policies de

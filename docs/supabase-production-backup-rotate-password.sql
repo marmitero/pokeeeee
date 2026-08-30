@@ -27,8 +27,14 @@ DECLARE
   generated_password text;
 BEGIN
   SELECT password INTO generated_password FROM catchbound_backup_secret;
+
+  -- No Supabase, o usuário administrativo do projeto não é superuser real.
+  -- Portanto ele não pode executar ALTER ROLE tocando em atributos como
+  -- SUPERUSER/REPLICATION/BYPASSRLS, mesmo para definir o valor falso.
+  -- A criação original já define esses atributos. Na rotação, alteramos só a
+  -- senha/login e validamos as flags no SELECT final.
   EXECUTE format(
-    'ALTER ROLE catchbound_backup LOGIN PASSWORD %L NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS',
+    'ALTER ROLE catchbound_backup LOGIN PASSWORD %L',
     generated_password
   );
 END $$;
