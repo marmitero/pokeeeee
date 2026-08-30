@@ -32,9 +32,9 @@ BEGIN
   -- Portanto ele não pode executar ALTER ROLE tocando em atributos como
   -- SUPERUSER/REPLICATION/BYPASSRLS, mesmo para definir o valor falso.
   -- A criação original já define esses atributos. Na rotação, alteramos só a
-  -- senha/login e validamos as flags no SELECT final.
+  -- senha e validamos as flags no SELECT final.
   EXECUTE format(
-    'ALTER ROLE catchbound_backup LOGIN PASSWORD %L',
+    'ALTER ROLE catchbound_backup PASSWORD %L',
     generated_password
   );
 END $$;
@@ -65,9 +65,9 @@ ALTER ROLE catchbound_backup SET search_path = public, drizzle;
 -- Cria policies de leitura que faltarem. CREATE POLICY não tem IF NOT EXISTS.
 DO $$
 DECLARE
-  table_name text;
+  target_table text;
 BEGIN
-  FOREACH table_name IN ARRAY ARRAY[
+  FOREACH target_table IN ARRAY ARRAY[
     'users',
     'sessions',
     'user_pokemon',
@@ -85,12 +85,12 @@ BEGIN
       SELECT 1
       FROM pg_policies
       WHERE schemaname = 'public'
-        AND tablename = table_name
+        AND tablename = target_table
         AND policyname = 'catchbound_backup_select'
     ) THEN
       EXECUTE format(
         'CREATE POLICY catchbound_backup_select ON public.%I FOR SELECT TO catchbound_backup USING (true)',
-        table_name
+        target_table
       );
     END IF;
   END LOOP;

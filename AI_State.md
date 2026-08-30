@@ -326,7 +326,7 @@ Foram preparados:
 - `docs/supabase-production-backup-rotate-password.sql` — rotaciona a senha se
   `catchbound_backup` já existir ou a senha tiver sido perdida, reaplicando
   grants/policies idempotentes sem conceder escrita. No Supabase a rotação
-  altera apenas senha/login, pois o usuário administrativo do projeto não pode
+  altera apenas a senha, pois o usuário administrativo do projeto não pode
   tocar novamente em flags como `NOSUPERUSER`;
 - `docs/backup-production.yml` — workflow de referência para copiar manualmente
   para `.github/workflows/backup-production.yml`; usa `--enable-row-security`
