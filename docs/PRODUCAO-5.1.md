@@ -295,7 +295,7 @@ Validação manual do mantenedor em produção:
 - loja: ok;
 - PvP: ok;
 - admin: ok;
-- manutenção com `CRON_SECRET`: pendente.
+- manutenção com `CRON_SECRET`: ok (200, `{ "ok": true }`) após rotação do segredo e redeploy.
 
 ### Backup de produção — preparado, pendente de ativação
 

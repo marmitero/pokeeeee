@@ -317,7 +317,7 @@ ajustar credenciais/usuário do Session Pooler na Vercel. Depois disso,
 Smoke de produção autenticado passou no navegador do mantenedor: mapa, batalha
 selvagem, ginásio, loja, PvP e admin. Endpoints públicos também foram checados
 pelo agente. Pendente antes de fechar a 5.1-D: testar `/api/maintenance` com
-`CRON_SECRET` e ativar backup criptografado de produção.
+`CRON_SECRET` validado; falta ativar backup criptografado de produção.
 
 Foram preparados:
 
@@ -496,26 +496,26 @@ Endpoints públicos checados pelo agente:
 Smoke manual/autenticado informado pelo mantenedor: script passou; visual de
 mapa, batalha selvagem, ginásio, loja, PvP e admin ok.
 
-Pendente: `/api/maintenance` com `CRON_SECRET` e primeira execução/restauração
-do backup criptografado de produção.
+Concluído: `/api/maintenance` com `CRON_SECRET` retornou 200 após rotação do segredo e redeploy.
+Pendente: primeira execução/restauração do backup criptografado de produção.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🟡 Fechar a Fase 5.1-D — backup e cron de produção
+### 🟡 Fechar a Fase 5.1-D — backup de produção
 
 A produção do **Catchbound** está online em `https://catchbound.vercel.app/`,
 com Supabase de produção validado, runtime mínimo `catchbound_runtime`, health
-ok e smoke manual/autenticado aprovado. Antes de marcar a 5.1-D como concluída:
+ok, smoke manual/autenticado aprovado e `/api/maintenance` validado com
+`CRON_SECRET`. Antes de marcar a 5.1-D como concluída:
 
-1. testar manualmente `/api/maintenance` com `CRON_SECRET`;
-2. executar `docs/supabase-production-backup-role.sql` no Supabase produção e
+1. executar `docs/supabase-production-backup-role.sql` no Supabase produção e
    guardar a senha de `catchbound_backup`;
-3. cadastrar os GitHub Actions Secrets de produção;
-4. copiar `docs/backup-production.yml` para
+2. cadastrar os GitHub Actions Secrets de produção;
+3. copiar `docs/backup-production.yml` para
    `.github/workflows/backup-production.yml` por ação humana;
-5. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
+4. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
 
 Depois disso, atualizar este arquivo marcando 5.1-D como concluída e iniciar a
 Fase 6 apenas após nova leitura deste estado.
