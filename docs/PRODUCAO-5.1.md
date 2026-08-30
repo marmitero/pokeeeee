@@ -259,3 +259,58 @@ somente DML e sequences das tabelas do jogo por policies explícitas.
 Validação local em banco vazio: 11 tabelas, 5 migrations, RLS em 11 tabelas,
 login do papel runtime, leitura permitida; CREATE TABLE e leitura de `pg_authid`
 recusadas com `42501`.
+
+### Validação real de produção — 2026-08-30
+
+O mantenedor aplicou e validou o Supabase oficial de produção:
+
+- 11 tabelas do jogo em `public`;
+- 5 migrations no journal Drizzle;
+- RLS habilitado nas 11 tabelas;
+- papel `catchbound_runtime` existente;
+- flags privilegiadas do runtime todas falsas (`rolsuper`, `rolcreatedb`,
+  `rolcreaterole`, `rolreplication`, `rolbypassrls`).
+
+O deploy oficial foi publicado em `https://catchbound.vercel.app/`. A primeira
+falha observada foi `28P01` por autenticação do `catchbound_runtime`; a causa
+provável era usuário/senha do Session Pooler. Após corrigir a configuração da
+Vercel, `/api/health` passou a responder `{ "ok": true }`.
+
+Validações executadas pelo agente contra endpoints públicos:
+
+- `/api/health` → `{ "ok": true }`;
+- `/api/maps` → 3 mapas seedados;
+- `/api/gym` → 3 líderes seedados;
+- `/api/shop?shopId=1/2/3` → itens seedados;
+- `/api/maintenance` sem segredo → não autorizado;
+- `/api/auth`, `/api/pvp`, `/api/battle` sem sessão → bloqueados;
+- `/admin` sem sessão → acesso negado.
+
+Validação manual do mantenedor em produção:
+
+- smoke script autenticado no navegador: passou;
+- mapa/movimento: ok;
+- batalha selvagem: ok;
+- ginásio: ok;
+- loja: ok;
+- PvP: ok;
+- admin: ok;
+- manutenção com `CRON_SECRET`: pendente.
+
+### Backup de produção — preparado, pendente de ativação
+
+Foram adicionados artefatos de apoio para backup de produção:
+
+- `docs/supabase-production-backup-role.sql` cria `catchbound_backup`, papel
+  somente-leitura para dump dos schemas `public` e `drizzle`, sem superuser,
+  DDL, escrita ou `BYPASSRLS`;
+- `docs/backup-production.yml` é o workflow de referência para copiar para
+  `.github/workflows/backup-production.yml`; ele usa `--enable-row-security`
+  porque o papel de backup não possui `BYPASSRLS` e depende das policies
+  somente-leitura explícitas.
+
+A ativação exige ação manual do mantenedor porque a integração do agente da
+Arena não tem permissão GitHub `workflows` para criar/alterar arquivos em
+`.github/workflows/`. Secrets necessários no GitHub Actions:
+`PRODUCTION_DB_HOST`, `PRODUCTION_DB_USER`, `PRODUCTION_DB_PASSWORD`,
+`PRODUCTION_DB_CA_CERT` e `PRODUCTION_BACKUP_PASSPHRASE`.

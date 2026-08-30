@@ -85,7 +85,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão:** `arena/01a03ad9-pokeeeee`
+**Branch da sessão atual:** `arena/01a052dc-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -300,6 +300,34 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
+
+### 🟡 Fase 5.1-D — produção controlada: deploy oficial validado, backup pendente (2026-08-30)
+
+O Supabase oficial de produção **Catchbound** foi validado pelo mantenedor com
+11 tabelas, 5 migrations e RLS nas 11 tabelas. O papel `catchbound_runtime`
+existe e não tem `SUPERUSER`, `CREATEDB`, `CREATEROLE`, `REPLICATION` nem
+`BYPASSRLS`.
+
+A Vercel oficial foi conectada à `main` e publicada em
+`https://catchbound.vercel.app/`. A primeira tentativa falhou com `28P01`
+(password authentication failed) para `catchbound_runtime`; a correção foi
+ajustar credenciais/usuário do Session Pooler na Vercel. Depois disso,
+`/api/health` respondeu `{ "ok": true }`.
+
+Smoke de produção autenticado passou no navegador do mantenedor: mapa, batalha
+selvagem, ginásio, loja, PvP e admin. Endpoints públicos também foram checados
+pelo agente. Pendente antes de fechar a 5.1-D: testar `/api/maintenance` com
+`CRON_SECRET` e ativar backup criptografado de produção.
+
+Foram preparados:
+
+- `docs/supabase-production-backup-role.sql` — cria `catchbound_backup`, papel
+  somente-leitura para `pg_dump` sem usar `postgres` nem `catchbound_runtime`;
+- `docs/backup-production.yml` — workflow de referência para copiar manualmente
+  para `.github/workflows/backup-production.yml`; usa `--enable-row-security`
+  porque o papel de backup não possui `BYPASSRLS` e depende das policies de
+  leitura; a GitHub App da Arena não tem permissão `workflows`.
+
 ### ✅ Fase 5.1-A — segurança básica de produção (2026-08-29)
 
 Concluída sem iniciar staging. A migration `0003` adiciona foreign keys,
@@ -427,18 +455,70 @@ do iframe guarda e reenvia o token.
 **É exatamente para isso que o painel 🐞 existe** — se ainda falhar, abra o 🐞 e
 me diga o que aparece em "token no localStorage" e o status das requests.
 
+
+### 4.6 Produção real Catchbound — 2026-08-30
+
+Validações observadas nesta sessão:
+
+```bash
+npm ci
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db npm run check
+npm run db:local
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+  npm run test:integration
+npm audit --audit-level=moderate
+```
+
+Resultados locais: `npm ci` com 0 vulnerabilidades, `npm run check` exit 0
+(lint, typecheck, 87 unit tests e build), integração com 56 testes passando e
+`npm audit` com 0 vulnerabilidades.
+
+GitHub: PR #1 integrado na `main`; CI do merge `33305394208` passou com lint,
+typecheck, unit, integration e build.
+
+Supabase produção informado pelo mantenedor: `game_tables=11`, `migrations=5`,
+`rls_tables=11`, `catchbound_runtime` existe e flags privilegiadas falsas.
+
+Vercel produção: `https://catchbound.vercel.app/api/health` respondeu
+`{ "ok": true }` depois da correção de credenciais do Session Pooler.
+
+Endpoints públicos checados pelo agente:
+
+- `/api/health` → ok;
+- `/api/maps` → 3 mapas;
+- `/api/gym` → 3 líderes;
+- `/api/shop?shopId=1/2/3` → itens seedados;
+- `/api/maintenance` sem secret → não autorizado;
+- `/api/auth`, `/api/pvp`, `/api/battle` sem sessão → bloqueados;
+- `/admin` sem sessão → acesso negado.
+
+Smoke manual/autenticado informado pelo mantenedor: script passou; visual de
+mapa, batalha selvagem, ginásio, loja, PvP e admin ok.
+
+Pendente: `/api/maintenance` com `CRON_SECRET` e primeira execução/restauração
+do backup criptografado de produção.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🟡 Fase 5.1-D — produção controlada
+### 🟡 Fechar a Fase 5.1-D — backup e cron de produção
 
-Em andamento. O produto oficial se chama **Catchbound** e o Supabase de produção
-Free foi criado vazio em São Paulo. Preparados e validados localmente o
-bootstrap 0000–0004 com RLS e o papel `catchbound_runtime` de privilégio mínimo
-(sem DDL, superuser, BYPASSRLS ou acesso a segredos do sistema). Próximo passo:
-aplicação guiada dos dois scripts no Supabase de produção. Plano:
-`docs/PRODUCAO-5.1.md`.
+A produção do **Catchbound** está online em `https://catchbound.vercel.app/`,
+com Supabase de produção validado, runtime mínimo `catchbound_runtime`, health
+ok e smoke manual/autenticado aprovado. Antes de marcar a 5.1-D como concluída:
+
+1. testar manualmente `/api/maintenance` com `CRON_SECRET`;
+2. executar `docs/supabase-production-backup-role.sql` no Supabase produção e
+   guardar a senha de `catchbound_backup`;
+3. cadastrar os GitHub Actions Secrets de produção;
+4. copiar `docs/backup-production.yml` para
+   `.github/workflows/backup-production.yml` por ação humana;
+5. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
+
+Depois disso, atualizar este arquivo marcando 5.1-D como concluída e iniciar a
+Fase 6 apenas após nova leitura deste estado.
 
 ### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
 
@@ -477,7 +557,7 @@ aplicação guiada dos dois scripts no Supabase de produção. Plano:
 | 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
 | 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | ✅ Concluída e validada | Supabase + Vercel |
 | 2026-08-29 | **Fase 5.1-C** — operação, cron e backup | ✅ Concluída e validada | workflow `backup.yml` |
-| 2026-08-30 | **Fase 5.1-D** — produção controlada | 🟡 Em andamento | Catchbound |
+| 2026-08-30 | **Fase 5.1-D** — produção controlada | 🟡 Deploy e smoke ok; backup/cron pendentes | Catchbound |
 | — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
