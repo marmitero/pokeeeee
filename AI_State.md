@@ -327,7 +327,9 @@ Foram preparados:
   `catchbound_backup` já existir ou a senha tiver sido perdida, reaplicando
   grants/policies idempotentes sem conceder escrita. No Supabase a rotação
   altera apenas a senha, pois o usuário administrativo do projeto não pode
-  tocar novamente em flags como `NOSUPERUSER`;
+  tocar novamente em flags como `NOSUPERUSER`. A senha e as validações saem em
+  uma única tabela final porque o SQL Editor pode exibir apenas o último result
+  set;
 - `docs/backup-production.yml` — workflow de referência para copiar manualmente
   para `.github/workflows/backup-production.yml`; usa `--enable-row-security`
   porque o papel de backup não possui `BYPASSRLS` e depende das policies de

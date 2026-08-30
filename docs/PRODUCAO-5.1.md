@@ -308,7 +308,9 @@ Foram adicionados artefatos de apoio para backup de produção:
   `catchbound_backup` quando o papel já existe ou a senha foi perdida, e
   reaplica grants/policies idempotentes sem conceder escrita. Em Supabase, a
   rotação altera apenas a senha porque o usuário administrativo do projeto não
-  é superuser real e não pode tocar novamente em flags como `NOSUPERUSER`;
+  é superuser real e não pode tocar novamente em flags como `NOSUPERUSER`. A
+  senha e as validações saem em uma única tabela final porque o SQL Editor pode
+  exibir apenas o último result set;
 - `docs/backup-production.yml` é o workflow de referência para copiar para
   `.github/workflows/backup-production.yml`; ele usa `--enable-row-security`
   porque o papel de backup não possui `BYPASSRLS` e depende das policies

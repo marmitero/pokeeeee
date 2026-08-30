@@ -98,23 +98,19 @@ END $$;
 
 COMMIT;
 
--- Copie apenas este valor para o gerenciador de senhas e para o GitHub Secret
--- PRODUCTION_DB_PASSWORD. Nunca envie em chat.
-SELECT password AS new_catchbound_backup_password
-FROM catchbound_backup_secret;
-
+-- O SQL Editor do Supabase pode exibir apenas o ÚLTIMO result set. Por isso a
+-- senha e todas as validações saem em uma única tabela final.
+-- Copie apenas `new_catchbound_backup_password` para o gerenciador de senhas e
+-- para o GitHub Secret PRODUCTION_DB_PASSWORD. Nunca envie em chat.
 -- Resultado esperado: all flags false; policies/grants presentes; escrita/DDL false.
 SELECT
-  rolname,
-  rolsuper,
-  rolcreatedb,
-  rolcreaterole,
-  rolreplication,
-  rolbypassrls
-FROM pg_roles
-WHERE rolname = 'catchbound_backup';
-
-SELECT
+  (SELECT password FROM catchbound_backup_secret) AS new_catchbound_backup_password,
+  (SELECT rolname FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolname,
+  (SELECT rolsuper FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolsuper,
+  (SELECT rolcreatedb FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolcreatedb,
+  (SELECT rolcreaterole FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolcreaterole,
+  (SELECT rolreplication FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolreplication,
+  (SELECT rolbypassrls FROM pg_roles WHERE rolname = 'catchbound_backup') AS rolbypassrls,
   (SELECT count(*)
    FROM pg_policies
    WHERE schemaname = 'public'
