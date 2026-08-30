@@ -12,6 +12,8 @@ BEGIN
   END IF;
 END $$;
 
+DROP TABLE IF EXISTS catchbound_backup_secret;
+
 CREATE TEMP TABLE catchbound_backup_secret (
   password text NOT NULL
 ) ON COMMIT PRESERVE ROWS;
