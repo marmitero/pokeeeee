@@ -848,6 +848,33 @@ TEST_PG_URL=... npm run test:integration → Test Files 5 · Tests 70
 **Falta reteste no navegador:** entrar de novo no preview, pintar, salvar (o
 aviso deve ficar **verde** com "✓") e andar na área pintada.
 
+### 4.12 Deploy da Fase 6.2 em produção (2026-08-31)
+
+Decisão do mantenedor: testar direto em produção em vez de staging, porque o
+preview em iframe era justamente a fonte de ruído.
+
+Ordem cumprida — **migration antes do código**:
+
+1. migration `0005` aplicada pelo mantenedor no Supabase de produção, com o
+   journal corrigido depois (`migrations = 6`);
+2. PR #3 renomeado e mesclado em `main` (merge commit `92936e9`, preservando os
+   commits `d9acd79`, `90c4dc0`, `c0b5edf`);
+3. deploy automático da Vercel.
+
+Verificação em `https://catchbound.vercel.app`:
+
+```
+GET /api/health → {"ok":true}
+GET /api/maps   → "encounterGrid":[], "collisionGrid":[], "encounterRate":22
+```
+
+As três colunas chegam ao cliente e os três mapas estão em **modo legado**, que
+é o esperado: nada mudou para quem está jogando. Em produção a sessão volta a
+ser só cookie `httpOnly` (Bearer fica desligado), e como o jogo é aberto em aba
+de topo o problema do iframe não existe ali.
+
+**Falta o teste manual do mantenedor** (item 8 das pendências).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -925,6 +952,7 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
 | 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
 | 2026-08-31 | **Correção** — sessão perdida no iframe (401 silencioso) | ✅ Concluída e validada | token em memória · `src/lib/api-client.test.ts` |
+| 2026-08-31 | **Deploy 6.2 em produção** — PR #3 mesclado | ✅ Concluída e validada | merge `92936e9` · `/api/maps` com as 3 colunas |
 | — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
