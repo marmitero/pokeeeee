@@ -9,7 +9,20 @@ import {
 } from "@/lib/pokedex";
 import { computeDamage } from "@/lib/engine/damage";
 import { toCombatant } from "@/lib/engine/combatant";
-import { sideFromSpecies, sideFromUserPokemon, type SideState } from "@/lib/engine/combatant";
+import {
+  encounterPoolAt,
+  hasEncounterAt,
+  isWalkableAt,
+  pickWeighted,
+  rollEncounterLevel,
+} from "@/lib/map-rules";
+import {
+  moveNamesForDb,
+  refreshMovesForLevel,
+  sideFromSpecies,
+  sideFromUserPokemon,
+  type SideState,
+} from "@/lib/engine/combatant";
 import { applyXp, battleXpGain, xpToNextLevel, MAX_LEVEL } from "@/lib/engine/xp";
 import { BALL_LABEL, captureChance, rollCapture, type BallKey } from "@/lib/engine/capture";
 import { badRequest, forbidden, notFound } from "@/lib/api";
@@ -47,7 +60,6 @@ export interface BattleView {
   user?: unknown;
 }
 
-const ENCOUNTER_TILES = ["tall_grass", "water"];
 const MAX_LOG = 40;
 
 function pushLog(log: string[], ...lines: string[]): string[] {
@@ -87,10 +99,10 @@ async function loadActivePokemon(userId: number) {
 /**
  * Batalha selvagem. O encontro é sorteado **aqui**, a partir da tabela do mapa.
  *
- * `playerX`/`playerY` vêm do cliente, mas são validados contra a grade gravada:
- * o tile naquela coordenada precisa ser um tile de encontro. O cliente poderia
- * escolher outra coordenada de encontro do mesmo mapa — o que não dá vantagem,
- * porque a tabela de encontros é a mesma para o mapa inteiro.
+ * `playerX`/`playerY` vêm do cliente, mas são validados contra as camadas
+ * gravadas no mapa (Fase 6.2-A): a célula precisa ser ocupável **e** estar na
+ * área de caça. O cliente poderia escolher outra célula de caça do mesmo mapa
+ * — o que não dá vantagem, porque a tabela de encontros é a mesma no mapa.
  */
 export async function startWildBattle(
   userId: number,
@@ -107,39 +119,23 @@ export async function startWildBattle(
   if (maps.length === 0) throw notFound("Mapa não encontrado.");
   const map = maps[0];
 
-  const grid = map.tileGrid as string[][];
-  const tile = grid?.[playerY]?.[playerX];
-  if (!tile || !ENCOUNTER_TILES.includes(tile)) {
+  // Fase 6.2-A: quem responde "dá para estar aqui?" e "aqui aparece bicho?" é
+  // `map-rules`, a partir das camadas gravadas no mapa. O cliente não informa
+  // tile nem espécie — continua valendo a autoridade do servidor da Fase 2.
+  if (!isWalkableAt(map, playerX, playerY)) {
+    throw badRequest("Não dá para estar nesse tile.");
+  }
+  if (!hasEncounterAt(map, playerX, playerY)) {
     throw badRequest("Não há encontros nesse tile.");
   }
 
-  const table = (map.encounterTable ?? []) as Array<{
-    pokedexId: number;
-    weight: number;
-    minLevel: number;
-    maxLevel: number;
-    tileTypes: string[];
-  }>;
-
-  const pool = table.filter((e) => Array.isArray(e.tileTypes) && e.tileTypes.includes(tile));
-  const usable = pool.length > 0 ? pool : table;
+  const usable = encounterPoolAt(map, playerX, playerY);
   if (usable.length === 0) throw badRequest("Este mapa não tem Pokémon selvagens.");
 
-  const totalWeight = usable.reduce((acc, e) => acc + Math.max(0, e.weight || 10), 0);
-  let roll = Math.random() * totalWeight;
-  let chosen = usable[usable.length - 1];
-  for (const entry of usable) {
-    const w = Math.max(0, entry.weight || 10);
-    if (roll < w) {
-      chosen = entry;
-      break;
-    }
-    roll -= w;
-  }
+  const chosen = pickWeighted(usable);
+  if (!chosen) throw badRequest("Este mapa não tem Pokémon selvagens.");
 
-  const minLvl = Math.max(1, Math.min(chosen.minLevel, chosen.maxLevel));
-  const maxLvl = Math.max(minLvl, Math.min(chosen.maxLevel, MAX_LEVEL));
-  const level = Math.floor(Math.random() * (maxLvl - minLvl + 1)) + minLvl;
+  const level = rollEncounterLevel(chosen, MAX_LEVEL);
   const variant = rollRandomDelugeVariant();
 
   const active = await loadActivePokemon(userId);
@@ -424,6 +420,13 @@ async function resolveFaint(
       log,
       `★ ${state.player.displayName} subiu para o nível ${newLevel}!`
     );
+
+    // Fase 6.1: subir de nível também ensina os golpes do learnset. Sem isto
+    // o Pokémon ficaria preso nos golpes fracos do nível inicial.
+    const learned = refreshMovesForLevel(state.player, newLevel);
+    for (const moveName of learned) {
+      log = pushLog(log, `${state.player.displayName} aprendeu ${moveName}!`);
+    }
   }
 
   // ── Ginásio: próximo do time ───────────────────────────────────────────
@@ -563,10 +566,8 @@ export async function attemptCatch(
       spAttack: stats.spAttack,
       spDefense: stats.spDefense,
       speed: stats.speed,
-      move1: state.opponent.moves[0]?.name ?? "Investida",
-      move2: state.opponent.moves[1]?.name ?? "Investida",
-      move3: state.opponent.moves[2]?.name ?? "Investida",
-      move4: state.opponent.moves[3]?.name ?? "Investida",
+      // Fase 6.1: o Pokémon capturado guarda os golpes do nível dele.
+      ...moveNamesForDb(state.opponent),
       partySlot: party.length < 6 ? party.length + 1 : null,
       isStarter: false,
     });
@@ -691,6 +692,8 @@ async function persistTurn(
           spAttack: state.player.spAttack,
           spDefense: state.player.spDefense,
           speed: state.player.speed,
+          // Golpes aprendidos no level up (Fase 6.1) precisam persistir.
+          ...moveNamesForDb(state.player),
         })
         .where(
           and(

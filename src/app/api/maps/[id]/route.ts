@@ -5,6 +5,7 @@ import { gameMaps } from "@/db/schema";
 import { requireRole } from "@/lib/session";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { mapUpdateSchema } from "@/lib/validation";
+import { validateMapLayers } from "@/lib/map-rules";
 import { parse, badRequest, notFound, routeError } from "@/lib/api";
 
 /**
@@ -54,6 +55,17 @@ export async function PUT(
       }
     }
 
+    // Fase 6.2-A: a checagem usa o valor que **vai ficar gravado** — camada
+    // enviada agora, ou a que já está no banco quando o PUT é parcial.
+    const layerProblem = validateMapLayers({
+      width: map.width,
+      height: map.height,
+      encounterGrid: input.encounterGrid ?? map.encounterGrid,
+      collisionGrid: input.collisionGrid ?? map.collisionGrid,
+      encounterTable: input.encounterTable ?? map.encounterTable,
+    });
+    if (layerProblem) throw badRequest(layerProblem);
+
     const [updated] = await db
       .update(gameMaps)
       .set({
@@ -63,6 +75,9 @@ export async function PUT(
           : {}),
         ...(input.tileGrid ? { tileGrid: input.tileGrid } : {}),
         ...(input.encounterTable ? { encounterTable: input.encounterTable } : {}),
+        ...(input.encounterGrid ? { encounterGrid: input.encounterGrid } : {}),
+        ...(input.collisionGrid ? { collisionGrid: input.collisionGrid } : {}),
+        ...(input.encounterRate !== undefined ? { encounterRate: input.encounterRate } : {}),
         ...(input.portals ? { portals: input.portals } : {}),
         ...(input.npcs ? { npcs: input.npcs } : {}),
         updatedAt: new Date(),

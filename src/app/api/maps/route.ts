@@ -7,6 +7,7 @@ import { requireRole } from "@/lib/session";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import {   mapCreateSchema   } from "@/lib/validation";
 import type { PortalConnection } from "@/db/schema";
+import { validateMapLayers } from "@/lib/map-rules";
 import { parse, badRequest, routeError } from "@/lib/api";
 
 /**
@@ -54,6 +55,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // Fase 6.2-A: as camadas novas precisam cobrir o mapa inteiro ou estar
+    // vazias (modo legado).
+    const layerProblem = validateMapLayers({
+      width: input.width,
+      height: input.height,
+      encounterGrid: input.encounterGrid,
+      collisionGrid: input.collisionGrid,
+      encounterTable: input.encounterTable,
+    });
+    if (layerProblem) throw badRequest(layerProblem);
+
     const safeSlug =
       input.slug ||
       `${input.name
@@ -74,6 +86,9 @@ export async function POST(req: Request) {
         height: input.height,
         tileGrid: input.tileGrid,
         encounterTable: input.encounterTable,
+        encounterGrid: input.encounterGrid,
+        collisionGrid: input.collisionGrid,
+        encounterRate: input.encounterRate,
         portals: input.portals,
         npcs: input.npcs ?? [],
         creatorUsername: user.username,

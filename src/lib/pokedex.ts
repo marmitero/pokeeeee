@@ -16,6 +16,20 @@ export interface PokemonMove {
   sfx: "flame" | "thunder" | "water" | "slash" | "beam" | "heal";
 }
 
+/**
+ * Um golpe e o nível em que a espécie o aprende (Fase 6.1).
+ *
+ * Antes da 6.1 não existia learnset: `PokemonSpecies.moves` era uma lista fixa
+ * de 4 golpes de fim de jogo (poder 80–110) que o Pokémon carregava **desde o
+ * nível 1**. Com ~20 de HP no nível 5, um Lança-Chamas com STAB e vantagem de
+ * tipo causava 3,5× o HP total do alvo — todo combate inicial terminava em um
+ * golpe. O learnset é a correção principal do balanceamento.
+ */
+export interface LearnsetEntry {
+  level: number;
+  move: PokemonMove;
+}
+
 export interface PokemonSpecies {
   id: number;
   name: string;
@@ -27,12 +41,34 @@ export interface PokemonSpecies {
   baseSpDef: number;
   baseSpd: number;
   catchRate: number;
+  /** Todos os golpes da espécie, com o nível de aprendizado. Fonte da verdade. */
+  learnset: LearnsetEntry[];
+  /**
+   * Conjunto de fim de jogo (os 4 últimos golpes do learnset), derivado.
+   *
+   * Mantido porque a vitrine de sprites e alguns componentes exibem "os golpes
+   * da espécie" sem contexto de nível. **Não** use isto para montar um
+   * combatente — use `movesAtLevel`.
+   */
   moves: PokemonMove[];
   frontSprite: string;
   backSprite: string;
   shinyFrontSprite: string;
   description: string;
 }
+
+/** Espécie como é escrita no catálogo: só o learnset; `moves` é derivado. */
+export type PokemonSpeciesData = Omit<PokemonSpecies, "moves">;
+
+/** Quantos golpes um Pokémon carrega em batalha. */
+export const MOVE_SLOTS = 4;
+
+/**
+ * Nível máximo do jogo, replicado aqui para derivar o conjunto de fim de jogo.
+ * Duplicado de propósito: `engine/xp.ts` importa a Pokédex, então importar
+ * `MAX_LEVEL` de lá criaria ciclo de módulos.
+ */
+export const MAX_SPECIES_LEVEL = 100;
 
 export const DELUGE_VARIANTS: {
   id: DelugeVariant;
@@ -281,9 +317,222 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     description: "Uma onda de choque draconiana emitida pela boca aberta.",
     sfx: "beam",
   },
+
+  // ── Fase 6.1 — golpes de início e de meio de jogo ────────────────────────
+  //
+  // Antes da 6.1 o catálogo só tinha golpes de fim de jogo (poder 80–110) e
+  // toda espécie os carregava desde o nível 1. Estes golpes fracos existem
+  // para o `learnset` ter o que entregar nos primeiros níveis.
+  Scratch: {
+    name: "Arranhão",
+    type: "Normal",
+    power: 40,
+    accuracy: 100,
+    category: "Physical",
+    description: "Garras afiadas arranham o alvo repetidamente.",
+    sfx: "slash",
+  },
+  BodySlam: {
+    name: "Golpe Corporal",
+    type: "Normal",
+    power: 70,
+    accuracy: 100,
+    category: "Physical",
+    description: "Joga o corpo inteiro sobre o oponente.",
+    sfx: "slash",
+  },
+  Ember: {
+    name: "Brasa",
+    type: "Fire",
+    power: 40,
+    accuracy: 100,
+    category: "Special",
+    description: "Cospe pequenas chamas na direção do alvo.",
+    sfx: "flame",
+  },
+  FireFang: {
+    name: "Presa de Fogo",
+    type: "Fire",
+    power: 65,
+    accuracy: 95,
+    category: "Physical",
+    description: "Morde o alvo com presas envoltas em chamas.",
+    sfx: "flame",
+  },
+  Bubble: {
+    name: "Bolha",
+    type: "Water",
+    power: 40,
+    accuracy: 100,
+    category: "Special",
+    description: "Dispara uma rajada de bolhas contra o alvo.",
+    sfx: "water",
+  },
+  VineWhip: {
+    name: "Chicote de Cipó",
+    type: "Grass",
+    power: 45,
+    accuracy: 100,
+    category: "Physical",
+    description: "Chicoteia o alvo com cipós finos e flexíveis.",
+    sfx: "slash",
+  },
+  RazorLeaf: {
+    name: "Folha Navalha",
+    type: "Grass",
+    power: 55,
+    accuracy: 95,
+    category: "Physical",
+    description: "Folhas afiadas cortam o ar em direção ao oponente.",
+    sfx: "slash",
+  },
+  ThunderShock: {
+    name: "Choque",
+    type: "Electric",
+    power: 40,
+    accuracy: 100,
+    category: "Special",
+    description: "Uma descarga elétrica fraca, porém certeira.",
+    sfx: "thunder",
+  },
+  Spark: {
+    name: "Faísca",
+    type: "Electric",
+    power: 65,
+    accuracy: 100,
+    category: "Physical",
+    description: "Avança envolto em uma carga elétrica crepitante.",
+    sfx: "thunder",
+  },
+  Confusion: {
+    name: "Confusão",
+    type: "Psychic",
+    power: 50,
+    accuracy: 100,
+    category: "Special",
+    description: "Um leve pulso telecinético atinge a mente do alvo.",
+    sfx: "beam",
+  },
+  Psybeam: {
+    name: "Psico-Raio",
+    type: "Psychic",
+    power: 65,
+    accuracy: 100,
+    category: "Special",
+    description: "Um feixe mental estranho atinge o oponente.",
+    sfx: "beam",
+  },
+  MudSlap: {
+    name: "Bofetada de Lama",
+    type: "Ground",
+    power: 35,
+    accuracy: 100,
+    category: "Special",
+    description: "Atira lama no rosto do alvo para atrapalhar sua mira.",
+    sfx: "slash",
+  },
+  Dig: {
+    name: "Escavar",
+    type: "Ground",
+    power: 80,
+    accuracy: 100,
+    category: "Physical",
+    description: "Cava o solo e irrompe embaixo do oponente.",
+    sfx: "slash",
+  },
+  Lick: {
+    name: "Lambida",
+    type: "Ghost",
+    power: 30,
+    accuracy: 100,
+    category: "Physical",
+    description: "Uma língua espectral lambe o alvo e o arrepia.",
+    sfx: "slash",
+  },
+  Bite: {
+    name: "Mordida",
+    type: "Dark",
+    power: 60,
+    accuracy: 100,
+    category: "Physical",
+    description: "Crava presas afiadas para intimidar o oponente.",
+    sfx: "slash",
+  },
+  IceShard: {
+    name: "Estilhaço de Gelo",
+    type: "Ice",
+    power: 40,
+    accuracy: 100,
+    category: "Physical",
+    description: "Lascas de gelo disparadas em alta velocidade.",
+    sfx: "beam",
+  },
+  IcyWind: {
+    name: "Vento Gélido",
+    type: "Ice",
+    power: 55,
+    accuracy: 95,
+    category: "Special",
+    description: "Uma lufada congelante que reduz o ímpeto do alvo.",
+    sfx: "beam",
+  },
+  KarateChop: {
+    name: "Golpe de Caratê",
+    type: "Fighting",
+    power: 50,
+    accuracy: 100,
+    category: "Physical",
+    description: "Um golpe de mão aberta com precisão marcial.",
+    sfx: "slash",
+  },
+  Gust: {
+    name: "Rajada",
+    type: "Flying",
+    power: 40,
+    accuracy: 100,
+    category: "Special",
+    description: "Bate as asas e cria um vento cortante.",
+    sfx: "beam",
+  },
+  WingAttack: {
+    name: "Ataque de Asa",
+    type: "Flying",
+    power: 60,
+    accuracy: 100,
+    category: "Physical",
+    description: "Atinge o alvo com asas amplamente abertas.",
+    sfx: "slash",
+  },
+  MetalClaw: {
+    name: "Garra de Metal",
+    type: "Steel",
+    power: 50,
+    accuracy: 95,
+    category: "Physical",
+    description: "Corta o alvo com garras de aço endurecido.",
+    sfx: "slash",
+  },
+  DragonBreath: {
+    name: "Sopro do Dragão",
+    type: "Dragon",
+    power: 60,
+    accuracy: 100,
+    category: "Special",
+    description: "Um sopro poderoso que sacode o oponente.",
+    sfx: "beam",
+  },
+  RockPolish: {
+    name: "Rocha Rolante",
+    type: "Rock",
+    power: 45,
+    accuracy: 100,
+    category: "Physical",
+    description: "Rola uma pedra pesada por cima do alvo.",
+    sfx: "slash",
+  },
 };
 
-export const POKEDEX: PokemonSpecies[] = [
+const POKEDEX_DATA: PokemonSpeciesData[] = [
   {
     id: 1,
     name: "Bulbasaur",
@@ -295,7 +544,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 65,
     baseSpd: 45,
     catchRate: 45,
-    moves: [ALL_MOVES.SolarBeam, ALL_MOVES.QuickAttack, ALL_MOVES.Earthquake, ALL_MOVES.ShadowBall],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.VineWhip },
+      { level: 7, move: ALL_MOVES.RazorLeaf },
+      { level: 12, move: ALL_MOVES.MudSlap },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Dig },
+      { level: 32, move: ALL_MOVES.ShadowBall },
+      { level: 40, move: ALL_MOVES.Earthquake },
+      { level: 48, move: ALL_MOVES.SolarBeam },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/1.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/1.gif",
@@ -312,7 +571,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 50,
     baseSpd: 65,
     catchRate: 45,
-    moves: [ALL_MOVES.Flamethrower, ALL_MOVES.DragonClaw, ALL_MOVES.QuickAttack, ALL_MOVES.DarkPulse],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 1, move: ALL_MOVES.Ember },
+      { level: 7, move: ALL_MOVES.MetalClaw },
+      { level: 12, move: ALL_MOVES.FireFang },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Bite },
+      { level: 32, move: ALL_MOVES.DragonBreath },
+      { level: 40, move: ALL_MOVES.DarkPulse },
+      { level: 48, move: ALL_MOVES.DragonClaw },
+      { level: 56, move: ALL_MOVES.Flamethrower },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/4.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/4.gif",
@@ -329,7 +599,19 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 85,
     baseSpd: 100,
     catchRate: 30,
-    moves: [ALL_MOVES.Flamethrower, ALL_MOVES.DragonClaw, ALL_MOVES.Earthquake, ALL_MOVES.AirSlash],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 1, move: ALL_MOVES.Ember },
+      { level: 7, move: ALL_MOVES.MetalClaw },
+      { level: 12, move: ALL_MOVES.FireFang },
+      { level: 18, move: ALL_MOVES.Gust },
+      { level: 24, move: ALL_MOVES.WingAttack },
+      { level: 30, move: ALL_MOVES.DragonBreath },
+      { level: 38, move: ALL_MOVES.AirSlash },
+      { level: 44, move: ALL_MOVES.Earthquake },
+      { level: 50, move: ALL_MOVES.DragonClaw },
+      { level: 56, move: ALL_MOVES.Flamethrower },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/6.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/6.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/6.gif",
@@ -346,7 +628,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 64,
     baseSpd: 43,
     catchRate: 45,
-    moves: [ALL_MOVES.HydroPump, ALL_MOVES.IceBeam, ALL_MOVES.QuickAttack, ALL_MOVES.Earthquake],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.IceShard },
+      { level: 12, move: ALL_MOVES.WaterPulse },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Bite },
+      { level: 32, move: ALL_MOVES.IcyWind },
+      { level: 40, move: ALL_MOVES.Earthquake },
+      { level: 48, move: ALL_MOVES.IceBeam },
+      { level: 56, move: ALL_MOVES.HydroPump },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/7.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/7.gif",
@@ -363,7 +656,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 105,
     baseSpd: 78,
     catchRate: 30,
-    moves: [ALL_MOVES.HydroPump, ALL_MOVES.IceBeam, ALL_MOVES.Earthquake, ALL_MOVES.DarkPulse],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.IceShard },
+      { level: 12, move: ALL_MOVES.WaterPulse },
+      { level: 18, move: ALL_MOVES.Bite },
+      { level: 26, move: ALL_MOVES.IcyWind },
+      { level: 34, move: ALL_MOVES.DarkPulse },
+      { level: 42, move: ALL_MOVES.Earthquake },
+      { level: 50, move: ALL_MOVES.IceBeam },
+      { level: 58, move: ALL_MOVES.HydroPump },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/9.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/9.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/9.gif",
@@ -380,7 +684,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 50,
     baseSpd: 90,
     catchRate: 50,
-    moves: [ALL_MOVES.Thunderbolt, ALL_MOVES.QuickAttack, ALL_MOVES.AuraSphere, ALL_MOVES.ShadowBall],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.ThunderShock },
+      { level: 6, move: ALL_MOVES.QuickAttack },
+      { level: 12, move: ALL_MOVES.Spark },
+      { level: 18, move: ALL_MOVES.KarateChop },
+      { level: 26, move: ALL_MOVES.Bite },
+      { level: 32, move: ALL_MOVES.AuraSphere },
+      { level: 40, move: ALL_MOVES.ShadowBall },
+      { level: 48, move: ALL_MOVES.Thunderbolt },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/25.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/25.gif",
@@ -397,7 +711,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 30,
     baseSpd: 20,
     catchRate: 255,
-    moves: [ALL_MOVES.RockThrow, ALL_MOVES.Tackle, ALL_MOVES.Earthquake, ALL_MOVES.RockSlide],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.MudSlap },
+      { level: 7, move: ALL_MOVES.RockPolish },
+      { level: 12, move: ALL_MOVES.RockThrow },
+      { level: 18, move: ALL_MOVES.Bite },
+      { level: 26, move: ALL_MOVES.Dig },
+      { level: 34, move: ALL_MOVES.RockSlide },
+      { level: 42, move: ALL_MOVES.IronTail },
+      { level: 50, move: ALL_MOVES.Earthquake },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/74.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/74.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/74.gif",
@@ -414,7 +738,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 45,
     baseSpd: 70,
     catchRate: 45,
-    moves: [ALL_MOVES.RockSlide, ALL_MOVES.Tackle, ALL_MOVES.IronTail, ALL_MOVES.Earthquake],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.MudSlap },
+      { level: 7, move: ALL_MOVES.RockPolish },
+      { level: 12, move: ALL_MOVES.RockThrow },
+      { level: 18, move: ALL_MOVES.Bite },
+      { level: 26, move: ALL_MOVES.Dig },
+      { level: 34, move: ALL_MOVES.RockSlide },
+      { level: 42, move: ALL_MOVES.IronTail },
+      { level: 50, move: ALL_MOVES.Earthquake },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/95.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/95.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/95.gif",
@@ -431,7 +765,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 55,
     baseSpd: 85,
     catchRate: 225,
-    moves: [ALL_MOVES.WaterPulse, ALL_MOVES.IceBeam, ALL_MOVES.Tackle, ALL_MOVES.Psychic],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.IceShard },
+      { level: 12, move: ALL_MOVES.Confusion },
+      { level: 18, move: ALL_MOVES.WaterPulse },
+      { level: 26, move: ALL_MOVES.Psybeam },
+      { level: 34, move: ALL_MOVES.IcyWind },
+      { level: 42, move: ALL_MOVES.Psychic },
+      { level: 50, move: ALL_MOVES.IceBeam },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/120.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/120.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/120.gif",
@@ -448,7 +792,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 85,
     baseSpd: 115,
     catchRate: 60,
-    moves: [ALL_MOVES.HydroPump, ALL_MOVES.Psychic, ALL_MOVES.IceBeam, ALL_MOVES.Thunderbolt],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.Confusion },
+      { level: 12, move: ALL_MOVES.WaterPulse },
+      { level: 20, move: ALL_MOVES.Psybeam },
+      { level: 28, move: ALL_MOVES.IcyWind },
+      { level: 36, move: ALL_MOVES.Thunderbolt },
+      { level: 44, move: ALL_MOVES.IceBeam },
+      { level: 52, move: ALL_MOVES.Psychic },
+      { level: 58, move: ALL_MOVES.HydroPump },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/121.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/121.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/121.gif",
@@ -465,7 +820,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 75,
     baseSpd: 110,
     catchRate: 35,
-    moves: [ALL_MOVES.ShadowBall, ALL_MOVES.DarkPulse, ALL_MOVES.Thunderbolt, ALL_MOVES.Psychic],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Lick },
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 7, move: ALL_MOVES.Confusion },
+      { level: 12, move: ALL_MOVES.Bite },
+      { level: 20, move: ALL_MOVES.Psybeam },
+      { level: 28, move: ALL_MOVES.Spark },
+      { level: 36, move: ALL_MOVES.Thunderbolt },
+      { level: 44, move: ALL_MOVES.Psychic },
+      { level: 52, move: ALL_MOVES.DarkPulse },
+      { level: 58, move: ALL_MOVES.ShadowBall },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/94.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/94.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/94.gif",
@@ -482,7 +848,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 100,
     baseSpd: 81,
     catchRate: 30,
-    moves: [ALL_MOVES.HydroPump, ALL_MOVES.DragonClaw, ALL_MOVES.Earthquake, ALL_MOVES.IceBeam],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.Bite },
+      { level: 14, move: ALL_MOVES.WaterPulse },
+      { level: 22, move: ALL_MOVES.IceShard },
+      { level: 30, move: ALL_MOVES.DragonBreath },
+      { level: 38, move: ALL_MOVES.IceBeam },
+      { level: 46, move: ALL_MOVES.Earthquake },
+      { level: 54, move: ALL_MOVES.DragonClaw },
+      { level: 60, move: ALL_MOVES.HydroPump },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/130.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/130.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/130.gif",
@@ -499,7 +876,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 95,
     baseSpd: 60,
     catchRate: 35,
-    moves: [ALL_MOVES.IceBeam, ALL_MOVES.HydroPump, ALL_MOVES.Thunderbolt, ALL_MOVES.Psychic],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.IceShard },
+      { level: 14, move: ALL_MOVES.Confusion },
+      { level: 22, move: ALL_MOVES.WaterPulse },
+      { level: 30, move: ALL_MOVES.IcyWind },
+      { level: 38, move: ALL_MOVES.Psybeam },
+      { level: 46, move: ALL_MOVES.Thunderbolt },
+      { level: 54, move: ALL_MOVES.Psychic },
+      { level: 60, move: ALL_MOVES.IceBeam },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/131.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/131.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/131.gif",
@@ -516,7 +904,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 65,
     baseSpd: 55,
     catchRate: 45,
-    moves: [ALL_MOVES.QuickAttack, ALL_MOVES.ShadowBall, ALL_MOVES.Flamethrower, ALL_MOVES.Thunderbolt],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 7, move: ALL_MOVES.QuickAttack },
+      { level: 13, move: ALL_MOVES.Bite },
+      { level: 20, move: ALL_MOVES.BodySlam },
+      { level: 28, move: ALL_MOVES.Spark },
+      { level: 36, move: ALL_MOVES.ShadowBall },
+      { level: 44, move: ALL_MOVES.Thunderbolt },
+      { level: 52, move: ALL_MOVES.Flamethrower },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/133.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/133.gif",
@@ -533,7 +931,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 70,
     baseSpd: 70,
     catchRate: 45,
-    moves: [ALL_MOVES.DragonPulse, ALL_MOVES.DragonClaw, ALL_MOVES.Thunderbolt, ALL_MOVES.IceBeam],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.ThunderShock },
+      { level: 7, move: ALL_MOVES.DragonBreath },
+      { level: 14, move: ALL_MOVES.IceShard },
+      { level: 22, move: ALL_MOVES.Spark },
+      { level: 30, move: ALL_MOVES.IcyWind },
+      { level: 38, move: ALL_MOVES.DragonPulse },
+      { level: 46, move: ALL_MOVES.Thunderbolt },
+      { level: 54, move: ALL_MOVES.IceBeam },
+      { level: 60, move: ALL_MOVES.DragonClaw },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/148.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/148.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/148.gif",
@@ -550,7 +959,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 100,
     baseSpd: 80,
     catchRate: 25,
-    moves: [ALL_MOVES.DragonClaw, ALL_MOVES.Flamethrower, ALL_MOVES.Thunderbolt, ALL_MOVES.Earthquake],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.DragonBreath },
+      { level: 8, move: ALL_MOVES.WingAttack },
+      { level: 16, move: ALL_MOVES.Spark },
+      { level: 24, move: ALL_MOVES.FireFang },
+      { level: 32, move: ALL_MOVES.IcyWind },
+      { level: 40, move: ALL_MOVES.Thunderbolt },
+      { level: 48, move: ALL_MOVES.Earthquake },
+      { level: 56, move: ALL_MOVES.Flamethrower },
+      { level: 62, move: ALL_MOVES.DragonClaw },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/149.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/149.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/149.gif",
@@ -567,7 +987,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 90,
     baseSpd: 130,
     catchRate: 15,
-    moves: [ALL_MOVES.Psychic, ALL_MOVES.AuraSphere, ALL_MOVES.ShadowBall, ALL_MOVES.IceBeam],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Confusion },
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 10, move: ALL_MOVES.Psybeam },
+      { level: 20, move: ALL_MOVES.KarateChop },
+      { level: 30, move: ALL_MOVES.IceShard },
+      { level: 40, move: ALL_MOVES.AuraSphere },
+      { level: 50, move: ALL_MOVES.IceBeam },
+      { level: 60, move: ALL_MOVES.ShadowBall },
+      { level: 70, move: ALL_MOVES.Psychic },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/150.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/150.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/150.gif",
@@ -584,7 +1014,17 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 130,
     baseSpd: 65,
     catchRate: 35,
-    moves: [ALL_MOVES.DarkPulse, ALL_MOVES.ShadowBall, ALL_MOVES.QuickAttack, ALL_MOVES.Psychic],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 7, move: ALL_MOVES.QuickAttack },
+      { level: 14, move: ALL_MOVES.Bite },
+      { level: 22, move: ALL_MOVES.Lick },
+      { level: 30, move: ALL_MOVES.Confusion },
+      { level: 38, move: ALL_MOVES.Psychic },
+      { level: 46, move: ALL_MOVES.ShadowBall },
+      { level: 54, move: ALL_MOVES.DarkPulse },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/197.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/197.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/197.gif",
@@ -601,7 +1041,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 115,
     baseSpd: 80,
     catchRate: 35,
-    moves: [ALL_MOVES.Psychic, ALL_MOVES.ShadowBall, ALL_MOVES.Thunderbolt, ALL_MOVES.AuraSphere],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Confusion },
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 8, move: ALL_MOVES.Psybeam },
+      { level: 16, move: ALL_MOVES.Lick },
+      { level: 24, move: ALL_MOVES.ThunderShock },
+      { level: 32, move: ALL_MOVES.Spark },
+      { level: 40, move: ALL_MOVES.AuraSphere },
+      { level: 48, move: ALL_MOVES.Thunderbolt },
+      { level: 56, move: ALL_MOVES.ShadowBall },
+      { level: 62, move: ALL_MOVES.Psychic },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/282.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/282.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/282.gif",
@@ -618,7 +1069,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 90,
     baseSpd: 95,
     catchRate: 10,
-    moves: [ALL_MOVES.DragonClaw, ALL_MOVES.Flamethrower, ALL_MOVES.Earthquake, ALL_MOVES.Thunderbolt],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 1, move: ALL_MOVES.DragonBreath },
+      { level: 10, move: ALL_MOVES.Gust },
+      { level: 20, move: ALL_MOVES.WingAttack },
+      { level: 30, move: ALL_MOVES.FireFang },
+      { level: 40, move: ALL_MOVES.Spark },
+      { level: 50, move: ALL_MOVES.Thunderbolt },
+      { level: 58, move: ALL_MOVES.Earthquake },
+      { level: 66, move: ALL_MOVES.Flamethrower },
+      { level: 74, move: ALL_MOVES.DragonClaw },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/384.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/384.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/384.gif",
@@ -635,7 +1097,18 @@ export const POKEDEX: PokemonSpecies[] = [
     baseSpDef: 70,
     baseSpd: 90,
     catchRate: 35,
-    moves: [ALL_MOVES.AuraSphere, ALL_MOVES.DragonClaw, ALL_MOVES.Earthquake, ALL_MOVES.DarkPulse],
+    learnset: [
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 1, move: ALL_MOVES.KarateChop },
+      { level: 8, move: ALL_MOVES.MetalClaw },
+      { level: 16, move: ALL_MOVES.Bite },
+      { level: 24, move: ALL_MOVES.MudSlap },
+      { level: 32, move: ALL_MOVES.Dig },
+      { level: 40, move: ALL_MOVES.DragonBreath },
+      { level: 48, move: ALL_MOVES.DarkPulse },
+      { level: 56, move: ALL_MOVES.Earthquake },
+      { level: 64, move: ALL_MOVES.AuraSphere },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/448.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/448.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/448.gif",
@@ -653,6 +1126,63 @@ export const FALLBACK_MOVE: PokemonMove = {
   description: "Um ataque corporal simples.",
   sfx: "slash",
 };
+
+/**
+ * Os golpes que a espécie conhece em um dado nível (Fase 6.1).
+ *
+ * Regra: pega tudo que já foi aprendido até `level` e fica com os **4 últimos**
+ * (empates de nível resolvidos pela ordem do learnset). É o que dá ao início do
+ * jogo golpes de poder 30–55 em vez de 80–110.
+ *
+ * Nível abaixo do primeiro aprendizado não deixa o Pokémon sem ação: devolve o
+ * primeiro golpe do learnset. Nenhuma batalha pode ficar sem golpe.
+ */
+export function movesAtLevel(
+  species: Pick<PokemonSpeciesData, "learnset">,
+  level: number
+): PokemonMove[] {
+  const known = species.learnset
+    .filter((entry) => entry.level <= level)
+    .map((entry) => entry.move);
+
+  if (known.length === 0) {
+    const first = species.learnset[0]?.move;
+    return first ? [first] : [FALLBACK_MOVE];
+  }
+
+  return known.slice(-MOVE_SLOTS);
+}
+
+/**
+ * Os 4 slots de golpe como o banco os guarda (`move1..move4`).
+ *
+ * Slot sem golpe vira string vazia, **não** uma repetição do primeiro golpe:
+ * um Pokémon de nível baixo conhece 1 ou 2 golpes e mostrar "Arranhão" quatro
+ * vezes seria mentira de interface. Quem lê filtra vazio (`movesOf`, PC Box).
+ */
+export function moveSlots(moves: PokemonMove[]): {
+  move1: string;
+  move2: string;
+  move3: string;
+  move4: string;
+} {
+  const names = moves.slice(0, MOVE_SLOTS).map((m) => m.name);
+  return {
+    move1: names[0] ?? FALLBACK_MOVE.name,
+    move2: names[1] ?? "",
+    move3: names[2] ?? "",
+    move4: names[3] ?? "",
+  };
+}
+
+/**
+ * Catálogo público. `moves` é derivado do learnset (conjunto de fim de jogo),
+ * para que nunca exista uma lista de golpes fora de sincronia com a progressão.
+ */
+export const POKEDEX: PokemonSpecies[] = POKEDEX_DATA.map((species) => ({
+  ...species,
+  moves: movesAtLevel(species, MAX_SPECIES_LEVEL),
+}));
 
 /**
  * Resolve um golpe pelo NOME EXIBIDO ("Lança-Chamas"), não pela chave.

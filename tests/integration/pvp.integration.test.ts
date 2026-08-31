@@ -178,8 +178,10 @@ describe("PvP — sigilo da ação travada", () => {
     const roomCode = await openRoom(a, b);
 
     // A trava a ação.
+    // Fase 6.1: um inicial nível 5 conhece 2 golpes (índices 0 e 1). O índice 2
+    // passou a ser inválido de verdade — o learnset é o que limita os slots.
     const submitted = await a.c.call("/api/pvp", {
-      body: { action: "submit_turn", roomCode, turnAction: { kind: "attack", moveIndex: 2 } },
+      body: { action: "submit_turn", roomCode, turnAction: { kind: "attack", moveIndex: 1 } },
     });
     expect(submitted.status).toBe(200);
 

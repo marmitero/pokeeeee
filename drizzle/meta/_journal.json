@@ -36,6 +36,13 @@
       "when": 1788017993127,
       "tag": "0004_lowly_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1788175424088,
+      "tag": "0005_mysterious_bloodstrike",
+      "breakpoints": true
     }
   ]
 }

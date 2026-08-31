@@ -23,7 +23,11 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
+  // Produção continua recusando qualquer moldura (clickjacking). Em dev o
+  // preview do sandbox roda dentro de um iframe em `*.e2b.app`, e com
+  // `'none'` a tela fica em branco — por isso a exceção é estrita: só
+  // desenvolvimento, só esse host.
+  production ? "frame-ancestors 'none'" : "frame-ancestors 'self' https://*.e2b.app",
   ...(production ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
@@ -35,7 +39,9 @@ const securityHeaders = [
     key: "Permissions-Policy",
     value: "camera=(), geolocation=(), microphone=(), payment=(), usb=()",
   },
-  { key: "X-Frame-Options", value: "DENY" },
+  // Cabeçalho legado, sem sintaxe de curinga: em dev ele é omitido e a
+  // proteção fica a cargo do `frame-ancestors` acima.
+  ...(production ? [{ key: "X-Frame-Options", value: "DENY" }] : []),
   ...(production
     ? [
         {

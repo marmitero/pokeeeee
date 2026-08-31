@@ -45,14 +45,20 @@ const statusMove: PokemonMove = {
   sfx: "heal",
 };
 
+/**
+ * HP alto de propósito: a partir da Fase 6.1 existe um **teto de dano por
+ * golpe** proporcional ao HP máximo do alvo (`capDamage`). Nos testes de
+ * fórmula o teto precisa não valer, senão eles medem o teto e não a fórmula.
+ * O teto tem os seus próprios testes mais abaixo.
+ */
 function side(overrides: Partial<Combatant> = {}): Combatant {
   return {
     pokedexId: 1,
     name: "Teste",
     types: ["Normal"],
     level: 20,
-    hp: 50,
-    maxHp: 50,
+    hp: 1000,
+    maxHp: 1000,
     attack: 30,
     defense: 30,
     spAttack: 30,

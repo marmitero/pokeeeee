@@ -34,6 +34,7 @@
 > | 4 | **Chat global**: abrir o PVP, ver as mensagens reais carregadas (não as fake) e enviar uma | Botão PVP | Fase 3 |
 > | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
 > | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
+| 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -85,7 +86,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a052dc-pokeeeee`
+**Branch da sessão atual:** `arena/01a05735-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -121,7 +122,7 @@ src/
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-21 espécies · 19 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+21 espécies (com learnset por nível) · 41 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -131,7 +132,7 @@ src/
 | Encontros selvagens | ✅ Funciona (decididos no cliente) |
 | Batalha selvagem | ✅ **Servidor** — dano, tipos, XP, captura e HP persistidos |
 | Captura | ✅ **Servidor** — `catchRate` + HP + bola; pode falhar |
-| XP / Nível up | ❌ Morto — colunas existem, nunca recebem UPDATE |
+| XP / Nível up | ✅ **Servidor** — XP acumula, nível sobe e o Pokémon **aprende golpes** (6.1) |
 | PC Box / time / itens | ✅ Funciona |
 | Ginásio | ✅ **Servidor** — luta turno a turno, insígnia só vencendo de verdade |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
@@ -246,6 +247,11 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 2. O que falta implementar segundo o roadmap
+
+- [x] **FASE 6.1 — Balanceamento do início do jogo** ✅ 2026-08-31
+- [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
+- [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
+- [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`** ⬅️ próxima
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -413,6 +419,167 @@ Duas armadilhas tratadas em `src/db/index.ts`:
    prepared statements e quebra Drizzle/drizzle-kit. O app **avisa no log** se
    detectar a 6543. O recomendado é a conexão direta (5432).
 
+### Correção — sessão perdida dentro do iframe (2026-08-31)
+
+**Sintoma relatado:** depois de pintar as camadas, o passo na área de caça
+tocava o som do encontro e a batalha nunca começava; o editor "aparentemente
+funcionou".
+
+**Auditoria.** A API estava certa: `POST /api/battle` com `start_wild` em (3,9)
+devolve 200 no matinho e 400 na grama comum, e responde 200 **só** com
+`Authorization: Bearer`. O log do dev server mostrou o que de fato acontecia no
+navegador: `PUT /api/maps/1 401`, `POST /api/battle 401`, `POST
+/api/pokemon/heal 401` — tudo depois de um `POST /api/auth 200`. E o banco
+confirmou: as três camadas do mapa 1 continuavam vazias, ou seja, **o salvamento
+do editor nunca chegou a gravar**.
+
+**Causa raiz.** Dentro de iframe cross-site o navegador não bloqueia só o
+cookie: ele particiona ou nega o `localStorage`. `setToken` gravava no vazio,
+`getToken` devolvia `null`, nenhuma request levava `Authorization`, e o
+servidor respondia 401 a tudo. O som tocava porque é disparado **antes** da
+request; a batalha nunca vinha porque a request era anônima.
+
+**Dois defeitos secundários que esconderam o primeiro:**
+
+1. o aviso do editor era **sempre verde** — a mensagem de erro do 401 aparecia
+   com cara de sucesso, e o mapa parecia salvo;
+2. no jogo, o 401 virava a mensagem genérica "não foi possível iniciar a
+   batalha", que faz pensar em bug de mapa, não em sessão.
+
+**Correções (`src/lib/api-client.ts`, `WorldMapEditor.tsx`, `page.tsx`):**
+
+- cópia do token **em memória**, que não depende de permissão de armazenamento
+  e dura o que dura a página; `localStorage` segue como persistência
+  best-effort para sobreviver ao F5;
+- captura central do token em **qualquer** resposta 2xx de `/api/auth`, para
+  nenhuma tela precisar lembrar de chamar `setToken`;
+- aviso do editor colorido pelo conteúdo (verde só quando começa com "✓");
+- 401 no encontro agora diz "Sua sessão caiu. Faça login de novo para
+  batalhar.".
+
+10 testes novos em `src/lib/api-client.test.ts` simulam o `localStorage` que
+lança exceção e provam que o header `Authorization` continua sendo enviado.
+
+### Fase 6.2-B — Editor de Mundos pinta as camadas (2026-08-31)
+
+A 6.2-A criou as camadas no banco; sem interface, só dava para editá-las por
+`curl`. Agora o `WorldMapEditor` tem uma barra de modos **TERRENO · ENCONTROS ·
+COLISÃO**, e o pincel muda de alvo conforme o modo (clique e arrasto nos três).
+
+Decisões que valem registro:
+
+1. **O overlay usa `map-rules`**, as mesmas funções do servidor. O que aparece
+   pintado é o que o motor vai fazer, não uma segunda interpretação da camada
+   que pode divergir com o tempo.
+2. **Ligar a camada de encontro converte em vez de zerar.** Como a camada
+   ligada vira a única fonte da verdade, ligá-la vazia apagaria todo o matinho
+   de uma vez. O primeiro traço (ou o botão "usar o matinho atual") semeia a
+   grade com o comportamento vigente. Há "limpar tudo" e "desligar camada".
+3. **`null` ≠ grade toda falsa no estado do editor.** `null` é "camada
+   desligada, o tipo do tile decide"; grade falsa é "aqui não tem nada". Só ao
+   salvar `null` vira `[]`, que é como o banco representa o legado.
+4. **Mapa novo nasce sem espécie.** O editor criava todo mapa novo com Mewtwo,
+   Rayquaza e Dragonite nível 25–50 fixos no código — o oposto da dificuldade
+   progressiva que o mantenedor pediu.
+
+Lista de espécies agora editável: peso **com a chance real em %** ao lado
+(peso 20 é 100% num mapa com uma espécie e 5% num com vinte), nível mín/máx por
+espécie com faixa invertida sinalizada antes de o servidor recusar, **faixa de
+nível do mapa** com "aplicar a todas", e **taxa de encontro por passo** (era um
+`0.22` fixo no cliente).
+
+Funções puras em `src/lib/map-layers.ts` (`loadLayer`, `countMarked`,
+`countOverrides`, `weightShare`, `sanitizeLevelRange`, `applyLevelRange`),
+fora do componente para poderem ser testadas sem interface.
+
+Infra: em **desenvolvimento** o CSP passou a aceitar `frame-ancestors
+https://*.e2b.app` e o `X-Frame-Options: DENY` é omitido — sem isso o preview
+do sandbox fica em branco. **Produção continua recusando qualquer moldura.**
+
+### Fase 6.2-A — Camadas de mapa: colisão e área de caça editáveis (2026-08-31)
+
+Pedido do mantenedor: o Editor de Mundos precisa decidir **onde** aparecem
+bichos e **onde** dá para andar. Dois defeitos concretos estavam no caminho:
+
+1. água era `walkable: false` **e** `hasEncounter: true` — encontro aquático
+   era impossível, porque ninguém pisa na água;
+2. só o matinho gerava encontro, e a área de caça era o mapa inteiro.
+
+A causa era a mesma nos dois: passagem e encontro eram **propriedade do tipo de
+tile**, fixas em `TILE_DEFINITIONS`. Viraram **dado por mapa**:
+
+| Coluna nova em `game_maps` | Tipo | Papel |
+|---|---|---|
+| `encounter_grid` | `jsonb` `boolean[][]` | o "tile invisível" de encontro, aplicável sobre qualquer tile |
+| `collision_grid` | `jsonb` `(null \| "blocked" \| "walkable")[][]` | override de passagem por célula |
+| `encounter_rate` | `integer` 0–100 (default 22, com CHECK) | chance de encontro por passo |
+
+Migration `0005_mysterious_bloodstrike.sql` — **aditiva**, tudo com `DEFAULT`.
+Grade vazia = comportamento legado bit a bit, então o deploy não altera
+nenhum mapa existente.
+
+Regras num módulo puro novo, `src/lib/map-rules.ts` (sem banco, sem React, sem
+`Math.random` implícito), usado **pelo servidor e pelo cliente** para não haver
+duas implementações da mesma regra:
+
+- `isWalkableAt` — override manda, mas nunca fura a borda do mapa;
+- `hasEncounterAt` — com a camada preenchida ela é a única fonte da verdade;
+- `encounterPoolAt` — com a camada em uso, `tileTypes` deixa de filtrar
+  (decisão do mantenedor: **uma área de caça por mapa**);
+- `pickWeighted` / `rollEncounterLevel` — `rng` injetável, como na 6.1;
+- `validateMapLayers` — recusa camada com dimensão errada e área de caça
+  pintada sem nenhuma espécie na lista.
+
+Aplicado em: `startWildBattle` (autoridade do servidor), `POST /api/maps` e
+`PUT /api/maps/[id]` (no PUT a validação usa o valor final: entrada ?? banco) e
+o movimento em `src/app/page.tsx` — sem o cliente, o admin liberaria a água e o
+jogador continuaria barrado. `ENCOUNTER_RATE` fixo no cliente foi removido.
+
+**Pendente no deploy:** aplicar a migration `0005` em produção **antes** de
+fazer o merge em `main` — o código novo lê as colunas e quebra sem elas.
+Passo a passo, hash do journal e consultas de conferência em
+`docs/DEPLOY-6.2-A.md`.
+
+### Fase 6.1 — Balanceamento do início do jogo (2026-08-31)
+
+O defeito de abertura da Fase 6: **um inicial nível 5 nocauteava outro inicial
+nível 5 em um golpe**. Medido antes de mexer em qualquer linha, com o motor
+real (500 execuções por confronto): Charmander → Bulbasaur com Lança-Chamas
+causava 23,9 de dano em 20 de HP — **100% de OHKO**; Bulbasaur → Squirtle, 29,2
+em 20; Squirtle → Charmander, 24,2 em 19 (80%). Sem vantagem de tipo, 3 a 5
+turnos. O combate inicial era binário.
+
+**A fórmula de dano não era a culpada.** Ela é a clássica e está correta. A
+causa era conteúdo: **não existia learnset**. `PokemonSpecies.moves` era uma
+lista fixa de 4 golpes de fim de jogo (poder 80–110) que a espécie carregava
+desde o nível 1. Com STAB 1,5 × tipo 2,0, um Lança-Chamas fazia 3,5× o HP total
+de um alvo de nível 5.
+
+O que mudou:
+
+1. **Learnset por nível** (`learnset` + `movesAtLevel`) em todas as 21
+   espécies, mais **22 golpes novos** de poder 30–70 para o começo ter o que
+   entregar. `PokemonSpecies.moves` continua existindo, mas agora é **derivado**
+   (os 4 últimos golpes do learnset) e serve só para vitrine.
+2. **Teto de dano por golpe em níveis baixos** (`capDamage`): um golpe não pode
+   arrancar mais que 30% do HP máximo de um alvo nível 5, subindo linearmente
+   até 100% no nível 30. Meio e fim de jogo ficam com a fórmula clássica intacta.
+3. **RNG injetável** (`Rng`) no motor: balanceamento passou a ser testável com
+   semente fixa, sem espionar `Math.random`.
+4. **Level up ensina golpes** (`refreshMovesForLevel`) e persiste em
+   `move1..move4`; slot vazio é string vazia, não repetição do primeiro golpe.
+5. **Curva de XP** de `nível³ × 0,8` para `nível^2,5 × 2,5`: o começo continua em
+   ~3 batalhas por nível e o meio de jogo deixa de dobrar (era 11,2 batalhas
+   para sair do nível 25, agora 5,8).
+6. **Níveis de ginásio** revisados e movidos para `src/lib/gym-teams.ts` (fonte
+   única): Brock 12/14 → **10/12**, Misty 18/21 → **16/19**.
+7. **`npm run balance:report`** imprime a tabela de confrontos, o teto por
+   nível, a prévia do primeiro ginásio e a curva — para o próximo ajuste ser
+   comparado, não chutado.
+8. **`npm run db:rebalance`** faz o backfill de produção (movesets dos Pokémon
+   já capturados + níveis dos ginásios já semeados), idempotente e com
+   `--dry-run`.
+
 ---
 
 ## 4. Passo a passo de validação da última etapa
@@ -505,38 +672,226 @@ Smoke manual/autenticado informado pelo mantenedor: script passou; visual de
 mapa, batalha selvagem, ginásio, loja, PvP e admin ok.
 
 Concluído: `/api/maintenance` com `CRON_SECRET` retornou 200 após rotação do segredo e redeploy.
-Pendente: primeira execução/restauração do backup criptografado de produção.
+
+### 4.7 Fechamento da Fase 5.1-D — backup de produção (2026-08-31)
+
+Confirmado no GitHub nesta sessão, sem alterar produção:
+
+```bash
+git fetch origin
+gh pr list --state all       # PR #1 MERGED, PR #2 MERGED
+gh run list --limit 12
+gh run view 33378414585      # Encrypted production backup → success, 30s
+```
+
+- **PR #2** (`Fase 5.1-D: registra produção e prepara backup`) está **mergeado
+  na `main`**; a `main` está em `a87e965` (`Fix restore-db cleanup and
+  verification logic`).
+- **CI verde na `main`**: run `33378159885` (lint, typecheck, unit, integration,
+  build).
+- **Encrypted production backup**: run `33378414585` → `success`, com o artifact
+  criptografado `production-db-33378414585`. O passo de verificação do workflow
+  imprime `Restore verified: 11 game tables, 5 migrations` e aborta com
+  `exit 1` se as contagens não baterem — o download bruto do log via
+  `gh run view --log` é bloqueado pelo egress deste sandbox, então a evidência
+  usada foi o `success` do job somado ao artifact publicado.
+- Runs `failure` anteriores do mesmo workflow (duração `0s`) são execuções
+  disparadas por `push` antes da correção do YAML/verificação; a última execução
+  em `main` é a válida.
+- **Dessincronia corrigida aqui:** `docs/backup-production.yml` estava atrás de
+  `.github/workflows/backup-production.yml` (faltavam `--inserts`,
+  `--verbose --exit-on-error`, o `docker rm -f restore-db` defensivo e a
+  verificação numérica com diagnóstico). O arquivo de `docs/` foi
+  **ressincronizado por cópia** do workflow real.
+
+Produção esperada e confirmada: `/api/health` → `{ "ok": true }`;
+`/api/maintenance` sem segredo → não autorizado; com `CRON_SECRET` → `200 ok`.
+
+Armadilha registrada: no Session Pooler do Supabase o usuário precisa do sufixo
+com project ref (`catchbound_runtime.PROJECT_REF` na Vercel,
+`catchbound_backup.PROJECT_REF` no GitHub Actions); sem isso o erro é `28P01`.
+
+Validação local desta sessão (banco embutido `npm run db:local`):
+
+```bash
+npm ci
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db npm run check
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+  npm run test:integration
+npm audit --audit-level=moderate
+```
+
+**Fase 5.1-D concluída.** Produção controlada online, backup criptografado ativo
+com restore testado, `CRON_SECRET` validado. Próxima etapa: **Fase 6**.
+
+### 4.8 Validação da Fase 6.1 (2026-08-31)
+
+```bash
+npm ci
+npm run db:local
+npm run balance:report
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db npm run check
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+  npm run test:integration
+npm run db:rebalance -- --dry-run
+```
+
+Resultados observados:
+
+- `npm run check` **exit 0**: lint 0, tsc 0, **106 testes unitários** (eram 87;
+  19 novos em `balance.test.ts`), build 14 rotas.
+- Integração: **56 testes**. Um deles falhou primeiro e a falha estava certa:
+  `pvp.integration.test.ts` mandava `moveIndex: 2` e um inicial nível 5 agora
+  conhece **2** golpes, então o índice 2 passou a ser inválido de verdade. O
+  teste foi corrigido para o índice 1.
+- Relatório de balanceamento, nível 5, 2000 execuções: **0% de OHKO em todos os
+  seis confrontos** (era 100% com vantagem de tipo); 4,0 turnos com vantagem e
+  4,8–5,1 sem ela.
+- Meio de jogo intocado: no nível 30 o teto não vale mais (56,7 de dano em 73 de
+  HP) e no nível 50 a fórmula clássica está inteira.
+- Curva: 3,0 batalhas para sair do nível 5, 3,9 do 10, 5,8 do 25 (era 2,7 / 4,8
+  / 11,2).
+- Backfill exercitado em banco real: `--dry-run` lista, aplicação converte
+  `[Lança-Chamas, Garra Dragão, Ataque Rápido, Pulso Sombrio]` de um Charmander
+  nível 5 em `[Arranhão, Brasa, "", ""]` e Brock de `[12, 14]` para `[10, 12]`;
+  segunda execução não escreve nada (idempotente).
+- Ponta a ponta contra o banco local (registro → batalha selvagem): inicial
+  nasce com `Arranhão`/`Brasa` e `xp_to_next_level = 81`; o selvagem gerado veio
+  com golpes do nível dele (`Investida`, `Choque`, `Ataque Rápido`), e a batalha
+  durou 3 turnos em vez de 1.
+
+**Não validado aqui:** a tela. Nenhuma destas medições passou por um navegador —
+o PC Box agora esconde slots de golpe vazios e o log de batalha ganhou a linha
+"aprendeu X!", e as duas coisas precisam de uma olhada visual.
+
+**Pendente de operação:** rodar `npm run db:rebalance` **em produção** depois do
+deploy. Sem isso os Pokémon já capturados continuam com os golpes antigos
+gravados no banco, e o rebalanceamento só valeria para contas novas.
+
+### 4.9 Validação da Fase 6.2-A (2026-08-31)
+
+Banco local de pé (`npm run db:local`) e migration aplicada:
+
+```
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npx drizzle-kit migrate
+→ [✓] migrations applied successfully!   (0005_mysterious_bloodstrike)
+```
+
+Suíte completa:
+
+```
+DATABASE_URL=... npm run check
+→ tsc --noEmit limpo · eslint limpo · build 15 rotas
+→ Test Files 9 passed · Tests 136 passed   (30 novos em src/lib/map-rules.test.ts)
+
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+DATABASE_URL=... npm run test:integration
+→ Test Files 5 passed · Tests 64 passed    (8 novos em tests/integration/encounters.integration.test.ts)
+```
+
+O que os testes provam, e não só "passam":
+
+| Prova | Onde |
+|---|---|
+| mapa legado responde **exatamente** como antes (camada vazia não muda nada) | unitário + integração |
+| água pintada como `walkable` + área de caça → `start_wild` devolve 200 | integração (era 400 antes) |
+| matinho marcado `blocked` → 400 "Não dá para estar nesse tile." | integração |
+| grama comum pintada gera encontro; matinho fora da pintura para de gerar | integração |
+| override não atravessa a borda do mapa | unitário |
+| `pickWeighted` respeita a proporção dos pesos com RNG injetado | unitário |
+| `validateMapLayers` pega dimensão errada e área pintada sem espécie | unitário |
+
+**Não validado ainda (precisa de navegador):** andar na água num mapa com a
+camada pintada. Não há como pintar pela interface antes da 6.2-B; o teste de
+integração cobre a rota, que é a autoridade.
+
+### 4.10 Validação da Fase 6.2-B (2026-08-31)
+
+```
+DATABASE_URL=... npm run check
+→ lint limpo · tsc limpo · build 15 rotas
+→ Test Files 10 passed · Tests 157 passed   (21 novos em src/lib/map-layers.test.ts)
+
+TEST_PG_URL=... DATABASE_URL=... npm run test:integration
+→ Test Files 5 passed · Tests 70 passed     (6 novos no PUT /api/maps/:id)
+```
+
+O que os 6 de integração provam, que é o contrato que o editor usa:
+
+| Prova | Resultado |
+|---|---|
+| PUT grava `encounterGrid`, `collisionGrid` e `encounterRate` | 200, e o `start_wild` na água liberada passa a devolver 200 |
+| PUT com `[]` desliga as camadas | volta ao legado: matinho gera, grama comum não |
+| camada com dimensão errada | 400 "altura 16", **nada gravado pela metade** |
+| área pintada sem espécie | 400 "nenhuma espécie" |
+| faixa de nível invertida · taxa 150% | 400 nos dois |
+| jogador comum tentando gravar camada | 401/403 e `encounter_rate` intacto |
+
+**Falta validação no navegador** (o agente não tem browser): abrir o EDITOR
+como admin, alternar os três modos, pintar a água como liberada + área de caça,
+salvar e andar na água no jogo. Preview de dev no sandbox em `:3100`, conta
+`admin` / `admin12345` (banco local, não é credencial de produção).
+
+### 4.11 Validação da correção de sessão em iframe (2026-08-31)
+
+```
+curl -s -X POST /api/battle  (só com Bearer, sem cookie)   → 200
+curl -s -X POST /api/battle  (sem cookie e sem Bearer)     → 401 "Sessão inválida ou expirada."
+SELECT ... FROM game_maps                                   → camadas vazias: o PUT do editor nunca gravou
+
+DATABASE_URL=... npm run check          → Test Files 11 · Tests 167 (10 novos)
+TEST_PG_URL=... npm run test:integration → Test Files 5 · Tests 70
+```
+
+**Falta reteste no navegador:** entrar de novo no preview, pintar, salvar (o
+aviso deve ficar **verde** com "✓") e andar na área pintada.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🟡 Fechar a Fase 5.1-D — backup de produção
+### ✅ Fase 5.1 encerrada — a próxima etapa é a FASE 6
 
-A produção do **Catchbound** está online em `https://catchbound.vercel.app/`,
-com Supabase de produção validado, runtime mínimo `catchbound_runtime`, health
-ok, smoke manual/autenticado aprovado e `/api/maintenance` validado com
-`CRON_SECRET`. Antes de marcar a 5.1-D como concluída:
+Produção controlada online (`https://catchbound.vercel.app/`), Supabase de
+produção validado, runtime mínimo `catchbound_runtime`, `/api/health` ok,
+`/api/maintenance` protegido e validado com `CRON_SECRET`, backup criptografado
+de produção **ativo com restore testado** (run `33378414585`, artifact
+`production-db-33378414585`).
 
-1. cadastrar os GitHub Actions Secrets de produção;
-2. copiar `docs/backup-production.yml` para
-   `.github/workflows/backup-production.yml` por ação humana; o workflow já
-   cria papéis placeholder no restore isolado para policies/default privileges;
-3. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
+### FASE 6 — Conteúdo e mundo (plano detalhado em `docs/FASE-6.md`)
 
-Depois disso, atualizar este arquivo marcando 5.1-D como concluída e iniciar a
-Fase 6 apenas após nova leitura deste estado.
+Ordem: **6.1 balanceamento → 6.2 editor/camadas de mapa → 6.3 evolução →
+6.4 Pokédex → 6.5 status → 6.6 PvP ranqueado → 6.7 NPCs**. Premium (6.8) segue
+bloqueado até haver IP própria, termos, privacidade, pagamento e antifraude.
 
-### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
+#### 6.1 — Balanceamento do início do jogo — ✅ concluída em 2026-08-31
 
-1. **Balanceamento do início do jogo** *(o mais urgente)* — inicial lvl 5
-   nocauteia outro inicial lvl 5 em **um** golpe.
-2. **XP e evolução** — Charmander nunca vira Charizard.
-3. **Pokédex 21 → 50+** e mais golpes.
-4. **Sistema de status** (veneno, queimadura, paralisia).
-5. **Arena PvP ranqueada** — `mode: "ranked"` e `users.elo` já existem dormentes.
-6. **NPCs editáveis no Editor de Mundos.**
-7. **Premium** — `isPremium`/`premiumSkins` continuam colunas mortas.
+Causa achada e corrigida: não existia learnset. Resultado medido: **0% de OHKO**
+no nível 5 (era 100% com vantagem de tipo), 4 turnos com vantagem e ~5 sem ela.
+Detalhes e números em `docs/FASE-6.md`.
+
+Fica registrada uma decisão de design, não um bug: **o inicial de Fogo perde os
+dois confrontos 1 contra 1 com o Brock**, porque Pedra causa dano dobrado em
+Fogo. O jogo dá as saídas (time de até 3, Squirtle e Bulbasaur na grama do mapa
+1, poções). Se isso for indesejado, muda-se o conteúdo — não o número.
+
+#### 6.2 — Editor de Mundos, camadas e golpes fracos (em andamento)
+
+Entrou na frente da evolução a pedido do mantenedor: sem editor de camadas não
+há como montar o mapa 1 fácil que valida o balanceamento da 6.1. Plano completo
+em `docs/FASE-6.2-PLANO.md`.
+
+- **6.2-A — camadas no servidor** ✅ concluída em 2026-08-31 (seções 3 e 4.9).
+- **6.2-B — editor pinta as camadas** ✅ concluída em 2026-08-31 (seções 3 e
+  4.10). Falta a passada no navegador, registrada nas pendências manuais.
+- **6.2-C — próximo passo imediato:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
+  6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
+  Misty 18/21). O jogo deve continuar difícil de evoluir.
+
+Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
+6.6 ranked → 6.7 NPCs**.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -564,8 +919,14 @@ Fase 6 apenas após nova leitura deste estado.
 | 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
 | 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | ✅ Concluída e validada | Supabase + Vercel |
 | 2026-08-29 | **Fase 5.1-C** — operação, cron e backup | ✅ Concluída e validada | workflow `backup.yml` |
-| 2026-08-30 | **Fase 5.1-D** — produção controlada | 🟡 Deploy e smoke ok; backup/cron pendentes | Catchbound |
-| — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
+| 2026-08-30 | **Fase 5.1-D** — produção controlada | ✅ Concluída e validada | `https://catchbound.vercel.app/` |
+| 2026-08-31 | **Fase 5.1-D** — backup criptografado de produção | ✅ Concluída e validada | run `33378414585` · restore verificado |
+| 2026-08-31 | **Fase 6.1** — balanceamento do início do jogo | ✅ Concluída e validada | learnset + teto de dano · `npm run balance:report` |
+| 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
+| 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
+| 2026-08-31 | **Correção** — sessão perdida no iframe (401 silencioso) | ✅ Concluída e validada | token em memória · `src/lib/api-client.test.ts` |
+| — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
+| — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

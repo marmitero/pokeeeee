@@ -2,7 +2,10 @@ import {
   computeDelugeStats,
   getPokemonSpecies,
   getMoveByName,
+  movesAtLevel,
+  moveSlots,
   type DelugeVariant,
+  type PokemonMove,
 } from "../pokedex";
 import type { Combatant } from "./damage";
 
@@ -124,7 +127,9 @@ export function sideFromSpecies(
     spAttack: stats.spAttack,
     spDefense: stats.spDefense,
     speed: stats.speed,
-    moves: species.moves.map((m) => ({
+    // Fase 6.1: golpes do NÍVEL, não o conjunto de fim de jogo. Antes um
+    // Rattata selvagem de nível 3 vinha com o mesmo Lança-Chamas de um lvl 100.
+    moves: movesAtLevel(species, level).map((m) => ({
       name: m.name,
       type: m.type,
       power: m.power,
@@ -151,4 +156,42 @@ export function toCombatant(side: SideState): Combatant {
     spDefense: side.spDefense,
     speed: side.speed,
   };
+}
+
+/**
+ * Atualiza os golpes de um combatente para o nível atual (Fase 6.1).
+ *
+ * Chamado no level up: sem isso o learnset só valeria para Pokémon recém
+ * gerados, e o inicial do jogador ficaria preso nos golpes fracos do nível 5
+ * para sempre. Devolve os nomes dos golpes **novos**, para o log da batalha.
+ */
+export function refreshMovesForLevel(side: SideState, level: number): string[] {
+  const species = getPokemonSpecies(side.pokedexId);
+  const before = new Set(side.moves.map((m) => m.name));
+
+  side.moves = movesAtLevel(species, level).map((m) => ({
+    name: m.name,
+    type: m.type,
+    power: m.power,
+    accuracy: m.accuracy,
+    category: m.category,
+    description: m.description,
+  }));
+
+  return side.moves.map((m) => m.name).filter((name) => !before.has(name));
+}
+
+/** Os 4 nomes de golpe como o banco guarda (`move1..move4`). */
+export function moveNamesForDb(side: SideState) {
+  return moveSlots(
+    side.moves.map((m) => ({
+      name: m.name,
+      type: m.type,
+      power: m.power,
+      accuracy: m.accuracy,
+      category: m.category as PokemonMove["category"],
+      description: m.description,
+      sfx: "slash" as const,
+    }))
+  );
 }
