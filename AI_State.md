@@ -419,6 +419,47 @@ Duas armadilhas tratadas em `src/db/index.ts`:
    prepared statements e quebra Drizzle/drizzle-kit. O app **avisa no log** se
    detectar a 6543. O recomendado é a conexão direta (5432).
 
+### Correção — sessão perdida dentro do iframe (2026-08-31)
+
+**Sintoma relatado:** depois de pintar as camadas, o passo na área de caça
+tocava o som do encontro e a batalha nunca começava; o editor "aparentemente
+funcionou".
+
+**Auditoria.** A API estava certa: `POST /api/battle` com `start_wild` em (3,9)
+devolve 200 no matinho e 400 na grama comum, e responde 200 **só** com
+`Authorization: Bearer`. O log do dev server mostrou o que de fato acontecia no
+navegador: `PUT /api/maps/1 401`, `POST /api/battle 401`, `POST
+/api/pokemon/heal 401` — tudo depois de um `POST /api/auth 200`. E o banco
+confirmou: as três camadas do mapa 1 continuavam vazias, ou seja, **o salvamento
+do editor nunca chegou a gravar**.
+
+**Causa raiz.** Dentro de iframe cross-site o navegador não bloqueia só o
+cookie: ele particiona ou nega o `localStorage`. `setToken` gravava no vazio,
+`getToken` devolvia `null`, nenhuma request levava `Authorization`, e o
+servidor respondia 401 a tudo. O som tocava porque é disparado **antes** da
+request; a batalha nunca vinha porque a request era anônima.
+
+**Dois defeitos secundários que esconderam o primeiro:**
+
+1. o aviso do editor era **sempre verde** — a mensagem de erro do 401 aparecia
+   com cara de sucesso, e o mapa parecia salvo;
+2. no jogo, o 401 virava a mensagem genérica "não foi possível iniciar a
+   batalha", que faz pensar em bug de mapa, não em sessão.
+
+**Correções (`src/lib/api-client.ts`, `WorldMapEditor.tsx`, `page.tsx`):**
+
+- cópia do token **em memória**, que não depende de permissão de armazenamento
+  e dura o que dura a página; `localStorage` segue como persistência
+  best-effort para sobreviver ao F5;
+- captura central do token em **qualquer** resposta 2xx de `/api/auth`, para
+  nenhuma tela precisar lembrar de chamar `setToken`;
+- aviso do editor colorido pelo conteúdo (verde só quando começa com "✓");
+- 401 no encontro agora diz "Sua sessão caiu. Faça login de novo para
+  batalhar.".
+
+10 testes novos em `src/lib/api-client.test.ts` simulam o `localStorage` que
+lança exceção e provam que o header `Authorization` continua sendo enviado.
+
 ### Fase 6.2-B — Editor de Mundos pinta as camadas (2026-08-31)
 
 A 6.2-A criou as camadas no banco; sem interface, só dava para editá-las por
@@ -793,6 +834,20 @@ como admin, alternar os três modos, pintar a água como liberada + área de ca�
 salvar e andar na água no jogo. Preview de dev no sandbox em `:3100`, conta
 `admin` / `admin12345` (banco local, não é credencial de produção).
 
+### 4.11 Validação da correção de sessão em iframe (2026-08-31)
+
+```
+curl -s -X POST /api/battle  (só com Bearer, sem cookie)   → 200
+curl -s -X POST /api/battle  (sem cookie e sem Bearer)     → 401 "Sessão inválida ou expirada."
+SELECT ... FROM game_maps                                   → camadas vazias: o PUT do editor nunca gravou
+
+DATABASE_URL=... npm run check          → Test Files 11 · Tests 167 (10 novos)
+TEST_PG_URL=... npm run test:integration → Test Files 5 · Tests 70
+```
+
+**Falta reteste no navegador:** entrar de novo no preview, pintar, salvar (o
+aviso deve ficar **verde** com "✓") e andar na área pintada.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -869,6 +924,7 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Fase 6.1** — balanceamento do início do jogo | ✅ Concluída e validada | learnset + teto de dano · `npm run balance:report` |
 | 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
 | 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
+| 2026-08-31 | **Correção** — sessão perdida no iframe (401 silencioso) | ✅ Concluída e validada | token em memória · `src/lib/api-client.test.ts` |
 | — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 

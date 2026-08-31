@@ -18,28 +18,48 @@ const TOKEN_KEY = "deluge_token";
 
 // ─── Token ────────────────────────────────────────────────────────────────
 
+/**
+ * Cópia em memória do token.
+ *
+ * **Por que existe** (bug encontrado na validação da Fase 6.2-B): dentro de um
+ * iframe cross-site o navegador não bloqueia só o cookie — ele também
+ * particiona ou nega o `localStorage`. Quando isso acontece, `setToken`
+ * gravava no vazio, `getToken` devolvia `null`, nenhuma request levava
+ * `Authorization` e **toda** chamada autenticada voltava 401: o passo tocava o
+ * som do encontro e a batalha nunca começava.
+ *
+ * A memória do módulo não depende de permissão nenhuma e dura o que dura a
+ * página, que é exatamente o tempo de uma sessão de jogo. O `localStorage`
+ * continua sendo tentado, para sobreviver a um F5 quando o navegador permite.
+ */
+let memoryToken: string | null = null;
+
 export function getToken(): string | null {
   if (typeof window === "undefined" || process.env.NODE_ENV === "production") {
     return null;
   }
+  if (memoryToken) return memoryToken;
   try {
-    return window.localStorage.getItem(TOKEN_KEY);
+    memoryToken = window.localStorage.getItem(TOKEN_KEY);
+    return memoryToken;
   } catch {
-    return null; // armazenamento bloqueado (ex.: modo privado restrito)
+    return null; // armazenamento bloqueado (iframe particionado, modo privado)
   }
 }
 
 export function setToken(token: string): void {
   if (typeof window === "undefined" || process.env.NODE_ENV === "production") return;
+  memoryToken = token;
   try {
     window.localStorage.setItem(TOKEN_KEY, token);
   } catch {
-    /* ignora: o cookie ainda pode funcionar */
+    /* ignora: a cópia em memória já garante a sessão desta página */
   }
 }
 
 export function clearToken(): void {
   if (typeof window === "undefined") return;
+  memoryToken = null;
   try {
     window.localStorage.removeItem(TOKEN_KEY);
   } catch {
@@ -128,6 +148,18 @@ export async function api(path: string, init: RequestInit = {}): Promise<Respons
 
   try {
     const res = await fetch(path, { ...init, headers, credentials: "same-origin" });
+
+    // Guarda o token de qualquer resposta que traga um, em vez de depender de
+    // cada tela lembrar de chamar `setToken`. Foi assim que a sessão se perdeu
+    // uma vez; a captura central evita a próxima.
+    if (res.ok && path.startsWith("/api/auth")) {
+      try {
+        const parsed = (await res.clone().json()) as { token?: unknown };
+        if (typeof parsed?.token === "string" && parsed.token) setToken(parsed.token);
+      } catch {
+        /* resposta sem JSON: nada a capturar */
+      }
+    }
 
     let errorBody: string | undefined;
     if (!res.ok) {

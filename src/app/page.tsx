@@ -347,7 +347,14 @@ export default function DelugeRPGPage() {
         });
         const data = await res.json();
         if (!res.ok) {
-          showBanner(`⚠️ ${data.error ?? "Não foi possível iniciar a batalha."}`);
+          // 401 tem tratamento próprio: a mensagem genérica fazia o encontro
+          // parecer um bug do mapa ("tocou o som e não veio bicho") quando o
+          // problema era a sessão ter caído.
+          showBanner(
+            res.status === 401
+              ? "⚠️ Sua sessão caiu. Faça login de novo para batalhar."
+              : `⚠️ ${data.error ?? "Não foi possível iniciar a batalha."}`
+          );
           return;
         }
         setBattleState({ active: true, battleId: data.battle.id });

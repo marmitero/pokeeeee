@@ -267,6 +267,16 @@ integração em `PUT /api/maps/:id`: persistência das três colunas, `[]` para
 voltar ao legado, recusa de dimensão errada, de área pintada sem espécie, de
 faixa invertida, de taxa fora de 0–100, e a exigência de papel admin.
 
+**Correção pós-teste manual (mesmo dia).** O primeiro teste no navegador
+mostrou encontro que tocava o som e não iniciava batalha. Não era o mapa: no
+iframe cross-site o navegador nega o `localStorage` além do cookie, o token de
+sessão sumia e toda request voltava 401 — inclusive o salvamento do editor, que
+exibia o erro num aviso verde e parecia ter funcionado. O token passou a ter
+cópia em memória, a captura dele em `/api/auth` ficou central no `api-client`, o
+aviso do editor é colorido pelo conteúdo e o 401 no encontro tem mensagem
+própria. 10 testes em `src/lib/api-client.test.ts` cobrem o armazenamento
+bloqueado.
+
 Ajuste de infraestrutura junto: em **desenvolvimento** o CSP passa a aceitar
 `frame-ancestors https://*.e2b.app` e o `X-Frame-Options: DENY` é omitido, senão
 o preview do sandbox fica em branco. Produção continua recusando qualquer

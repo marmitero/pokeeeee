@@ -503,8 +503,19 @@ export function WorldMapEditor({
           </span>
         </div>
 
+        {/*
+          Antes este aviso era sempre verde. Um PUT que falhava (401 de sessão,
+          por exemplo) exibia a mensagem de erro com cara de sucesso, e o mapa
+          parecia salvo sem ter sido. A cor agora segue o conteúdo.
+        */}
         {statusMsg && (
-          <div className="border-b-2 border-emerald-500 bg-emerald-950/80 px-5 py-2 font-['VT323'] text-xl text-emerald-300">
+          <div
+            className={`border-b-2 px-5 py-2 font-['VT323'] text-xl ${
+              statusMsg.startsWith("✓")
+                ? "border-emerald-500 bg-emerald-950/80 text-emerald-300"
+                : "border-amber-500 bg-amber-950/80 text-amber-200"
+            }`}
+          >
             {statusMsg}
           </div>
         )}
