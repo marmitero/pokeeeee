@@ -15,6 +15,20 @@ import {
   Trash2,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import {
+  DEFAULT_ENCOUNTER_RATE,
+  hasEncounterAt,
+  isWalkableAt,
+} from "@/lib/map-rules";
+import {
+  applyLevelRange,
+  blankLayer,
+  countMarked,
+  countOverrides,
+  loadLayer,
+  sanitizeLevelRange,
+  weightShare,
+} from "@/lib/map-layers";
 
 export interface GameMapData {
   id: number;
@@ -58,6 +72,22 @@ export interface GameMapData {
   }[];
 }
 
+/** O que o pincel edita. Fase 6.2-B. */
+type PaintMode = "terrain" | "encounter" | "collision";
+
+/** Override de colisão por célula: `null` = padrão do tipo de tile. */
+type CollisionCell = null | "blocked" | "walkable";
+
+/**
+ * Camadas da Fase 6.2 no editor.
+ *
+ * `null` no estado significa **camada desligada** (mapa em modo legado), que é
+ * diferente de uma camada ligada e toda falsa: a primeira deixa o tipo do tile
+ * decidir, a segunda diz "aqui não tem nada". Como essa distinção é o coração
+ * da regra, ela é preservada no estado e só vira `[]` ao salvar. As funções
+ * puras estão em `@/lib/map-layers`, com teste próprio.
+ */
+
 interface WorldMapEditorProps {
   maps: GameMapData[];
   currentMapId: number;
@@ -86,6 +116,22 @@ export function WorldMapEditor({
   const [encounters, setEncounters] = useState<GameMapData["encounterTable"]>(
     initialMap.encounterTable || []
   );
+
+  // ── Camadas da Fase 6.2 ───────────────────────────────────────────────
+  const [paintMode, setPaintMode] = useState<PaintMode>("terrain");
+  const [encounterGrid, setEncounterGrid] = useState<boolean[][] | null>(() =>
+    loadLayer(initialMap.encounterGrid, initialMap.height, initialMap.width, false)
+  );
+  const [collisionGrid, setCollisionGrid] = useState<CollisionCell[][] | null>(() =>
+    loadLayer<CollisionCell>(initialMap.collisionGrid, initialMap.height, initialMap.width, null)
+  );
+  const [encounterRate, setEncounterRate] = useState<number>(
+    initialMap.encounterRate ?? DEFAULT_ENCOUNTER_RATE
+  );
+  const [collisionBrush, setCollisionBrush] = useState<CollisionCell>("blocked");
+  const [encounterBrush, setEncounterBrush] = useState<boolean>(true);
+  const [bulkMinLevel, setBulkMinLevel] = useState(2);
+  const [bulkMaxLevel, setBulkMaxLevel] = useState(7);
 
   const [selectedBrush, setSelectedBrush] = useState<TileId>("tall_grass");
   const [isPainting, setIsPainting] = useState(false);
@@ -123,16 +169,38 @@ export function WorldMapEditor({
     setGrid(JSON.parse(JSON.stringify(m.tileGrid)));
     setPortals(m.portals || []);
     setEncounters(m.encounterTable || []);
+    setEncounterGrid(loadLayer(m.encounterGrid, m.height, m.width, false));
+    setCollisionGrid(loadLayer<CollisionCell>(m.collisionGrid, m.height, m.width, null));
+    setEncounterRate(m.encounterRate ?? DEFAULT_ENCOUNTER_RATE);
     setStatusMsg(null);
+  };
+
+  const height = grid.length;
+  const width = grid[0]?.length ?? 16;
+
+  /** Mapa sintético para consultar `map-rules` — a MESMA regra do jogo. */
+  const rulesView = {
+    width,
+    height,
+    tileGrid: grid,
+    encounterGrid: encounterGrid ?? [],
+    collisionGrid: collisionGrid ?? [],
+    encounterTable: encounters,
   };
 
   const handleTileMouseDown = (y: number, x: number) => {
     setIsPainting(true);
-    paintTile(y, x);
+    paintCell(y, x);
   };
 
   const handleTileMouseEnter = (y: number, x: number) => {
-    if (isPainting) paintTile(y, x);
+    if (isPainting) paintCell(y, x);
+  };
+
+  const paintCell = (y: number, x: number) => {
+    if (paintMode === "terrain") return paintTile(y, x);
+    if (paintMode === "encounter") return paintEncounter(y, x);
+    return paintCollision(y, x);
   };
 
   const paintTile = (y: number, x: number) => {
@@ -147,6 +215,53 @@ export function WorldMapEditor({
     }
   };
 
+  /**
+   * Área de caça marcada a partir do comportamento atual do mapa.
+   *
+   * Serve de ponto de partida ao ligar a camada: sem isto, ligar a camada
+   * apagaria de uma vez todos os encontros do matinho, porque a camada passa a
+   * ser a única fonte da verdade. Convertendo, o mapa continua igual e a
+   * pintura vira um ajuste.
+   */
+  const encounterFromTiles = (): boolean[][] =>
+    grid.map((row, y) =>
+      row.map((_, x) =>
+        hasEncounterAt({ width, height, tileGrid: grid, encounterTable: encounters }, x, y)
+      )
+    );
+
+  const paintEncounter = (y: number, x: number) => {
+    setEncounterGrid((prev) => {
+      const base = prev ?? encounterFromTiles();
+      const next = base.map((row) => [...row]);
+      next[y][x] = encounterBrush;
+      return next;
+    });
+  };
+
+  const paintCollision = (y: number, x: number) => {
+    setCollisionGrid((prev) => {
+      const base = prev ?? blankLayer<CollisionCell>(height, width, null);
+      const next = base.map((row) => [...row]);
+      next[y][x] = collisionBrush;
+      return next;
+    });
+  };
+
+  const encounterCount = countMarked(encounterGrid);
+  const collisionCount = countOverrides(collisionGrid);
+
+  /** Altera um campo numérico de uma espécie da lista. */
+  const updateEncounter = (
+    idx: number,
+    field: "weight" | "minLevel" | "maxLevel",
+    value: number
+  ) => {
+    setEncounters((prev) =>
+      prev.map((enc, i) => (i === idx ? { ...enc, [field]: value } : enc))
+    );
+  };
+
   const handleSaveCurrentMap = async () => {
     setSaving(true);
     retroSfx.playStep();
@@ -159,6 +274,11 @@ export function WorldMapEditor({
           description: mapDescription,
           tileGrid: grid,
           encounterTable: encounters,
+          // `[]` desliga a camada e devolve o mapa ao modo legado — por isso o
+          // estado guarda `null` em vez de já nascer como grade cheia.
+          encounterGrid: encounterGrid ?? [],
+          collisionGrid: collisionGrid ?? [],
+          encounterRate,
           portals,
         }),
       });
@@ -205,32 +325,10 @@ export function WorldMapEditor({
           width: 16,
           height: 16,
           tileGrid: defaultGrid,
-          encounterTable: [
-            {
-              pokedexId: 150,
-              name: "Mewtwo",
-              weight: 25,
-              minLevel: 30,
-              maxLevel: 50,
-              tileTypes: ["tall_grass"],
-            },
-            {
-              pokedexId: 384,
-              name: "Rayquaza",
-              weight: 25,
-              minLevel: 30,
-              maxLevel: 50,
-              tileTypes: ["tall_grass"],
-            },
-            {
-              pokedexId: 149,
-              name: "Dragonite",
-              weight: 30,
-              minLevel: 25,
-              maxLevel: 45,
-              tileTypes: ["tall_grass"],
-            },
-          ],
+          // Fase 6.2-B: mapa novo nasce **sem** espécies. Antes vinha com
+          // Mewtwo/Rayquaza/Dragonite nível 25-50 fixos no código, o que
+          // contraria a dificuldade progressiva — quem cria o mapa escolhe.
+          encounterTable: [],
           portals: [
             {
               id: `back-${Date.now()}`,
@@ -357,6 +455,54 @@ export function WorldMapEditor({
           ))}
         </div>
 
+        {/* Barra de modos de pintura (Fase 6.2-B) */}
+        <div className="flex flex-wrap items-center gap-2 border-b-2 border-slate-800 bg-slate-950/60 px-5 py-2">
+          <span className="font-['Press_Start_2P'] text-[9px] text-slate-400">PINTAR:</span>
+          {(
+            [
+              ["terrain", "TERRENO", "amber", "o desenho do mapa"],
+              ["encounter", "ENCONTROS", "emerald", "onde aparecem bichos"],
+              ["collision", "COLISÃO", "rose", "onde dá para andar"],
+            ] as const
+          ).map(([mode, label, color, hint]) => {
+            const active = paintMode === mode;
+            const palette =
+              color === "amber"
+                ? "border-amber-400 bg-amber-500/20 text-amber-300"
+                : color === "emerald"
+                  ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
+                  : "border-rose-400 bg-rose-500/20 text-rose-300";
+            return (
+              <button
+                key={mode}
+                onClick={() => {
+                  retroSfx.playStep();
+                  setPaintMode(mode);
+                }}
+                title={hint}
+                className={`border-2 px-3 py-1 font-['Press_Start_2P'] text-[9px] ${
+                  active
+                    ? palette
+                    : "border-slate-800 bg-slate-900 text-slate-500 hover:border-slate-600"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+          <span className="font-['VT323'] text-lg text-slate-400">
+            {paintMode === "terrain" && "Pinte o desenho do mapa."}
+            {paintMode === "encounter" &&
+              (encounterGrid
+                ? `Área de caça: ${encounterCount} célula(s) marcada(s).`
+                : "Camada desligada — o matinho decide, como sempre foi.")}
+            {paintMode === "collision" &&
+              (collisionGrid
+                ? `Colisão: ${collisionCount} célula(s) com exceção.`
+                : "Camada desligada — o tipo do tile decide.")}
+          </span>
+        </div>
+
         {statusMsg && (
           <div className="border-b-2 border-emerald-500 bg-emerald-950/80 px-5 py-2 font-['VT323'] text-xl text-emerald-300">
             {statusMsg}
@@ -370,7 +516,11 @@ export function WorldMapEditor({
             <h3 className="mb-2 font-['Press_Start_2P'] text-[10px] text-amber-400">
               1. PALETA DE TILES 16-BIT
             </h3>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div
+              className={`grid grid-cols-2 gap-1.5 ${
+                paintMode === "terrain" ? "" : "pointer-events-none opacity-40"
+              }`}
+            >
               {(Object.keys(TILE_DEFINITIONS) as TileId[]).map((tileId) => {
                 const def = TILE_DEFINITIONS[tileId];
                 const active = selectedBrush === tileId;
@@ -399,6 +549,126 @@ export function WorldMapEditor({
                 );
               })}
             </div>
+
+            {/* Painel do modo ENCONTROS (Fase 6.2-B) */}
+            {paintMode === "encounter" && (
+              <div className="mt-5 border-t-2 border-slate-800 pt-4">
+                <h3 className="font-['Press_Start_2P'] text-[10px] text-emerald-300">
+                  ÁREA DE CAÇA (TILE INVISÍVEL)
+                </h3>
+                <p className="mt-1 font-['VT323'] text-lg text-slate-400">
+                  Marca a célula como área de caça sem mudar o desenho. Vale
+                  sobre qualquer tile: areia, pedra ou água liberada.
+                </p>
+
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
+                  {([[true, "MARCAR"], [false, "APAGAR"]] as const).map(([value, label]) => (
+                    <button
+                      key={label}
+                      onClick={() => setEncounterBrush(value)}
+                      className={`border-2 px-2 py-1.5 font-['Press_Start_2P'] text-[9px] ${
+                        encounterBrush === value
+                          ? "border-emerald-400 bg-emerald-500/20 text-emerald-300"
+                          : "border-slate-800 bg-slate-900 text-slate-400"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-2 space-y-1.5">
+                  <button
+                    onClick={() => {
+                      setEncounterGrid(encounterFromTiles());
+                      setStatusMsg(
+                        "Área de caça criada a partir do matinho atual. Ajuste e salve."
+                      );
+                    }}
+                    className="w-full border-2 border-emerald-700 bg-emerald-950/60 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-emerald-300 hover:bg-emerald-900/60"
+                  >
+                    USAR O MATINHO ATUAL
+                  </button>
+                  <button
+                    onClick={() => setEncounterGrid(blankLayer(height, width, false))}
+                    className="w-full border-2 border-slate-700 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-300 hover:border-slate-500"
+                  >
+                    LIMPAR TUDO
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEncounterGrid(null);
+                      setStatusMsg("Camada desligada: volta a valer o tipo do tile.");
+                    }}
+                    className="w-full border-2 border-slate-800 bg-slate-950 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-500 hover:border-slate-600"
+                  >
+                    DESLIGAR CAMADA (LEGADO)
+                  </button>
+                </div>
+
+                {encounterGrid && encounterCount > 0 && encounters.length === 0 && (
+                  <p className="mt-2 border-2 border-rose-700 bg-rose-950/60 p-2 font-['VT323'] text-lg text-rose-300">
+                    Há área pintada e nenhuma espécie na lista → o servidor vai
+                    recusar o salvamento. Adicione espécies no painel 3.
+                  </p>
+                )}
+                {encounterGrid && (
+                  <p className="mt-2 font-['VT323'] text-base text-amber-300/90">
+                    Com a camada ligada ela é a única fonte da verdade: matinho
+                    não marcado deixa de gerar encontro.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Painel do modo COLISÃO (Fase 6.2-B) */}
+            {paintMode === "collision" && (
+              <div className="mt-5 border-t-2 border-slate-800 pt-4">
+                <h3 className="font-['Press_Start_2P'] text-[10px] text-rose-300">
+                  COLISÃO POR CÉLULA
+                </h3>
+                <p className="mt-1 font-['VT323'] text-lg text-slate-400">
+                  Exceção ao padrão do tile. É assim que a água vira andável e o
+                  encontro aquático passa a existir.
+                </p>
+
+                <div className="mt-2 space-y-1.5">
+                  {(
+                    [
+                      ["blocked", "✖ BLOQUEAR", "border-rose-400 bg-rose-500/20 text-rose-300"],
+                      ["walkable", "✓ LIBERAR", "border-cyan-400 bg-cyan-500/20 text-cyan-300"],
+                      [null, "· PADRÃO DO TILE", "border-slate-400 bg-slate-500/20 text-slate-200"],
+                    ] as const
+                  ).map(([value, label, palette]) => (
+                    <button
+                      key={label}
+                      onClick={() => setCollisionBrush(value)}
+                      className={`w-full border-2 px-2 py-1.5 text-left font-['Press_Start_2P'] text-[9px] ${
+                        collisionBrush === value
+                          ? palette
+                          : "border-slate-800 bg-slate-900 text-slate-400"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setCollisionGrid(null);
+                      setStatusMsg("Colisão volta ao padrão de cada tipo de tile.");
+                    }}
+                    className="w-full border-2 border-slate-800 bg-slate-950 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-500 hover:border-slate-600"
+                  >
+                    LIMPAR EXCEÇÕES (LEGADO)
+                  </button>
+                </div>
+
+                <p className="mt-2 font-['VT323'] text-base text-slate-400">
+                  A borda do mapa continua fechada mesmo liberada — liberar é
+                  terreno, não saída do mundo.
+                </p>
+              </div>
+            )}
 
             {/* Portal Linker Section */}
             <div className="mt-5 border-t-2 border-slate-800 pt-4">
@@ -463,7 +733,9 @@ export function WorldMapEditor({
                 className="border-2 border-slate-700 bg-slate-900 px-3 py-1 font-['Press_Start_2P'] text-xs text-amber-300"
               />
               <span className="font-['VT323'] text-lg text-slate-400">
-                Clique/Arraste para pintar tiles 16×16
+                {paintMode === "terrain" && "Clique/arraste para pintar tiles"}
+                {paintMode === "encounter" && "Clique/arraste: verde ~ = aparece bicho"}
+                {paintMode === "collision" && "Clique/arraste: ✖ bloqueado · ✓ liberado"}
               </span>
             </div>
 
@@ -481,17 +753,70 @@ export function WorldMapEditor({
                   const hasWarp = portals.some(
                     (p) => p.sourceX === x && p.sourceY === y
                   );
+
+                  // O overlay usa `map-rules`, então mostra o resultado REAL do
+                  // motor — não uma segunda interpretação das camadas.
+                  const walkable = isWalkableAt(rulesView, x, y);
+                  const spawns = hasEncounterAt(rulesView, x, y);
+                  const override = collisionGrid?.[y]?.[x] ?? null;
+
+                  const overlay =
+                    paintMode === "encounter"
+                      ? spawns
+                        ? "bg-emerald-400/45 text-emerald-50"
+                        : "bg-black/45 text-slate-500"
+                      : paintMode === "collision"
+                        ? override === "blocked"
+                          ? "bg-rose-500/50 text-rose-50"
+                          : override === "walkable"
+                            ? "bg-cyan-400/50 text-cyan-50"
+                            : walkable
+                              ? "bg-black/10 text-white/40"
+                              : "bg-black/55 text-slate-400"
+                        : "";
+
+                  const mark =
+                    paintMode === "encounter"
+                      ? spawns
+                        ? "~"
+                        : ""
+                      : paintMode === "collision"
+                        ? override === "blocked"
+                          ? "✖"
+                          : override === "walkable"
+                            ? "✓"
+                            : walkable
+                              ? ""
+                              : "·"
+                        : "";
+
+                  const title =
+                    paintMode === "encounter"
+                      ? `(${x}, ${y}): ${def.name} • ${spawns ? "área de caça" : "sem encontro"}`
+                      : paintMode === "collision"
+                        ? `(${x}, ${y}): ${def.name} • ${walkable ? "andável" : "bloqueado"}${
+                            override ? ` (exceção: ${override})` : " (padrão do tile)"
+                          }`
+                        : `(${x}, ${y}): ${def.name}${hasWarp ? " • PORTAL WARP" : ""}`;
+
                   return (
                     <div
                       key={`${y}-${x}`}
                       onMouseDown={() => handleTileMouseDown(y, x)}
                       onMouseEnter={() => handleTileMouseEnter(y, x)}
                       className={`relative flex items-center justify-center border border-black/30 text-xs transition hover:brightness-125 ${def.colorBg}`}
-                      title={`(${x}, ${y}): ${def.name}${hasWarp ? " • PORTAL WARP" : ""}`}
+                      title={title}
                     >
                       <span className="select-none text-white/90">
                         {hasWarp ? "🌀" : def.symbol}
                       </span>
+                      {overlay && (
+                        <span
+                          className={`pointer-events-none absolute inset-0 flex items-center justify-center font-['IBM_Plex_Mono'] text-[11px] font-bold ${overlay}`}
+                        >
+                          {mark}
+                        </span>
+                      )}
                     </div>
                   );
                 })
@@ -503,44 +828,161 @@ export function WorldMapEditor({
           <div className="border-t-2 border-slate-800 bg-slate-950/80 p-4 lg:col-span-3 lg:border-l-2 lg:border-t-0">
             <div className="flex items-center justify-between">
               <h3 className="font-['Press_Start_2P'] text-[10px] text-emerald-400">
-                3. ENCONTROS SELVAGENS NO MATINHO
+                3. ESPÉCIES DESTE MAPA
               </h3>
             </div>
             <p className="mt-1 font-['VT323'] text-lg text-slate-400">
-              Chances de spawn de Shiny, Metallic, Mystic, Dark e Ghostly são
-              automáticas no DelugeRPG (20% variante especial).
+              Peso decide a frequência relativa; a % ao lado é a chance real,
+              já calculada. Variante especial (Shiny, Metallic…) continua
+              automática em ~20%.
             </p>
 
-            <div className="mt-3 max-h-64 space-y-2 overflow-y-auto">
-              {encounters.map((enc, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between border-2 border-slate-800 bg-slate-900 p-2"
+            {/* Taxa de encontro do mapa (era 22% fixo no código do cliente) */}
+            <div className="mt-3 border-2 border-slate-800 bg-slate-900 p-2">
+              <label className="font-['Press_Start_2P'] text-[9px] text-slate-300">
+                TAXA DE ENCONTRO POR PASSO
+              </label>
+              <div className="mt-1.5 flex items-center gap-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={encounterRate}
+                  onChange={(e) => setEncounterRate(Number(e.target.value))}
+                  className="flex-1 accent-emerald-400"
+                />
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={encounterRate}
+                  onChange={(e) =>
+                    setEncounterRate(Math.min(100, Math.max(0, Number(e.target.value))))
+                  }
+                  className="w-16 border border-slate-700 bg-slate-950 p-1 text-center font-['IBM_Plex_Mono'] text-xs text-emerald-300"
+                />
+                <span className="font-['VT323'] text-lg text-slate-400">%</span>
+              </div>
+            </div>
+
+            {/* Faixa de nível do mapa inteiro */}
+            <div className="mt-2 border-2 border-slate-800 bg-slate-900 p-2">
+              <label className="font-['Press_Start_2P'] text-[9px] text-slate-300">
+                FAIXA DE NÍVEL DO MAPA
+              </label>
+              <div className="mt-1.5 flex items-center gap-2 font-['IBM_Plex_Mono'] text-xs">
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={bulkMinLevel}
+                  onChange={(e) => setBulkMinLevel(Number(e.target.value))}
+                  className="w-14 border border-slate-700 bg-slate-950 p-1 text-center text-amber-300"
+                />
+                <span className="text-slate-400">até</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={bulkMaxLevel}
+                  onChange={(e) => setBulkMaxLevel(Number(e.target.value))}
+                  className="w-14 border border-slate-700 bg-slate-950 p-1 text-center text-amber-300"
+                />
+                <button
+                  onClick={() => {
+                    const { min, max } = sanitizeLevelRange(bulkMinLevel, bulkMaxLevel);
+                    setEncounters((prev) => applyLevelRange(prev, min, max));
+                    setStatusMsg(`Faixa ${min}-${max} aplicada a todas as espécies.`);
+                  }}
+                  className="flex-1 border-2 border-amber-600 bg-amber-950/60 px-2 py-1 font-['Press_Start_2P'] text-[8px] text-amber-300 hover:bg-amber-900/60"
                 >
-                  <div>
-                    <div className="font-['Press_Start_2P'] text-[10px] text-amber-300">
-                      {enc.name}
+                  APLICAR A TODAS
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-3 max-h-72 space-y-2 overflow-y-auto">
+              {encounters.length === 0 && (
+                <p className="font-['VT323'] text-lg text-slate-500">
+                  Nenhuma espécie ainda. Escolha abaixo — sem espécie, o mapa
+                  não gera encontro nenhum.
+                </p>
+              )}
+              {encounters.map((enc, idx) => {
+                const chance = weightShare(encounters, idx);
+                const invertido = enc.minLevel > enc.maxLevel;
+                return (
+                  <div
+                    key={idx}
+                    className="border-2 border-slate-800 bg-slate-900 p-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-['Press_Start_2P'] text-[10px] text-amber-300">
+                        #{enc.pokedexId} {enc.name}
+                      </div>
+                      <button
+                        onClick={() => setEncounters(encounters.filter((_, i) => i !== idx))}
+                        className="border border-slate-700 bg-slate-800 px-2 py-0.5 text-xs text-rose-400 hover:bg-rose-950"
+                      >
+                        ×
+                      </button>
                     </div>
-                    <div className="font-['IBM_Plex_Mono'] text-[10px] text-slate-400">
-                      Lvl {enc.minLevel}-{enc.maxLevel} • Peso: {enc.weight}%
+
+                    <div className="mt-1.5 grid grid-cols-3 gap-1.5 font-['IBM_Plex_Mono'] text-[10px]">
+                      <label className="text-slate-400">
+                        peso
+                        <input
+                          type="number"
+                          min={0}
+                          max={1000}
+                          value={enc.weight}
+                          onChange={(e) => updateEncounter(idx, "weight", Number(e.target.value))}
+                          className="mt-0.5 w-full border border-slate-700 bg-slate-950 p-1 text-center text-slate-200"
+                        />
+                      </label>
+                      <label className="text-slate-400">
+                        nv mín
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={enc.minLevel}
+                          onChange={(e) => updateEncounter(idx, "minLevel", Number(e.target.value))}
+                          className={`mt-0.5 w-full border bg-slate-950 p-1 text-center ${
+                            invertido ? "border-rose-500 text-rose-300" : "border-slate-700 text-slate-200"
+                          }`}
+                        />
+                      </label>
+                      <label className="text-slate-400">
+                        nv máx
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={enc.maxLevel}
+                          onChange={(e) => updateEncounter(idx, "maxLevel", Number(e.target.value))}
+                          className={`mt-0.5 w-full border bg-slate-950 p-1 text-center ${
+                            invertido ? "border-rose-500 text-rose-300" : "border-slate-700 text-slate-200"
+                          }`}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="mt-1 flex items-center justify-between font-['VT323'] text-base">
+                      <span className="text-emerald-300">chance real: {chance}%</span>
+                      {invertido && (
+                        <span className="text-rose-400">nv mín &gt; máx — o servidor recusa</span>
+                      )}
                     </div>
                   </div>
-                  <button
-                    onClick={() =>
-                      setEncounters(encounters.filter((_, i) => i !== idx))
-                    }
-                    className="border border-slate-700 bg-slate-800 px-2 py-1 text-xs text-rose-400 hover:bg-rose-950"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Quick Add Encounter */}
             <div className="mt-4 border-t-2 border-slate-800 pt-3">
               <label className="mb-1 block font-['Press_Start_2P'] text-[9px] text-slate-300">
-                + ADICIONAR POKÉMON AO MATINHO:
+                + ADICIONAR ESPÉCIE A ESTE MAPA:
               </label>
               <select
                 onChange={(e) => {
@@ -554,8 +996,9 @@ export function WorldMapEditor({
                         pokedexId: poke.id,
                         name: poke.name,
                         weight: 20,
-                        minLevel: 10,
-                        maxLevel: 25,
+                        // Herda a faixa do mapa em vez do antigo 10-25 fixo.
+                        minLevel: sanitizeLevelRange(bulkMinLevel, bulkMaxLevel).min,
+                        maxLevel: sanitizeLevelRange(bulkMinLevel, bulkMaxLevel).max,
                         tileTypes: ["tall_grass"],
                       },
                     ]);

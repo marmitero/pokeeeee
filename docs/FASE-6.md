@@ -225,12 +225,52 @@ que a **rota** lê as colunas do banco.
 **Pendente no deploy:** aplicar a migration `0005` em produção — runbook em
 `docs/DEPLOY-6.2-A.md` (ordem obrigatória: migration **antes** do código).
 
-### 6.2-B — Editor: pintar as camadas *(a fazer)*
+### 6.2-B — Editor: pintar as camadas — ✅ **implementada em 2026-08-31**
 
-Três modos de pintura no `WorldMapEditor` — TERRENO · ENCONTROS · COLISÃO —,
-edição da lista de espécies do mapa (espécie, peso, nível mínimo e máximo) e
-do `encounterRate`. Hoje esses valores estão fixos no código do editor
-(`weight: 20`, `minLevel: 10`, `maxLevel: 25`, `tileTypes: ["tall_grass"]`).
+Barra de modos no `WorldMapEditor`: **TERRENO · ENCONTROS · COLISÃO**. O
+pincel muda de alvo conforme o modo; clique e arrasto funcionam nos três.
+
+| Modo | Pincéis | Overlay na grade |
+|---|---|---|
+| TERRENO | paleta de tiles (como antes) | portais 🌀 |
+| ENCONTROS | marcar · apagar | `~` verde onde aparece bicho, escuro onde não |
+| COLISÃO | ✖ bloquear · ✓ liberar · · padrão do tile | ✖ vermelho, ✓ ciano, `·` no bloqueado por tipo |
+
+O overlay é calculado por `map-rules` — as mesmas funções que o servidor usa
+para decidir. Não é uma segunda leitura das camadas que pode divergir: o que
+está pintado na tela é o que o motor vai fazer.
+
+**Ligar a camada de encontro converte, não zera.** Como a camada ligada passa a
+ser a única fonte da verdade, ligá-la vazia apagaria todo o matinho de uma vez.
+Então o primeiro traço (ou o botão "usar o matinho atual") semeia a grade a
+partir do comportamento vigente, e a pintura vira ajuste. Há "limpar tudo" para
+quem quer começar do zero e "desligar camada" para voltar ao legado.
+
+**Lista de espécies, agora editável de verdade:**
+
+- peso por espécie **com a chance real em %** ao lado — peso 20 não diz nada
+  sozinho: é 100% num mapa com uma espécie e 5% num mapa com vinte;
+- nível mínimo e máximo por espécie, com a faixa invertida marcada em vermelho
+  antes de o servidor recusar;
+- **faixa de nível do mapa** + "aplicar a todas", que é o pedido "decidir o
+  nível mínimo e máximo dos pokémon do mapa";
+- **taxa de encontro por passo** (0–100%), que era um `0.22` fixo no cliente.
+
+Mapa novo agora nasce **sem espécie nenhuma**. Antes o editor criava todo mapa
+novo com Mewtwo, Rayquaza e Dragonite nível 25–50 fixos no código — o oposto da
+dificuldade progressiva.
+
+Funções puras extraídas para `src/lib/map-layers.ts` (21 testes): `loadLayer`
+distingue camada desligada de camada vazia, `weightShare` calcula a chance,
+`sanitizeLevelRange`/`applyLevelRange` cuidam da faixa. Mais 6 testes de
+integração em `PUT /api/maps/:id`: persistência das três colunas, `[]` para
+voltar ao legado, recusa de dimensão errada, de área pintada sem espécie, de
+faixa invertida, de taxa fora de 0–100, e a exigência de papel admin.
+
+Ajuste de infraestrutura junto: em **desenvolvimento** o CSP passa a aceitar
+`frame-ancestors https://*.e2b.app` e o `X-Frame-Options: DENY` é omitido, senão
+o preview do sandbox fica em branco. Produção continua recusando qualquer
+moldura.
 
 ### 6.2-C — Golpes fracos e volta da curva original *(a fazer)*
 
@@ -310,7 +350,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B, C)  →  6.3 evolução  →  6.4 pokédex
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C)  →  6.3 evolução  →  6.4 pokédex
   →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 

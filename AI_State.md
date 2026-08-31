@@ -34,6 +34,7 @@
 > | 4 | **Chat global**: abrir o PVP, ver as mensagens reais carregadas (não as fake) e enviar uma | Botão PVP | Fase 3 |
 > | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
 > | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
+| 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -249,8 +250,8 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 - [x] **FASE 6.1 — Balanceamento do início do jogo** ✅ 2026-08-31
 - [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
-- [ ] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ⬅️ próxima
-- [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`**
+- [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
+- [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`** ⬅️ próxima
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -417,6 +418,42 @@ Duas armadilhas tratadas em `src/db/index.ts`:
 2. **A conexão pooled (6543) usa transaction pooling**, que não suporta
    prepared statements e quebra Drizzle/drizzle-kit. O app **avisa no log** se
    detectar a 6543. O recomendado é a conexão direta (5432).
+
+### Fase 6.2-B — Editor de Mundos pinta as camadas (2026-08-31)
+
+A 6.2-A criou as camadas no banco; sem interface, só dava para editá-las por
+`curl`. Agora o `WorldMapEditor` tem uma barra de modos **TERRENO · ENCONTROS ·
+COLISÃO**, e o pincel muda de alvo conforme o modo (clique e arrasto nos três).
+
+Decisões que valem registro:
+
+1. **O overlay usa `map-rules`**, as mesmas funções do servidor. O que aparece
+   pintado é o que o motor vai fazer, não uma segunda interpretação da camada
+   que pode divergir com o tempo.
+2. **Ligar a camada de encontro converte em vez de zerar.** Como a camada
+   ligada vira a única fonte da verdade, ligá-la vazia apagaria todo o matinho
+   de uma vez. O primeiro traço (ou o botão "usar o matinho atual") semeia a
+   grade com o comportamento vigente. Há "limpar tudo" e "desligar camada".
+3. **`null` ≠ grade toda falsa no estado do editor.** `null` é "camada
+   desligada, o tipo do tile decide"; grade falsa é "aqui não tem nada". Só ao
+   salvar `null` vira `[]`, que é como o banco representa o legado.
+4. **Mapa novo nasce sem espécie.** O editor criava todo mapa novo com Mewtwo,
+   Rayquaza e Dragonite nível 25–50 fixos no código — o oposto da dificuldade
+   progressiva que o mantenedor pediu.
+
+Lista de espécies agora editável: peso **com a chance real em %** ao lado
+(peso 20 é 100% num mapa com uma espécie e 5% num com vinte), nível mín/máx por
+espécie com faixa invertida sinalizada antes de o servidor recusar, **faixa de
+nível do mapa** com "aplicar a todas", e **taxa de encontro por passo** (era um
+`0.22` fixo no cliente).
+
+Funções puras em `src/lib/map-layers.ts` (`loadLayer`, `countMarked`,
+`countOverrides`, `weightShare`, `sanitizeLevelRange`, `applyLevelRange`),
+fora do componente para poderem ser testadas sem interface.
+
+Infra: em **desenvolvimento** o CSP passou a aceitar `frame-ancestors
+https://*.e2b.app` e o `X-Frame-Options: DENY` é omitido — sem isso o preview
+do sandbox fica em branco. **Produção continua recusando qualquer moldura.**
 
 ### Fase 6.2-A — Camadas de mapa: colisão e área de caça editáveis (2026-08-31)
 
@@ -729,6 +766,33 @@ O que os testes provam, e não só "passam":
 camada pintada. Não há como pintar pela interface antes da 6.2-B; o teste de
 integração cobre a rota, que é a autoridade.
 
+### 4.10 Validação da Fase 6.2-B (2026-08-31)
+
+```
+DATABASE_URL=... npm run check
+→ lint limpo · tsc limpo · build 15 rotas
+→ Test Files 10 passed · Tests 157 passed   (21 novos em src/lib/map-layers.test.ts)
+
+TEST_PG_URL=... DATABASE_URL=... npm run test:integration
+→ Test Files 5 passed · Tests 70 passed     (6 novos no PUT /api/maps/:id)
+```
+
+O que os 6 de integração provam, que é o contrato que o editor usa:
+
+| Prova | Resultado |
+|---|---|
+| PUT grava `encounterGrid`, `collisionGrid` e `encounterRate` | 200, e o `start_wild` na água liberada passa a devolver 200 |
+| PUT com `[]` desliga as camadas | volta ao legado: matinho gera, grama comum não |
+| camada com dimensão errada | 400 "altura 16", **nada gravado pela metade** |
+| área pintada sem espécie | 400 "nenhuma espécie" |
+| faixa de nível invertida · taxa 150% | 400 nos dois |
+| jogador comum tentando gravar camada | 401/403 e `encounter_rate` intacto |
+
+**Falta validação no navegador** (o agente não tem browser): abrir o EDITOR
+como admin, alternar os três modos, pintar a água como liberada + área de caça,
+salvar e andar na água no jogo. Preview de dev no sandbox em `:3100`, conta
+`admin` / `admin12345` (banco local, não é credencial de produção).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -765,12 +829,9 @@ há como montar o mapa 1 fácil que valida o balanceamento da 6.1. Plano complet
 em `docs/FASE-6.2-PLANO.md`.
 
 - **6.2-A — camadas no servidor** ✅ concluída em 2026-08-31 (seções 3 e 4.9).
-- **6.2-B — próximo passo imediato:** pintar as camadas no `WorldMapEditor`.
-  Três modos (TERRENO · ENCONTROS · COLISÃO), edição da lista de espécies do
-  mapa (espécie, peso, nível mínimo e máximo) e do `encounterRate`. Hoje o
-  editor grava esses valores fixos no código (`weight: 20`, `minLevel: 10`,
-  `maxLevel: 25`, `tileTypes: ["tall_grass"]`).
-- **6.2-C:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
+- **6.2-B — editor pinta as camadas** ✅ concluída em 2026-08-31 (seções 3 e
+  4.10). Falta a passada no navegador, registrada nas pendências manuais.
+- **6.2-C — próximo passo imediato:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
   6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
   Misty 18/21). O jogo deve continuar difícil de evoluir.
 
@@ -807,8 +868,8 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Fase 5.1-D** — backup criptografado de produção | ✅ Concluída e validada | run `33378414585` · restore verificado |
 | 2026-08-31 | **Fase 6.1** — balanceamento do início do jogo | ✅ Concluída e validada | learnset + teto de dano · `npm run balance:report` |
 | 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
-| — | **Fase 6.2-B** — pintar as camadas no Editor de Mundos | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
-| — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Planejada | `docs/FASE-6.2-PLANO.md` |
+| 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
+| — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

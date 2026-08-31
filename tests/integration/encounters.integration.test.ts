@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { client } from "./client";
 import { resetRateLimits } from "@/lib/rate-limit";
 import { db } from "@/db";
-import { gameMaps } from "@/db/schema";
+import { gameMaps, users } from "@/db/schema";
 import type { CollisionOverride } from "@/db/schema";
 
 /**
@@ -143,5 +143,132 @@ describe("Encontros — camada de área de caça", () => {
     // Com a camada em uso, quem manda é a pintura — não o tipo de tile.
     expect(r.status).toBe(400);
     expect((r.body as { error: string }).error).toContain("encontros");
+  });
+});
+
+/**
+ * Fase 6.2-B — o editor grava as camadas pela rota de mapas.
+ *
+ * O editor é uma tela; o que dá para afirmar em teste automatizado é o
+ * contrato que ela usa: `PUT /api/maps/:id` persiste as três colunas novas,
+ * aceita `[]` para voltar ao modo legado e recusa camada incoerente. Sem isto,
+ * um erro de payload no editor só apareceria em produção.
+ */
+describe("PUT /api/maps/:id — camadas gravadas pelo editor", () => {
+  async function admin() {
+    const c = client();
+    const username = nextUser();
+    const r = await c.call("/api/auth", {
+      body: { action: "register", username, password: "senhaSegura123", starterId: 4 },
+    });
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    await db.update(users).set({ role: "admin" }).where(eq(users.username, username));
+    return c;
+  }
+
+  async function readMap() {
+    const [row] = await db.select().from(gameMaps).where(eq(gameMaps.id, MAP_ID));
+    return row;
+  }
+
+  it("persiste área de caça, colisão e taxa de encontro", async () => {
+    const c = await admin();
+    const encounterGrid = grid16(false);
+    encounterGrid[WATER.y][WATER.x] = true;
+    const collisionGrid = grid16<CollisionOverride>(null);
+    collisionGrid[WATER.y][WATER.x] = "walkable";
+
+    const r = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: { encounterGrid, collisionGrid, encounterRate: 35 },
+    });
+
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    const row = await readMap();
+    expect(row.encounterRate).toBe(35);
+    expect((row.encounterGrid as boolean[][])[WATER.y][WATER.x]).toBe(true);
+    expect((row.collisionGrid as CollisionOverride[][])[WATER.y][WATER.x]).toBe("walkable");
+
+    // E a regra passa a valer de imediato para o jogador.
+    const jogador = await register(nextUser());
+    expect((await startWild(jogador, WATER)).status).toBe(200);
+  });
+
+  it("aceita [] para desligar as camadas e voltar ao legado", async () => {
+    const c = await admin();
+    const encounterGrid = grid16(false);
+    encounterGrid[GRASS_TILE.y][GRASS_TILE.x] = true;
+    await c.call(`/api/maps/${MAP_ID}`, { method: "PUT", body: { encounterGrid } });
+
+    const r = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: { encounterGrid: [], collisionGrid: [] },
+    });
+
+    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    const row = await readMap();
+    expect(row.encounterGrid).toEqual([]);
+
+    // Legado de volta: matinho gera, grama comum não.
+    const jogador = await register(nextUser());
+    expect((await startWild(jogador, TALL_GRASS)).status).toBe(200);
+    expect((await startWild(jogador, GRASS_TILE)).status).toBe(400);
+  });
+
+  it("recusa camada com dimensão diferente do mapa", async () => {
+    const c = await admin();
+    const r = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: { encounterGrid: [[true, false]] },
+    });
+
+    expect(r.status).toBe(400);
+    expect((r.body as { error: string }).error).toContain("altura 16");
+    expect((await readMap()).encounterGrid).toEqual([]); // nada gravado pela metade
+  });
+
+  it("recusa área pintada em mapa sem nenhuma espécie", async () => {
+    const c = await admin();
+    const encounterGrid = grid16(false);
+    encounterGrid[GRASS_TILE.y][GRASS_TILE.x] = true;
+
+    const r = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: { encounterGrid, encounterTable: [] },
+    });
+
+    expect(r.status).toBe(400);
+    expect((r.body as { error: string }).error).toContain("nenhuma espécie");
+  });
+
+  it("recusa faixa de nível invertida e taxa fora de 0-100", async () => {
+    const c = await admin();
+
+    const faixa = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: {
+        encounterTable: [
+          { pokedexId: 1, name: "Bulbasaur", weight: 20, minLevel: 9, maxLevel: 3, tileTypes: [] },
+        ],
+      },
+    });
+    expect(faixa.status).toBe(400);
+
+    const taxa = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: { encounterRate: 150 },
+    });
+    expect(taxa.status).toBe(400);
+  });
+
+  it("continua exigindo papel admin para gravar camadas", async () => {
+    const c = await register(nextUser()); // jogador comum
+    const r = await c.call(`/api/maps/${MAP_ID}`, {
+      method: "PUT",
+      body: { encounterRate: 90 },
+    });
+
+    expect([401, 403]).toContain(r.status);
+    expect((await readMap()).encounterRate).toBe(22);
   });
 });
