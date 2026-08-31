@@ -81,13 +81,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          docker rm -f restore-db >/dev/null 2>&1 || true
           docker run -d --name restore-db \
             -e POSTGRES_PASSWORD=restore-test-only \
             postgres:18
+
           for attempt in {1..30}; do
-            if docker exec restore-db pg_isready -U postgres >/dev/null 2>&1; then break; fi
+            if docker exec restore-db pg_isready -U postgres >/dev/null 2>&1; then
+              break
+            fi
             sleep 1
           done
+
           docker exec restore-db pg_isready -U postgres
 
           # PostgreSQL cria o schema public por padrão; o dump também o contém.
@@ -108,7 +113,39 @@ jobs:
             -U postgres -d postgres --no-owner --no-privileges \
             /tmp/production.dump
 
-tables=$(docker exec restore-db psql -U postgres -d postgres -Atc \
+          tables=$(docker exec restore-db psql -U postgres -d postgres -Atc \
+            "select count(*) from information_schema.tables where table_schema='public' and table_name in ('users','sessions','user_pokemon','game_maps','shop_items','gym_leaders','user_badges','pvp_battles','battles','rate_limits','chat_messages')")
+
+          migrations=$(docker exec restore-db psql -U postgres -d postgres -Atc \
+            "select count(*) from drizzle.__drizzle_migrations")
+
+          echo "Restore counts: tables=$tables migrations=$migrations"
+
+          if ! [[ "$tables" =~ ^[0-9]+$ ]]; then
+            echo "Table count is not numeric: '$tables'" >&2
+            exit 1
+          fi
+
+          if ! [[ "$migrations" =~ ^[0-9]+$ ]]; then
+            echo "Migration count is not numeric: '$migrations'" >&2
+            exit 1
+          fi
+
+          if [ "$tables" != "11" ]; then
+            echo "Expected 11 game tables, got $tables" >&2
+            docker exec restore-db psql -U postgres -d postgres -c \
+              "select table_schema, table_name from information_schema.tables where table_schema in ('public','drizzle') order by table_schema, table_name"
+            exit 1
+          fi
+
+          if [ "$migrations" -lt "5" ]; then
+            echo "Expected at least 5 migrations, got $migrations" >&2
+            docker exec restore-db psql -U postgres -d postgres -c \
+              "select * from drizzle.__drizzle_migrations order by id"
+            exit 1
+          fi
+
+          echo "Restore verified: $tables game tables, $migrations migrations"
 
       - name: Upload encrypted backup
         uses: actions/upload-artifact@v4
