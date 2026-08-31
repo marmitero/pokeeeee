@@ -222,7 +222,8 @@ liberada, matinho bloqueado, sorteio ponderado com RNG injetado, validação) e 
 de integração em `tests/integration/encounters.integration.test.ts`, que provam
 que a **rota** lê as colunas do banco.
 
-**Pendente no deploy:** aplicar a migration `0005` em produção.
+**Pendente no deploy:** aplicar a migration `0005` em produção — runbook em
+`docs/DEPLOY-6.2-A.md` (ordem obrigatória: migration **antes** do código).
 
 ### 6.2-B — Editor: pintar as camadas *(a fazer)*
 

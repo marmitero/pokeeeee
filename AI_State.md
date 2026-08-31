@@ -457,7 +457,10 @@ Aplicado em: `startWildBattle` (autoridade do servidor), `POST /api/maps` e
 o movimento em `src/app/page.tsx` — sem o cliente, o admin liberaria a água e o
 jogador continuaria barrado. `ENCOUNTER_RATE` fixo no cliente foi removido.
 
-**Pendente no deploy:** aplicar a migration `0005` em produção.
+**Pendente no deploy:** aplicar a migration `0005` em produção **antes** de
+fazer o merge em `main` — o código novo lê as colunas e quebra sem elas.
+Passo a passo, hash do journal e consultas de conferência em
+`docs/DEPLOY-6.2-A.md`.
 
 ### Fase 6.1 — Balanceamento do início do jogo (2026-08-31)
 
