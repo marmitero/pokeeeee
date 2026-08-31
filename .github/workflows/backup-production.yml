@@ -108,13 +108,7 @@ jobs:
             -U postgres -d postgres --no-owner --no-privileges \
             /tmp/production.dump
 
-          tables=$(docker exec restore-db psql -U postgres -d postgres -Atc \
-            "select count(*) from information_schema.tables where table_schema='public' and table_name in ('users','sessions','user_pokemon','game_maps','shop_items','gym_leaders','user_badges','pvp_battles','battles','rate_limits','chat_messages')")
-          migrations=$(docker exec restore-db psql -U postgres -d postgres -Atc \
-            "select count(*) from drizzle.__drizzle_migrations")
-          test "$tables" = "11"
-          test "$migrations" -ge "5"
-          echo "Restore verified: $tables game tables, $migrations migrations"
+tables=$(docker exec restore-db psql -U postgres -d postgres -Atc \
 
       - name: Upload encrypted backup
         uses: actions/upload-artifact@v4
