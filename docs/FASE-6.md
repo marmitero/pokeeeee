@@ -23,7 +23,7 @@
 
 ---
 
-## 6.1 — Balanceamento do início do jogo *(primeiro passo)*
+## 6.1 — Balanceamento do início do jogo — ✅ **implementada em 2026-08-31**
 
 ### O diagnóstico, medido
 
@@ -116,7 +116,68 @@ tem precisa de 3–4 turnos. Não há decisão de jogo no meio.
 **Critério de aceite:** tabela de matchups dentro das faixas de turnos alvo,
 zero OHKO no nível 5, CI verde, nenhuma regressão nos testes de integração.
 
----
+### O que foi entregue
+
+| Item | Onde |
+|---|---|
+| Learnset por nível + 22 golpes novos de poder 30–70 | `src/lib/pokedex.ts` (`learnset`, `movesAtLevel`, `moveSlots`) |
+| Teto de dano por golpe em níveis baixos | `src/lib/engine/damage.ts` (`maxHitFraction`, `capDamage`) |
+| RNG injetável (sem espionar `Math.random`) | `src/lib/engine/damage.ts` (`Rng`) |
+| Golpes aprendidos ao subir de nível, persistidos | `src/lib/engine/combatant.ts`, `src/lib/battle-service.ts` |
+| Curva de XP e níveis de ginásio revisados | `src/lib/engine/xp.ts`, `src/lib/gym-teams.ts` |
+| Relatório de balanceamento | `npm run balance:report` |
+| Backfill de produção (movesets + ginásios) | `npm run db:rebalance` |
+| 19 testes de balanceamento | `src/lib/engine/balance.test.ts` |
+
+### Resultado medido (`npm run balance:report`)
+
+Nível 5, golpe mais forte disponível, 2000 execuções com semente fixa:
+
+| Atacante → alvo | Golpe | Dano médio | HP | OHKO | Turnos |
+|---|---|---|---|---|---|
+| Charmander → Bulbasaur | Brasa (40) | 6,0 | 20 | **0%** | 4,0 |
+| Bulbasaur → Squirtle | Chicote de Cipó (45) | 6,0 | 20 | **0%** | 4,0 |
+| Squirtle → Charmander | Bolha (40) | 6,0 | 19 | **0%** | 4,0 |
+| Bulbasaur → Charmander | Investida (40) | 4,4 | 19 | 0% | 4,8 |
+| Squirtle → Bulbasaur | Investida (40) | 4,4 | 20 | 0% | 4,9 |
+| Charmander → Squirtle | Arranhão (40) | 4,1 | 20 | 0% | 5,1 |
+
+Antes: 100% de OHKO com vantagem de tipo (0,7–0,8 turno). Depois: **nenhum
+OHKO**, 4 turnos com vantagem e ~5 sem ela. A vantagem de tipo encurta a luta
+em ~20% em vez de decidi-la sozinha.
+
+Meio de jogo intocado: no nível 30 o teto já não vale (Charmander → Bulbasaur
+causa 56,7 de dano em 73 de HP) e a fórmula clássica volta inteira.
+
+Curva de XP (era `nível³ × 0,8`, agora `nível^2,5 × 2,5`):
+
+| Nível | 5 | 10 | 15 | 20 | 25 |
+|---|---|---|---|---|---|
+| Batalhas para subir (antes) | 2,7 | 4,8 | 6,9 | 9,1 | 11,2 |
+| Batalhas para subir (agora) | 3,0 | 3,9 | 4,6 | 5,2 | 5,8 |
+
+### Decisão de design registrada: o inicial de Fogo perde para o Brock
+
+O relatório mostra que Bulbasaur e Squirtle vencem os dois Pokémon do Brock com
+folga no nível 10, e que **Charmander perde os dois confrontos 1 contra 1** —
+Pedra causa dano dobrado em Fogo e Geodude/Onix têm ataque e defesa altos.
+
+Isso **não** foi "corrigido": é a consequência correta do sistema de tipos, e o
+jogo dá as ferramentas para contornar (time de até 3, Squirtle e Bulbasaur
+aparecem na grama do mapa 1, loja com poções). O que foi corrigido é a barreira
+artificial: Brock caiu de 12/14 para **10/12** e Misty de 18/21 para **16/19**,
+porque com a curva antiga era preciso moer ~25 batalhas selvagens antes de ter
+direito a tentar. Se o mantenedor preferir que o inicial de Fogo vença sozinho,
+o caminho honesto é mexer no conteúdo (outro líder inicial, ou um golpe de Aço
+mais cedo), não em esconder o número.
+
+### O que **não** foi feito nesta sub-fase
+
+- Pokémon já existentes em produção **não mudam sozinhos**: é preciso rodar
+  `npm run db:rebalance` (tem `--dry-run`) depois do deploy. Sem isso, contas
+  antigas continuam com os golpes de fim de jogo gravados no banco.
+- Golpes de status continuam sem efeito (`"Mas nada aconteceu..."`) — é a 6.4.
+- A IA do oponente continua escolhendo golpe ao acaso entre os que causam dano.
 
 ## 6.2 — Evolução (servidor)
 
@@ -185,7 +246,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento  →  6.2 evolução  →  6.3 pokédex  →  6.4 status  →  6.5 ranked  →  6.6 NPCs
+6.1 balanceamento ✅  →  6.2 evolução  →  6.3 pokédex  →  6.4 status  →  6.5 ranked  →  6.6 NPCs
 ```
 
 6.1 vem primeiro porque é o defeito que o jogador sente no primeiro minuto, e

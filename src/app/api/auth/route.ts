@@ -2,7 +2,13 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users, userPokemon } from "@/db/schema";
-import { computeDelugeStats, getPokemonSpecies } from "@/lib/pokedex";
+import {
+  computeDelugeStats,
+  getPokemonSpecies,
+  moveSlots,
+  movesAtLevel,
+} from "@/lib/pokedex";
+import { STARTER_LEVEL, xpToNextLevel } from "@/lib/engine/xp";
 import { ensureDefaultMapsSeeded } from "@/lib/seed-maps";
 import {
   hashPassword,
@@ -124,7 +130,10 @@ export async function POST(req: Request) {
 
       const species = getPokemonSpecies(starterId);
       // Iniciais sempre começam como variante Normal (não premium).
-      const stats = computeDelugeStats(species, 5, "Normal");
+      const stats = computeDelugeStats(species, STARTER_LEVEL, "Normal");
+      // Fase 6.1: golpes do nível inicial (poder 30–55), não o conjunto de fim
+      // de jogo. Era daqui que saía o inicial nível 5 com Lança-Chamas.
+      const starterMoves = movesAtLevel(species, STARTER_LEVEL);
 
       await db.insert(userPokemon).values({
         userId: newUser.id,
@@ -132,9 +141,9 @@ export async function POST(req: Request) {
         name: species.name,
         variant: "Normal",
         isPremiumSkin: false,
-        level: 5,
+        level: STARTER_LEVEL,
         xp: 0,
-        xpToNextLevel: 100,
+        xpToNextLevel: xpToNextLevel(STARTER_LEVEL),
         hp: stats.hp,
         maxHp: stats.maxHp,
         attack: stats.attack,
@@ -142,10 +151,7 @@ export async function POST(req: Request) {
         spAttack: stats.spAttack,
         spDefense: stats.spDefense,
         speed: stats.speed,
-        move1: species.moves[0]?.name || "Investida",
-        move2: species.moves[1]?.name || "Ataque Rápido",
-        move3: species.moves[2]?.name || "Rosnado",
-        move4: species.moves[3]?.name || "Arranhão",
+        ...moveSlots(starterMoves),
         partySlot: 1,
         isStarter: true,
       });

@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 import { MAX_LEVEL, applyXp, battleXpGain, xpToNextLevel } from "./xp";
 
 /**
- * Curva: xpFloor(l) = floor(l³ * 0.8); xpToNextLevel(l) = xpFloor(l+1) - xpFloor(l).
- * Referência: xpToNextLevel(10) = 1064 - 800 = 264.
+ * Curva (Fase 6.1): xpFloor(l) = floor(l^2.5 * 2.5);
+ * xpToNextLevel(l) = xpFloor(l+1) - xpFloor(l).
+ * Referência: xpToNextLevel(10) = 906 - 693 = 213.
+ *
+ * Era `l³ * 0.8`, que pedia 2,7 batalhas para sair do nível 5 e 11,2 para sair
+ * do 25 — começo raso, meio de jogo em grind.
  */
 describe("xpToNextLevel", () => {
-  it("bate com a curva cúbica documentada", () => {
-    expect(xpToNextLevel(10)).toBe(264);
-    expect(xpToNextLevel(18)).toBe(822);
+  it("bate com a curva documentada", () => {
+    expect(xpToNextLevel(10)).toBe(213);
+    expect(xpToNextLevel(18)).toBe(497);
   });
 
   it("nunca decresce em nenhum nível", () => {
@@ -17,13 +21,12 @@ describe("xpToNextLevel", () => {
     }
   });
 
-  it("é estritamente crescente acima do piso (nível 3 em diante)", () => {
-    // A curva tem piso de 20 XP, então níveis 1 e 2 empatam por construção.
+  it("é estritamente crescente acima do piso (nível 2 em diante)", () => {
+    // A curva tem piso de 20 XP; só o nível 1 cai nele.
     expect(xpToNextLevel(1)).toBe(20);
-    expect(xpToNextLevel(2)).toBe(20);
-    expect(xpToNextLevel(3)).toBeGreaterThan(20);
+    expect(xpToNextLevel(2)).toBeGreaterThan(20);
 
-    for (let level = 3; level < MAX_LEVEL - 1; level++) {
+    for (let level = 2; level < MAX_LEVEL - 1; level++) {
       expect(xpToNextLevel(level + 1)).toBeGreaterThan(xpToNextLevel(level));
     }
   });
@@ -46,16 +49,16 @@ describe("applyXp", () => {
     expect(r.levelsGained).toBe(0);
     expect(r.newLevel).toBe(10);
     expect(r.newXp).toBe(100);
-    expect(r.newXpToNext).toBe(264);
+    expect(r.newXpToNext).toBe(213);
   });
 
   it("sobe um nível e carrega o excedente", () => {
-    // 250 + 43 = 293; limiar 264 → sobra 29
-    const r = applyXp(10, 250, 43);
+    // 200 + 43 = 243; limiar 213 → sobra 30
+    const r = applyXp(10, 200, 43);
 
     expect(r.levelsGained).toBe(1);
     expect(r.newLevel).toBe(11);
-    expect(r.newXp).toBe(29);
+    expect(r.newXp).toBe(30);
     expect(r.newXpToNext).toBe(xpToNextLevel(11));
   });
 
@@ -72,7 +75,7 @@ describe("applyXp", () => {
     const acumulando = applyXp(10, 200, 100);
 
     expect(deZero.newXp).toBe(100);
-    expect(acumulando.newXp).toBe(300 - 264); // subiu de nível
+    expect(acumulando.newXp).toBe(300 - 213); // subiu de nível
     expect(acumulando.levelsGained).toBe(1);
   });
 

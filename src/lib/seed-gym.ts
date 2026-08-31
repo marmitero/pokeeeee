@@ -1,7 +1,9 @@
 import { db } from "@/db";
 import { gymLeaders } from "@/db/schema";
 import { count } from "drizzle-orm";
-import type { DelugeVariant } from "@/lib/pokedex";
+import { GYM_TEAMS } from "@/lib/gym-teams";
+export { GYM_TEAMS } from "@/lib/gym-teams";
+export type { GymTeamMember } from "@/lib/gym-teams";
 
 /**
  * Seed dos líderes de ginásio.
@@ -16,11 +18,6 @@ import type { DelugeVariant } from "@/lib/pokedex";
  * porque o runtime só lê `pokedexId` e `level`.
  */
 
-export interface GymTeamMember {
-  pokedexId: number;
-  level: number;
-  variant: DelugeVariant;
-}
 
 export async function ensureGymSeeded() {
   const existing = await db.select({ value: count() }).from(gymLeaders);
@@ -43,10 +40,7 @@ export async function ensureGymSeeded() {
       winDialog:
         "Impossível! Você derrotou meu Geodude e Onix! Tome a Insígnia Pedra!",
       shopId: 1,
-      team: [
-        { pokedexId: 74, level: 12, variant: "Normal" },
-        { pokedexId: 95, level: 14, variant: "Normal" },
-      ] as GymTeamMember[],
+      team: GYM_TEAMS.Brock,
     },
 
     // ── Ginásio 2 — Misty (Água) ─────────────────────────────────────────
@@ -64,10 +58,7 @@ export async function ensureGymSeeded() {
       defeatDialog: "Você simplesmente foi superior desta vez…",
       winDialog: "Incrível! Derrotou minha Starmie! Tome a Insígnia Cascata!",
       shopId: 2,
-      team: [
-        { pokedexId: 120, level: 18, variant: "Normal" },
-        { pokedexId: 121, level: 21, variant: "Normal" },
-      ] as GymTeamMember[],
+      team: GYM_TEAMS.Misty,
     },
 
     // ── Ginásio 3 — Lance (Dragão) ───────────────────────────────────────
@@ -86,10 +77,7 @@ export async function ensureGymSeeded() {
       winDialog:
         "Extraordinário! Você domou meu Dragonite! Tome a lendária Insígnia do Dragão!",
       shopId: 3,
-      team: [
-        { pokedexId: 148, level: 38, variant: "Normal" },
-        { pokedexId: 149, level: 45, variant: "Normal" },
-      ] as GymTeamMember[],
+      team: GYM_TEAMS.Lance,
     },
   ]);
 }

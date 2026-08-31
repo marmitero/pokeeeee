@@ -121,7 +121,7 @@ src/
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-21 espécies · 19 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+21 espécies (com learnset por nível) · 41 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -131,7 +131,7 @@ src/
 | Encontros selvagens | ✅ Funciona (decididos no cliente) |
 | Batalha selvagem | ✅ **Servidor** — dano, tipos, XP, captura e HP persistidos |
 | Captura | ✅ **Servidor** — `catchRate` + HP + bola; pode falhar |
-| XP / Nível up | ❌ Morto — colunas existem, nunca recebem UPDATE |
+| XP / Nível up | ✅ **Servidor** — XP acumula, nível sobe e o Pokémon **aprende golpes** (6.1) |
 | PC Box / time / itens | ✅ Funciona |
 | Ginásio | ✅ **Servidor** — luta turno a turno, insígnia só vencendo de verdade |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
@@ -413,6 +413,46 @@ Duas armadilhas tratadas em `src/db/index.ts`:
    prepared statements e quebra Drizzle/drizzle-kit. O app **avisa no log** se
    detectar a 6543. O recomendado é a conexão direta (5432).
 
+### Fase 6.1 — Balanceamento do início do jogo (2026-08-31)
+
+O defeito de abertura da Fase 6: **um inicial nível 5 nocauteava outro inicial
+nível 5 em um golpe**. Medido antes de mexer em qualquer linha, com o motor
+real (500 execuções por confronto): Charmander → Bulbasaur com Lança-Chamas
+causava 23,9 de dano em 20 de HP — **100% de OHKO**; Bulbasaur → Squirtle, 29,2
+em 20; Squirtle → Charmander, 24,2 em 19 (80%). Sem vantagem de tipo, 3 a 5
+turnos. O combate inicial era binário.
+
+**A fórmula de dano não era a culpada.** Ela é a clássica e está correta. A
+causa era conteúdo: **não existia learnset**. `PokemonSpecies.moves` era uma
+lista fixa de 4 golpes de fim de jogo (poder 80–110) que a espécie carregava
+desde o nível 1. Com STAB 1,5 × tipo 2,0, um Lança-Chamas fazia 3,5× o HP total
+de um alvo de nível 5.
+
+O que mudou:
+
+1. **Learnset por nível** (`learnset` + `movesAtLevel`) em todas as 21
+   espécies, mais **22 golpes novos** de poder 30–70 para o começo ter o que
+   entregar. `PokemonSpecies.moves` continua existindo, mas agora é **derivado**
+   (os 4 últimos golpes do learnset) e serve só para vitrine.
+2. **Teto de dano por golpe em níveis baixos** (`capDamage`): um golpe não pode
+   arrancar mais que 30% do HP máximo de um alvo nível 5, subindo linearmente
+   até 100% no nível 30. Meio e fim de jogo ficam com a fórmula clássica intacta.
+3. **RNG injetável** (`Rng`) no motor: balanceamento passou a ser testável com
+   semente fixa, sem espionar `Math.random`.
+4. **Level up ensina golpes** (`refreshMovesForLevel`) e persiste em
+   `move1..move4`; slot vazio é string vazia, não repetição do primeiro golpe.
+5. **Curva de XP** de `nível³ × 0,8` para `nível^2,5 × 2,5`: o começo continua em
+   ~3 batalhas por nível e o meio de jogo deixa de dobrar (era 11,2 batalhas
+   para sair do nível 25, agora 5,8).
+6. **Níveis de ginásio** revisados e movidos para `src/lib/gym-teams.ts` (fonte
+   única): Brock 12/14 → **10/12**, Misty 18/21 → **16/19**.
+7. **`npm run balance:report`** imprime a tabela de confrontos, o teto por
+   nível, a prévia do primeiro ginásio e a curva — para o próximo ajuste ser
+   comparado, não chutado.
+8. **`npm run db:rebalance`** faz o backfill de produção (movesets dos Pokémon
+   já capturados + níveis dos ginásios já semeados), idempotente e com
+   `--dry-run`.
+
 ---
 
 ## 4. Passo a passo de validação da última etapa
@@ -558,6 +598,51 @@ npm audit --audit-level=moderate
 **Fase 5.1-D concluída.** Produção controlada online, backup criptografado ativo
 com restore testado, `CRON_SECRET` validado. Próxima etapa: **Fase 6**.
 
+### 4.8 Validação da Fase 6.1 (2026-08-31)
+
+```bash
+npm ci
+npm run db:local
+npm run balance:report
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db npm run check
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+  npm run test:integration
+npm run db:rebalance -- --dry-run
+```
+
+Resultados observados:
+
+- `npm run check` **exit 0**: lint 0, tsc 0, **106 testes unitários** (eram 87;
+  19 novos em `balance.test.ts`), build 14 rotas.
+- Integração: **56 testes**. Um deles falhou primeiro e a falha estava certa:
+  `pvp.integration.test.ts` mandava `moveIndex: 2` e um inicial nível 5 agora
+  conhece **2** golpes, então o índice 2 passou a ser inválido de verdade. O
+  teste foi corrigido para o índice 1.
+- Relatório de balanceamento, nível 5, 2000 execuções: **0% de OHKO em todos os
+  seis confrontos** (era 100% com vantagem de tipo); 4,0 turnos com vantagem e
+  4,8–5,1 sem ela.
+- Meio de jogo intocado: no nível 30 o teto não vale mais (56,7 de dano em 73 de
+  HP) e no nível 50 a fórmula clássica está inteira.
+- Curva: 3,0 batalhas para sair do nível 5, 3,9 do 10, 5,8 do 25 (era 2,7 / 4,8
+  / 11,2).
+- Backfill exercitado em banco real: `--dry-run` lista, aplicação converte
+  `[Lança-Chamas, Garra Dragão, Ataque Rápido, Pulso Sombrio]` de um Charmander
+  nível 5 em `[Arranhão, Brasa, "", ""]` e Brock de `[12, 14]` para `[10, 12]`;
+  segunda execução não escreve nada (idempotente).
+- Ponta a ponta contra o banco local (registro → batalha selvagem): inicial
+  nasce com `Arranhão`/`Brasa` e `xp_to_next_level = 81`; o selvagem gerado veio
+  com golpes do nível dele (`Investida`, `Choque`, `Ataque Rápido`), e a batalha
+  durou 3 turnos em vez de 1.
+
+**Não validado aqui:** a tela. Nenhuma destas medições passou por um navegador —
+o PC Box agora esconde slots de golpe vazios e o log de batalha ganhou a linha
+"aprendeu X!", e as duas coisas precisam de uma olhada visual.
+
+**Pendente de operação:** rodar `npm run db:rebalance` **em produção** depois do
+deploy. Sem isso os Pokémon já capturados continuam com os golpes antigos
+gravados no banco, e o rebalanceamento só valeria para contas novas.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -576,34 +661,30 @@ Ordem: **6.1 balanceamento → 6.2 evolução → 6.3 Pokédex → 6.4 status �
 6.5 PvP ranqueado → 6.6 NPCs**. Premium (6.7) segue bloqueado até haver IP
 própria, termos, privacidade, pagamento e antifraude.
 
-#### 6.1 — Balanceamento do início do jogo (próximo passo imediato)
+#### 6.1 — Balanceamento do início do jogo — ✅ concluída em 2026-08-31
 
-Medido nesta sessão com o motor real (500 rolls por matchup, nível 5, Normal):
+Causa achada e corrigida: não existia learnset. Resultado medido: **0% de OHKO**
+no nível 5 (era 100% com vantagem de tipo), 4 turnos com vantagem e ~5 sem ela.
+Detalhes e números em `docs/FASE-6.md`.
 
-| Atacante → alvo | Golpe | Dano médio | HP alvo | OHKO |
-|---|---|---|---|---|
-| Charmander → Bulbasaur | Lança-Chamas (90) | 23,9 | 20 | **100%** |
-| Bulbasaur → Squirtle | Raio Solar (105) | 29,2 | 20 | **100%** |
-| Squirtle → Charmander | Jato d'Água (110) | 24,2 | 19 | **80%** |
-| Charmander → Squirtle | Lança-Chamas (90) | 5,7 | 20 | 0% (3,5 turnos) |
+Fica registrada uma decisão de design, não um bug: **o inicial de Fogo perde os
+dois confrontos 1 contra 1 com o Brock**, porque Pedra causa dano dobrado em
+Fogo. O jogo dá as saídas (time de até 3, Squirtle e Bulbasaur na grama do mapa
+1, poções). Se isso for indesejado, muda-se o conteúdo — não o número.
 
-**A fórmula de dano não é o culpado** — ela é a clássica e está correta. A causa
-é conteúdo: **não existe learnset**. `PokemonSpecies.moves` é uma lista fixa de
-4 golpes de fim de jogo (poder 80–110) que o Pokémon carrega desde o nível 1,
-contra ~20 de HP no nível 5. Com STAB 1,5 × tipo 2,0, o golpe faz 3,5× o HP do
-alvo.
+#### Próximo passo imediato: 6.2 — Evolução no servidor
 
-Correção planejada:
+Charmander ainda nunca vira Charizard. O learnset da 6.1 é a dependência que
+faltava: já se sabe quais golpes a espécie nova entrega em cada nível.
 
-1. **Learnset por nível** (`movesAtLevel`), golpes de poder 35–60 no começo, com
-   migration aditiva e backfill dos `move1..move4` já gravados;
-2. **amortecimento de dano em nível baixo** (teto por golpe de ~45% do HP no
-   nível 5, subindo para 100% por volta do nível 25);
-3. **curva de XP/nível dos ginásios** revisada contra a nova duração de combate;
-4. **RNG injetável** no motor + `scripts/balance-report.mts` para testar
-   balanceamento com semente fixa, em vez de julgar no olho.
-
-Alvo: 3–5 turnos com vantagem de tipo, 6–9 sem ela, zero OHKO no nível 5.
+1. Modelo dirigido por dados (`evolvesTo`: gatilho `level` | `item` | especial),
+   para o rebranding futuro trocar conteúdo e não código.
+2. Avaliação **no servidor**, dentro do level up que já existe em
+   `battle-service.ts` — nunca por chamada do cliente.
+3. Recalcular stats com a espécie nova preservando o percentual de HP, manter o
+   apelido, registrar no log e persistir o `pokedexId`.
+4. Completar as linhas evolutivas que faltam na Pokédex (hoje há Charmander e
+   Charizard, mas não Charmeleon).
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -633,7 +714,8 @@ Alvo: 3–5 turnos com vantagem de tipo, 6–9 sem ela, zero OHKO no nível 5.
 | 2026-08-29 | **Fase 5.1-C** — operação, cron e backup | ✅ Concluída e validada | workflow `backup.yml` |
 | 2026-08-30 | **Fase 5.1-D** — produção controlada | ✅ Concluída e validada | `https://catchbound.vercel.app/` |
 | 2026-08-31 | **Fase 5.1-D** — backup criptografado de produção | ✅ Concluída e validada | run `33378414585` · restore verificado |
-| — | **Fase 6** — Conteúdo e mundo | 🟡 Planejada; 6.1 é o próximo passo | `docs/FASE-6.md` |
+| 2026-08-31 | **Fase 6.1** — balanceamento do início do jogo | ✅ Concluída e validada | learnset + teto de dano · `npm run balance:report` |
+| — | **Fase 6.2** — Evolução no servidor | ⬜ Próxima | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

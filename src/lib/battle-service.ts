@@ -9,7 +9,13 @@ import {
 } from "@/lib/pokedex";
 import { computeDamage } from "@/lib/engine/damage";
 import { toCombatant } from "@/lib/engine/combatant";
-import { sideFromSpecies, sideFromUserPokemon, type SideState } from "@/lib/engine/combatant";
+import {
+  moveNamesForDb,
+  refreshMovesForLevel,
+  sideFromSpecies,
+  sideFromUserPokemon,
+  type SideState,
+} from "@/lib/engine/combatant";
 import { applyXp, battleXpGain, xpToNextLevel, MAX_LEVEL } from "@/lib/engine/xp";
 import { BALL_LABEL, captureChance, rollCapture, type BallKey } from "@/lib/engine/capture";
 import { badRequest, forbidden, notFound } from "@/lib/api";
@@ -424,6 +430,13 @@ async function resolveFaint(
       log,
       `★ ${state.player.displayName} subiu para o nível ${newLevel}!`
     );
+
+    // Fase 6.1: subir de nível também ensina os golpes do learnset. Sem isto
+    // o Pokémon ficaria preso nos golpes fracos do nível inicial.
+    const learned = refreshMovesForLevel(state.player, newLevel);
+    for (const moveName of learned) {
+      log = pushLog(log, `${state.player.displayName} aprendeu ${moveName}!`);
+    }
   }
 
   // ── Ginásio: próximo do time ───────────────────────────────────────────
@@ -563,10 +576,8 @@ export async function attemptCatch(
       spAttack: stats.spAttack,
       spDefense: stats.spDefense,
       speed: stats.speed,
-      move1: state.opponent.moves[0]?.name ?? "Investida",
-      move2: state.opponent.moves[1]?.name ?? "Investida",
-      move3: state.opponent.moves[2]?.name ?? "Investida",
-      move4: state.opponent.moves[3]?.name ?? "Investida",
+      // Fase 6.1: o Pokémon capturado guarda os golpes do nível dele.
+      ...moveNamesForDb(state.opponent),
       partySlot: party.length < 6 ? party.length + 1 : null,
       isStarter: false,
     });
@@ -691,6 +702,8 @@ async function persistTurn(
           spAttack: state.player.spAttack,
           spDefense: state.player.spDefense,
           speed: state.player.speed,
+          // Golpes aprendidos no level up (Fase 6.1) precisam persistir.
+          ...moveNamesForDb(state.player),
         })
         .where(
           and(

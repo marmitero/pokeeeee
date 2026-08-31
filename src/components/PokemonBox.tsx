@@ -249,7 +249,11 @@ export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: Pokemo
                         </div>
                       </div>
                       <div className="mt-2 grid grid-cols-2 gap-1">
-                        {[selected.move1, selected.move2, selected.move3, selected.move4].map((m, i) => (
+                        {/* Fase 6.1: slots vazios existem — um Pokémon de nível
+                            baixo conhece 1 ou 2 golpes, não 4. */}
+                        {[selected.move1, selected.move2, selected.move3, selected.move4]
+                          .filter((m) => m && m.trim().length > 0)
+                          .map((m, i) => (
                           <span key={i} className="border border-slate-700 bg-slate-900 px-2 py-0.5 font-['IBM_Plex_Mono'] text-[9px] text-slate-300">⚡ {m}</span>
                         ))}
                       </div>
