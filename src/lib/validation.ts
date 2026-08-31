@@ -233,14 +233,43 @@ export const tileGridSchema = z
   .min(1)
   .max(64);
 
-const encounterSchema = z.object({
-  pokedexId: idSchema,
-  name: z.string().trim().min(1).max(40),
-  weight: z.coerce.number().min(0).max(1000),
-  minLevel: levelSchema,
-  maxLevel: levelSchema,
-  tileTypes: z.array(z.string()).max(10),
-});
+const encounterSchema = z
+  .object({
+    pokedexId: idSchema,
+    name: z.string().trim().min(1).max(40),
+    weight: z.coerce.number().min(0).max(1000),
+    minLevel: levelSchema,
+    maxLevel: levelSchema,
+    tileTypes: z.array(z.string()).max(10),
+  })
+  // Fase 6.2-A: faixa invertida gerava `Math.max` silencioso no motor. Agora é
+  // erro de entrada, porque no editor isso é sempre engano de digitação.
+  .refine((entry) => entry.minLevel <= entry.maxLevel, {
+    message: "Nível mínimo não pode ser maior que o máximo",
+    path: ["minLevel"],
+  });
+
+/**
+ * Camadas da Fase 6.2-A.
+ *
+ * Grade vazia é aceita de propósito: significa "mapa legado", e o motor cai no
+ * comportamento antigo (padrão do tipo de tile). A checagem de que as
+ * dimensões batem com o `tileGrid` acontece na rota, onde `width`/`height` do
+ * mapa estão disponíveis.
+ */
+export const encounterGridSchema = z
+  .array(z.array(z.boolean()).max(64))
+  .max(64);
+
+export const collisionGridSchema = z
+  .array(z.array(z.enum(["blocked", "walkable"]).nullable()).max(64))
+  .max(64);
+
+export const encounterRateSchema = z.coerce
+  .number()
+  .int()
+  .min(0, "Taxa de encontro mínima é 0%")
+  .max(100, "Taxa de encontro máxima é 100%");
 
 const portalSchema = z.object({
   id: z.string().trim().min(1).max(64),
@@ -277,6 +306,9 @@ export const mapCreateSchema = z.object({
   height: mapSizeSchema.default(16),
   tileGrid: tileGridSchema,
   encounterTable: z.array(encounterSchema).max(50).default([]),
+  encounterGrid: encounterGridSchema.default([]),
+  collisionGrid: collisionGridSchema.default([]),
+  encounterRate: encounterRateSchema.default(22),
   portals: z.array(portalSchema).max(50).default([]),
   npcs: z.array(npcSchema).max(50).optional(),
   linkFromMapId: idSchema.optional(),
@@ -291,6 +323,9 @@ export const mapUpdateSchema = z.object({
   description: z.string().trim().max(300).optional(),
   tileGrid: tileGridSchema.optional(),
   encounterTable: z.array(encounterSchema).max(50).optional(),
+  encounterGrid: encounterGridSchema.optional(),
+  collisionGrid: collisionGridSchema.optional(),
+  encounterRate: encounterRateSchema.optional(),
   portals: z.array(portalSchema).max(50).optional(),
   npcs: z.array(npcSchema).max(50).optional(),
 });

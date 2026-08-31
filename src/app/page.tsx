@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { TILE_DEFINITIONS, TileId } from "@/lib/tiles";
+import { encounterChance, hasEncounterAt, isWalkableAt, tileAt } from "@/lib/map-rules";
 import {
   DELUGE_VARIANTS,
   DelugeVariant,
@@ -90,7 +91,6 @@ const SAVE_EVERY_STEPS = 10;
  * segurança — espécie, variante, nível, dano, XP e captura — é decidido no
  * servidor, e a rota tem rate limit próprio.
  */
-const ENCOUNTER_RATE = 0.22;
 
 const GUEST_USER: UserState = {
   id: 0, username: "Treinador", avatarSprite: "red",
@@ -370,9 +370,10 @@ export default function DelugeRPGPage() {
     const mapH = currentMap.height || 16;
     if (nextX < 0 || nextX >= mapW || nextY < 0 || nextY >= mapH) return;
 
-    const tileId = (currentMap.tileGrid[nextY]?.[nextX] || "grass") as TileId;
-    const tileDef = TILE_DEFINITIONS[tileId] || TILE_DEFINITIONS.grass;
-    if (!tileDef.walkable) return;
+    // Fase 6.2-A: quem decide passagem é `map-rules`, que respeita a camada de
+    // colisão pintada no editor. O tipo de tile virou o padrão, não a regra —
+    // é o que permite liberar a água e bloquear um matinho específico.
+    if (!isWalkableAt(currentMap, nextX, nextY)) return;
 
     retroSfx.playStep();
     setPlayerX(nextX);
@@ -407,7 +408,7 @@ export default function DelugeRPGPage() {
     }
 
     // Pokémon Center
-    if (tileId === "center") {
+    if (tileAt(currentMap, nextX, nextY) === "center") {
       handleHealParty();
       return;
     }
@@ -423,7 +424,10 @@ export default function DelugeRPGPage() {
     // Encontro selvagem (Fase 2): o SORTEIO agora é do servidor.
     // O cliente só decide "pisei num tile de encontro"; quem escolhe espécie,
     // variante e nível, e valida o tile contra a grade gravada, é o backend.
-    if (tileDef.hasEncounter && Math.random() < ENCOUNTER_RATE) {
+    if (
+      hasEncounterAt(currentMap, nextX, nextY) &&
+      Math.random() < encounterChance(currentMap.encounterRate)
+    ) {
       void startWildEncounter(currentMapId, nextX, nextY);
     }
   }, [anyModalOpen, currentMap, playerX, playerY, isLoggedIn, currentMapId, handleHealParty, handleNpcInteraction, showBanner, startWildEncounter]);

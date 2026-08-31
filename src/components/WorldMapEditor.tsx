@@ -24,6 +24,10 @@ export interface GameMapData {
   width: number;
   height: number;
   tileGrid: TileId[][];
+  /** Fase 6.2-A — camadas novas; vazias em mapa legado. Editáveis na 6.2-B. */
+  encounterGrid?: boolean[][];
+  collisionGrid?: (null | "blocked" | "walkable")[][];
+  encounterRate?: number;
   encounterTable: {
     pokedexId: number;
     name: string;

@@ -247,6 +247,11 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 2. O que falta implementar segundo o roadmap
 
+- [x] **FASE 6.1 — Balanceamento do início do jogo** ✅ 2026-08-31
+- [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
+- [ ] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ⬅️ próxima
+- [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`**
+
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
 - [x] **FASE 1.1 — Papéis de acesso e Editor de Mundos admin-only** ✅ 2026-08-25 (detalhes na seção 3)
@@ -412,6 +417,47 @@ Duas armadilhas tratadas em `src/db/index.ts`:
 2. **A conexão pooled (6543) usa transaction pooling**, que não suporta
    prepared statements e quebra Drizzle/drizzle-kit. O app **avisa no log** se
    detectar a 6543. O recomendado é a conexão direta (5432).
+
+### Fase 6.2-A — Camadas de mapa: colisão e área de caça editáveis (2026-08-31)
+
+Pedido do mantenedor: o Editor de Mundos precisa decidir **onde** aparecem
+bichos e **onde** dá para andar. Dois defeitos concretos estavam no caminho:
+
+1. água era `walkable: false` **e** `hasEncounter: true` — encontro aquático
+   era impossível, porque ninguém pisa na água;
+2. só o matinho gerava encontro, e a área de caça era o mapa inteiro.
+
+A causa era a mesma nos dois: passagem e encontro eram **propriedade do tipo de
+tile**, fixas em `TILE_DEFINITIONS`. Viraram **dado por mapa**:
+
+| Coluna nova em `game_maps` | Tipo | Papel |
+|---|---|---|
+| `encounter_grid` | `jsonb` `boolean[][]` | o "tile invisível" de encontro, aplicável sobre qualquer tile |
+| `collision_grid` | `jsonb` `(null \| "blocked" \| "walkable")[][]` | override de passagem por célula |
+| `encounter_rate` | `integer` 0–100 (default 22, com CHECK) | chance de encontro por passo |
+
+Migration `0005_mysterious_bloodstrike.sql` — **aditiva**, tudo com `DEFAULT`.
+Grade vazia = comportamento legado bit a bit, então o deploy não altera
+nenhum mapa existente.
+
+Regras num módulo puro novo, `src/lib/map-rules.ts` (sem banco, sem React, sem
+`Math.random` implícito), usado **pelo servidor e pelo cliente** para não haver
+duas implementações da mesma regra:
+
+- `isWalkableAt` — override manda, mas nunca fura a borda do mapa;
+- `hasEncounterAt` — com a camada preenchida ela é a única fonte da verdade;
+- `encounterPoolAt` — com a camada em uso, `tileTypes` deixa de filtrar
+  (decisão do mantenedor: **uma área de caça por mapa**);
+- `pickWeighted` / `rollEncounterLevel` — `rng` injetável, como na 6.1;
+- `validateMapLayers` — recusa camada com dimensão errada e área de caça
+  pintada sem nenhuma espécie na lista.
+
+Aplicado em: `startWildBattle` (autoridade do servidor), `POST /api/maps` e
+`PUT /api/maps/[id]` (no PUT a validação usa o valor final: entrada ?? banco) e
+o movimento em `src/app/page.tsx` — sem o cliente, o admin liberaria a água e o
+jogador continuaria barrado. `ENCOUNTER_RATE` fixo no cliente foi removido.
+
+**Pendente no deploy:** aplicar a migration `0005` em produção.
 
 ### Fase 6.1 — Balanceamento do início do jogo (2026-08-31)
 
@@ -643,6 +689,43 @@ o PC Box agora esconde slots de golpe vazios e o log de batalha ganhou a linha
 deploy. Sem isso os Pokémon já capturados continuam com os golpes antigos
 gravados no banco, e o rebalanceamento só valeria para contas novas.
 
+### 4.9 Validação da Fase 6.2-A (2026-08-31)
+
+Banco local de pé (`npm run db:local`) e migration aplicada:
+
+```
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npx drizzle-kit migrate
+→ [✓] migrations applied successfully!   (0005_mysterious_bloodstrike)
+```
+
+Suíte completa:
+
+```
+DATABASE_URL=... npm run check
+→ tsc --noEmit limpo · eslint limpo · build 15 rotas
+→ Test Files 9 passed · Tests 136 passed   (30 novos em src/lib/map-rules.test.ts)
+
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+DATABASE_URL=... npm run test:integration
+→ Test Files 5 passed · Tests 64 passed    (8 novos em tests/integration/encounters.integration.test.ts)
+```
+
+O que os testes provam, e não só "passam":
+
+| Prova | Onde |
+|---|---|
+| mapa legado responde **exatamente** como antes (camada vazia não muda nada) | unitário + integração |
+| água pintada como `walkable` + área de caça → `start_wild` devolve 200 | integração (era 400 antes) |
+| matinho marcado `blocked` → 400 "Não dá para estar nesse tile." | integração |
+| grama comum pintada gera encontro; matinho fora da pintura para de gerar | integração |
+| override não atravessa a borda do mapa | unitário |
+| `pickWeighted` respeita a proporção dos pesos com RNG injetado | unitário |
+| `validateMapLayers` pega dimensão errada e área pintada sem espécie | unitário |
+
+**Não validado ainda (precisa de navegador):** andar na água num mapa com a
+camada pintada. Não há como pintar pela interface antes da 6.2-B; o teste de
+integração cobre a rota, que é a autoridade.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -657,9 +740,9 @@ de produção **ativo com restore testado** (run `33378414585`, artifact
 
 ### FASE 6 — Conteúdo e mundo (plano detalhado em `docs/FASE-6.md`)
 
-Ordem: **6.1 balanceamento → 6.2 evolução → 6.3 Pokédex → 6.4 status →
-6.5 PvP ranqueado → 6.6 NPCs**. Premium (6.7) segue bloqueado até haver IP
-própria, termos, privacidade, pagamento e antifraude.
+Ordem: **6.1 balanceamento → 6.2 editor/camadas de mapa → 6.3 evolução →
+6.4 Pokédex → 6.5 status → 6.6 PvP ranqueado → 6.7 NPCs**. Premium (6.8) segue
+bloqueado até haver IP própria, termos, privacidade, pagamento e antifraude.
 
 #### 6.1 — Balanceamento do início do jogo — ✅ concluída em 2026-08-31
 
@@ -672,19 +755,24 @@ dois confrontos 1 contra 1 com o Brock**, porque Pedra causa dano dobrado em
 Fogo. O jogo dá as saídas (time de até 3, Squirtle e Bulbasaur na grama do mapa
 1, poções). Se isso for indesejado, muda-se o conteúdo — não o número.
 
-#### Próximo passo imediato: 6.2 — Evolução no servidor
+#### 6.2 — Editor de Mundos, camadas e golpes fracos (em andamento)
 
-Charmander ainda nunca vira Charizard. O learnset da 6.1 é a dependência que
-faltava: já se sabe quais golpes a espécie nova entrega em cada nível.
+Entrou na frente da evolução a pedido do mantenedor: sem editor de camadas não
+há como montar o mapa 1 fácil que valida o balanceamento da 6.1. Plano completo
+em `docs/FASE-6.2-PLANO.md`.
 
-1. Modelo dirigido por dados (`evolvesTo`: gatilho `level` | `item` | especial),
-   para o rebranding futuro trocar conteúdo e não código.
-2. Avaliação **no servidor**, dentro do level up que já existe em
-   `battle-service.ts` — nunca por chamada do cliente.
-3. Recalcular stats com a espécie nova preservando o percentual de HP, manter o
-   apelido, registrar no log e persistir o `pokedexId`.
-4. Completar as linhas evolutivas que faltam na Pokédex (hoje há Charmander e
-   Charizard, mas não Charmeleon).
+- **6.2-A — camadas no servidor** ✅ concluída em 2026-08-31 (seções 3 e 4.9).
+- **6.2-B — próximo passo imediato:** pintar as camadas no `WorldMapEditor`.
+  Três modos (TERRENO · ENCONTROS · COLISÃO), edição da lista de espécies do
+  mapa (espécie, peso, nível mínimo e máximo) e do `encounterRate`. Hoje o
+  editor grava esses valores fixos no código (`weight: 20`, `minLevel: 10`,
+  `maxLevel: 25`, `tileTypes: ["tall_grass"]`).
+- **6.2-C:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
+  6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
+  Misty 18/21). O jogo deve continuar difícil de evoluir.
+
+Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
+6.6 ranked → 6.7 NPCs**.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -715,7 +803,10 @@ faltava: já se sabe quais golpes a espécie nova entrega em cada nível.
 | 2026-08-30 | **Fase 5.1-D** — produção controlada | ✅ Concluída e validada | `https://catchbound.vercel.app/` |
 | 2026-08-31 | **Fase 5.1-D** — backup criptografado de produção | ✅ Concluída e validada | run `33378414585` · restore verificado |
 | 2026-08-31 | **Fase 6.1** — balanceamento do início do jogo | ✅ Concluída e validada | learnset + teto de dano · `npm run balance:report` |
-| — | **Fase 6.2** — Evolução no servidor | ⬜ Próxima | `docs/FASE-6.md` |
+| 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
+| — | **Fase 6.2-B** — pintar as camadas no Editor de Mundos | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
+| — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Planejada | `docs/FASE-6.2-PLANO.md` |
+| — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

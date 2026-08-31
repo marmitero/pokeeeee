@@ -179,7 +179,70 @@ mais cedo), não em esconder o número.
 - Golpes de status continuam sem efeito (`"Mas nada aconteceu..."`) — é a 6.4.
 - A IA do oponente continua escolhendo golpe ao acaso entre os que causam dano.
 
-## 6.2 — Evolução (servidor)
+## 6.2 — Editor de Mundos: camadas de mapa e golpes fracos
+
+Plano completo e decisões: `docs/FASE-6.2-PLANO.md`. Dividida em três PRs.
+
+### 6.2-A — Camadas de mapa no servidor — ✅ **implementada em 2026-08-31**
+
+O problema: "posso andar aqui?" e "aqui aparece bicho?" eram respondidas só
+pelo **tipo** do tile, com as respostas fixas no código. Consequências práticas:
+água era `walkable: false` **e** `hasEncounter: true` (encontro aquático
+impossível), e só o matinho gerava encontro, no mapa inteiro.
+
+Duas camadas novas por mapa, gravadas em `game_maps` (migration `0005`,
+aditiva, tudo com `DEFAULT` — mapa existente continua idêntico):
+
+| Coluna | Tipo | Significado |
+|---|---|---|
+| `encounter_grid` | `jsonb` `boolean[][]` | o "tile invisível": marca a célula como área de caça sem mudar o desenho |
+| `collision_grid` | `jsonb` `(null \| "blocked" \| "walkable")[][]` | override de passagem por célula; `null` = padrão do tipo de tile |
+| `encounter_rate` | `integer` 0–100 (default 22) | chance de encontro por passo, por mapa |
+
+Regras, todas em `src/lib/map-rules.ts` — módulo **puro** (sem banco, sem
+React, sem `Math.random` implícito) usado pelo servidor e pelo cliente, para
+não existirem duas implementações da mesma regra:
+
+- **grade vazia = modo legado**, bit a bit. É o que permite fazer o deploy sem
+  tocar em nenhum mapa de produção.
+- `collisionGrid`: override manda, mas **nunca** fura a borda do mapa.
+- `encounterGrid` preenchida vira a **única** fonte da verdade do encontro, e
+  o filtro por `tileTypes` deixa de valer — decisão do mantenedor de ter **uma
+  área de caça por mapa** em vez de várias zonas nomeadas.
+- `validateMapLayers` recusa camada com dimensão diferente do mapa e área de
+  caça pintada sem nenhuma espécie na lista (engano de edição, não escolha).
+
+Onde a regra passou a ser aplicada: `startWildBattle` (autoridade do servidor),
+as rotas `POST /api/maps` e `PUT /api/maps/[id]` (persistência + validação) e o
+movimento do jogador em `src/app/page.tsx` — sem isto o admin pintaria a água
+como andável e o cliente continuaria barrando o passo.
+
+Testes: 30 unitários em `src/lib/map-rules.test.ts` (legado intacto, água
+liberada, matinho bloqueado, sorteio ponderado com RNG injetado, validação) e 8
+de integração em `tests/integration/encounters.integration.test.ts`, que provam
+que a **rota** lê as colunas do banco.
+
+**Pendente no deploy:** aplicar a migration `0005` em produção.
+
+### 6.2-B — Editor: pintar as camadas *(a fazer)*
+
+Três modos de pintura no `WorldMapEditor` — TERRENO · ENCONTROS · COLISÃO —,
+edição da lista de espécies do mapa (espécie, peso, nível mínimo e máximo) e
+do `encounterRate`. Hoje esses valores estão fixos no código do editor
+(`weight: 20`, `minLevel: 10`, `maxLevel: 25`, `tileTypes: ["tall_grass"]`).
+
+### 6.2-C — Golpes fracos e volta da curva original *(a fazer)*
+
+- Golpes na faixa útil **15–35** de poder para iniciais e bichos dos primeiros
+  mapas (medição: poder 5–15 é achatado pelo `+2` da fórmula de dano).
+- **Aposentar o teto de dano** da 6.1, que satura e apaga a diferença entre
+  golpes, assim que o mapa 1 estiver montado.
+- Curva de XP volta ao original **`nível³ × 0,8`** e ginásios sobem para Brock
+  12/14 e Misty 18/21 — o jogo deve continuar difícil de evoluir.
+- Depois disso o mantenedor monta o mapa 1 à mão: níveis 2–7, espécies comuns,
+  sem vantagem de elemento contra os iniciais.
+
+## 6.3 — Evolução (servidor)
 
 - Novo campo/tabela de evolução, dirigido por dados:
   `evolvesTo: { speciesId: number; trigger: "level" | "item" | "special";
@@ -194,7 +257,7 @@ mais cedo), não em esconder o número.
 - Testes: Charmander lvl 16 → Charmeleon → lvl 36 Charizard; stats recalculados;
   Pokémon no time e no PC evoluem igual; falha silenciosa impossível.
 
-## 6.3 — Pokédex 21 → 50+
+## 6.4 — Pokédex 21 → 50+
 
 - Acrescentar espécies em lotes de ~10, cada lote com as linhas evolutivas
   completas (evita o buraco atual: Charmander sem Charmeleon).
@@ -205,7 +268,7 @@ mais cedo), não em esconder o número.
   `ALL_MOVES`, que todo alvo de evolução existe na Pokédex e que os sprites
   seguem o padrão de URL.
 
-## 6.4 — Sistema de status
+## 6.5 — Sistema de status
 
 - Estados: `poison`, `burn`, `paralysis`, `sleep`, `freeze` (escolher subconjunto
   inicial: veneno, queimadura, paralisia).
@@ -219,7 +282,7 @@ mais cedo), não em esconder o número.
   de cura/`/api/pokemon/heal` limpa status.
 - Testes: cada status aplica, expira, cura e é persistido entre batalhas.
 
-## 6.5 — Arena PvP ranqueada
+## 6.6 — Arena PvP ranqueada
 
 - `pvp_battles.mode` já aceita `"ranked"` e `users.elo` já existe — ambos
   dormentes.
@@ -230,13 +293,13 @@ mais cedo), não em esconder o número.
 - Ranking global paginado + posição do jogador. Recompensas só depois de o
   ranking rodar estável.
 
-## 6.6 — NPCs editáveis no Editor de Mundos
+## 6.7 — NPCs editáveis no Editor de Mundos
 
 - Tipo de tile/entidade NPC com diálogo, posição e opcional batalha de treinador.
 - Admin-only, como o resto do editor; validação de payload no servidor
   (`src/lib/validation.ts`) com limites de tamanho de diálogo.
 
-## 6.7 — Premium *(bloqueado de propósito)*
+## 6.8 — Premium *(bloqueado de propósito)*
 
 Não implementar. Antes exige: IP própria, termos de uso, política de
 privacidade, provedor de pagamento e antifraude.
@@ -246,13 +309,16 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 evolução  →  6.3 pokédex  →  6.4 status  →  6.5 ranked  →  6.6 NPCs
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B, C)  →  6.3 evolução  →  6.4 pokédex
+  →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 
 6.1 vem primeiro porque é o defeito que o jogador sente no primeiro minuto, e
-porque o **learnset** que ela cria é dependência direta da 6.2 (o que se aprende
-ao evoluir) e da 6.3 (cada espécie nova já nasce com curva). Status (6.4) depois
-da Pokédex para não migrar dados duas vezes. Ranked (6.5) por último entre as
+porque o **learnset** que ela cria é dependência direta da 6.3 (o que se aprende
+ao evoluir) e da 6.4 (cada espécie nova já nasce com curva). A 6.2 entrou na
+frente da evolução a pedido do mantenedor: sem editor de camadas não há como
+montar o mapa 1 fácil, que é o que valida o balanceamento da 6.1. Status (6.5)
+depois da Pokédex para não migrar dados duas vezes. Ranked (6.6) por último entre as
 mecânicas porque só faz sentido sobre um combate que já esteja balanceado.
 
 ## Riscos

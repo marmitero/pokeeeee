@@ -35,6 +35,19 @@ export interface WildEncounterEntry {
   tileTypes: string[];
 }
 
+/**
+ * Override de colisão por célula (Fase 6.2-A).
+ *
+ * `null`       → usa o padrão do tipo de tile (`TILE_DEFINITIONS.walkable`);
+ * `"blocked"`  → intransponível mesmo sendo grama;
+ * `"walkable"` → atravessável mesmo sendo água ou árvore.
+ *
+ * Existe porque `walkable` era fixo por tipo de tile no código: água é
+ * `walkable: false` **e** `hasEncounter: true`, ou seja, encontro aquático era
+ * impossível — o jogador nunca pisava lá.
+ */
+export type CollisionOverride = null | "blocked" | "walkable";
+
 export interface NpcDefinition {
   id: string;
   x: number;
@@ -191,6 +204,15 @@ export const gameMaps = pgTable("game_maps", {
   height: integer("height").notNull().default(16),
   tileGrid: jsonb("tile_grid").notNull(),
   encounterTable: jsonb("encounter_table").notNull(),
+  // ── Camadas da Fase 6.2-A ────────────────────────────────────────────────
+  // O "tile invisível": marca onde pode aparecer criatura, sem mudar o
+  // desenho do mapa. Grade vazia = modo legado (usa `hasEncounter` do tipo de
+  // tile + `tileTypes` da tabela de encontros), que é o comportamento atual.
+  encounterGrid: jsonb("encounter_grid").notNull().default([]),
+  // Override de colisão por célula; grade vazia = padrão do tipo de tile.
+  collisionGrid: jsonb("collision_grid").notNull().default([]),
+  // Chance de encontro por passo, em %. Era um `0.22` fixo no cliente.
+  encounterRate: integer("encounter_rate").notNull().default(22),
   portals: jsonb("portals").notNull(),
   npcs: jsonb("npcs").notNull().default("[]"),
   creatorUsername: text("creator_username").notNull().default("GameMaster"),
@@ -203,6 +225,7 @@ export const gameMaps = pgTable("game_maps", {
 }, (table) => [
   index("game_maps_published_idx").on(table.isPublished),
   check("game_maps_dimensions_check", sql`${table.width} BETWEEN 1 AND 64 AND ${table.height} BETWEEN 1 AND 64`),
+  check("game_maps_encounter_rate_check", sql`${table.encounterRate} BETWEEN 0 AND 100`),
 ]);
 
 // ─── SHOP ITEMS ───────────────────────────────────────────────────────────
