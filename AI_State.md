@@ -85,7 +85,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a052dc-pokeeeee`
+**Branch da sessão atual:** `arena/01a05735-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -505,38 +505,105 @@ Smoke manual/autenticado informado pelo mantenedor: script passou; visual de
 mapa, batalha selvagem, ginásio, loja, PvP e admin ok.
 
 Concluído: `/api/maintenance` com `CRON_SECRET` retornou 200 após rotação do segredo e redeploy.
-Pendente: primeira execução/restauração do backup criptografado de produção.
+
+### 4.7 Fechamento da Fase 5.1-D — backup de produção (2026-08-31)
+
+Confirmado no GitHub nesta sessão, sem alterar produção:
+
+```bash
+git fetch origin
+gh pr list --state all       # PR #1 MERGED, PR #2 MERGED
+gh run list --limit 12
+gh run view 33378414585      # Encrypted production backup → success, 30s
+```
+
+- **PR #2** (`Fase 5.1-D: registra produção e prepara backup`) está **mergeado
+  na `main`**; a `main` está em `a87e965` (`Fix restore-db cleanup and
+  verification logic`).
+- **CI verde na `main`**: run `33378159885` (lint, typecheck, unit, integration,
+  build).
+- **Encrypted production backup**: run `33378414585` → `success`, com o artifact
+  criptografado `production-db-33378414585`. O passo de verificação do workflow
+  imprime `Restore verified: 11 game tables, 5 migrations` e aborta com
+  `exit 1` se as contagens não baterem — o download bruto do log via
+  `gh run view --log` é bloqueado pelo egress deste sandbox, então a evidência
+  usada foi o `success` do job somado ao artifact publicado.
+- Runs `failure` anteriores do mesmo workflow (duração `0s`) são execuções
+  disparadas por `push` antes da correção do YAML/verificação; a última execução
+  em `main` é a válida.
+- **Dessincronia corrigida aqui:** `docs/backup-production.yml` estava atrás de
+  `.github/workflows/backup-production.yml` (faltavam `--inserts`,
+  `--verbose --exit-on-error`, o `docker rm -f restore-db` defensivo e a
+  verificação numérica com diagnóstico). O arquivo de `docs/` foi
+  **ressincronizado por cópia** do workflow real.
+
+Produção esperada e confirmada: `/api/health` → `{ "ok": true }`;
+`/api/maintenance` sem segredo → não autorizado; com `CRON_SECRET` → `200 ok`.
+
+Armadilha registrada: no Session Pooler do Supabase o usuário precisa do sufixo
+com project ref (`catchbound_runtime.PROJECT_REF` na Vercel,
+`catchbound_backup.PROJECT_REF` no GitHub Actions); sem isso o erro é `28P01`.
+
+Validação local desta sessão (banco embutido `npm run db:local`):
+
+```bash
+npm ci
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db npm run check
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+  DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+  npm run test:integration
+npm audit --audit-level=moderate
+```
+
+**Fase 5.1-D concluída.** Produção controlada online, backup criptografado ativo
+com restore testado, `CRON_SECRET` validado. Próxima etapa: **Fase 6**.
 
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🟡 Fechar a Fase 5.1-D — backup de produção
+### ✅ Fase 5.1 encerrada — a próxima etapa é a FASE 6
 
-A produção do **Catchbound** está online em `https://catchbound.vercel.app/`,
-com Supabase de produção validado, runtime mínimo `catchbound_runtime`, health
-ok, smoke manual/autenticado aprovado e `/api/maintenance` validado com
-`CRON_SECRET`. Antes de marcar a 5.1-D como concluída:
+Produção controlada online (`https://catchbound.vercel.app/`), Supabase de
+produção validado, runtime mínimo `catchbound_runtime`, `/api/health` ok,
+`/api/maintenance` protegido e validado com `CRON_SECRET`, backup criptografado
+de produção **ativo com restore testado** (run `33378414585`, artifact
+`production-db-33378414585`).
 
-1. cadastrar os GitHub Actions Secrets de produção;
-2. copiar `docs/backup-production.yml` para
-   `.github/workflows/backup-production.yml` por ação humana; o workflow já
-   cria papéis placeholder no restore isolado para policies/default privileges;
-3. rodar `workflow_dispatch`, confirmar restore testado e artifact criptografado.
+### FASE 6 — Conteúdo e mundo (plano detalhado em `docs/FASE-6.md`)
 
-Depois disso, atualizar este arquivo marcando 5.1-D como concluída e iniciar a
-Fase 6 apenas após nova leitura deste estado.
+Ordem: **6.1 balanceamento → 6.2 evolução → 6.3 Pokédex → 6.4 status →
+6.5 PvP ranqueado → 6.6 NPCs**. Premium (6.7) segue bloqueado até haver IP
+própria, termos, privacidade, pagamento e antifraude.
 
-### Depois da Fase 5.1: FASE 6 — Conteúdo e mundo
+#### 6.1 — Balanceamento do início do jogo (próximo passo imediato)
 
-1. **Balanceamento do início do jogo** *(o mais urgente)* — inicial lvl 5
-   nocauteia outro inicial lvl 5 em **um** golpe.
-2. **XP e evolução** — Charmander nunca vira Charizard.
-3. **Pokédex 21 → 50+** e mais golpes.
-4. **Sistema de status** (veneno, queimadura, paralisia).
-5. **Arena PvP ranqueada** — `mode: "ranked"` e `users.elo` já existem dormentes.
-6. **NPCs editáveis no Editor de Mundos.**
-7. **Premium** — `isPremium`/`premiumSkins` continuam colunas mortas.
+Medido nesta sessão com o motor real (500 rolls por matchup, nível 5, Normal):
+
+| Atacante → alvo | Golpe | Dano médio | HP alvo | OHKO |
+|---|---|---|---|---|
+| Charmander → Bulbasaur | Lança-Chamas (90) | 23,9 | 20 | **100%** |
+| Bulbasaur → Squirtle | Raio Solar (105) | 29,2 | 20 | **100%** |
+| Squirtle → Charmander | Jato d'Água (110) | 24,2 | 19 | **80%** |
+| Charmander → Squirtle | Lança-Chamas (90) | 5,7 | 20 | 0% (3,5 turnos) |
+
+**A fórmula de dano não é o culpado** — ela é a clássica e está correta. A causa
+é conteúdo: **não existe learnset**. `PokemonSpecies.moves` é uma lista fixa de
+4 golpes de fim de jogo (poder 80–110) que o Pokémon carrega desde o nível 1,
+contra ~20 de HP no nível 5. Com STAB 1,5 × tipo 2,0, o golpe faz 3,5× o HP do
+alvo.
+
+Correção planejada:
+
+1. **Learnset por nível** (`movesAtLevel`), golpes de poder 35–60 no começo, com
+   migration aditiva e backfill dos `move1..move4` já gravados;
+2. **amortecimento de dano em nível baixo** (teto por golpe de ~45% do HP no
+   nível 5, subindo para 100% por volta do nível 25);
+3. **curva de XP/nível dos ginásios** revisada contra a nova duração de combate;
+4. **RNG injetável** no motor + `scripts/balance-report.mts` para testar
+   balanceamento com semente fixa, em vez de julgar no olho.
+
+Alvo: 3–5 turnos com vantagem de tipo, 6–9 sem ela, zero OHKO no nível 5.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -564,8 +631,9 @@ Fase 6 apenas após nova leitura deste estado.
 | 2026-08-29 | **Fase 5.1-A** — segurança básica de produção | ✅ Concluída e validada | migration `0003` |
 | 2026-08-29 | **Fase 5.1-B** — staging Supabase/Vercel | ✅ Concluída e validada | Supabase + Vercel |
 | 2026-08-29 | **Fase 5.1-C** — operação, cron e backup | ✅ Concluída e validada | workflow `backup.yml` |
-| 2026-08-30 | **Fase 5.1-D** — produção controlada | 🟡 Deploy e smoke ok; backup/cron pendentes | Catchbound |
-| — | **Fase 6** — Conteúdo e mundo | ⬜ Após a 5.1 | — |
+| 2026-08-30 | **Fase 5.1-D** — produção controlada | ✅ Concluída e validada | `https://catchbound.vercel.app/` |
+| 2026-08-31 | **Fase 5.1-D** — backup criptografado de produção | ✅ Concluída e validada | run `33378414585` · restore verificado |
+| — | **Fase 6** — Conteúdo e mundo | 🟡 Planejada; 6.1 é o próximo passo | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

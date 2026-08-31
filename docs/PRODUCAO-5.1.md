@@ -247,7 +247,7 @@ confirma ambos. Artifact `staging-db-33263808649` criado com 56.970 bytes,
 criptografado (`.dump.enc`) e expiração em 2026-09-12. Supabase Free não oferece
 backup, PITR ou restore; nenhuma contratação foi feita.
 
-## Registro da 5.1-D — produção controlada (em andamento, 2026-08-30)
+## Registro da 5.1-D — produção controlada (✅ concluída em 2026-08-31)
 
 O produto oficial se chamará **Catchbound**. Foi criado um projeto Supabase de
 produção vazio, Free, em São Paulo. O bootstrap de produção reúne as migrations
@@ -327,3 +327,56 @@ Validação posterior do papel de backup pelo mantenedor: senha apareceu e foi
 salva fora do chat; `catchbound_backup` não tem privilégios elevados, possui 11
 policies RLS de leitura, 11 grants SELECT em `public`, 1 grant SELECT em
 `drizzle`, 0 grants de escrita e sem CREATE no schema `public`.
+
+### Fechamento da 5.1-D — backup criptografado de produção ativo (2026-08-31)
+
+O workflow de referência foi copiado pelo mantenedor para
+`.github/workflows/backup-production.yml` e os cinco secrets de produção foram
+cadastrados no GitHub Actions (`PRODUCTION_DB_HOST`, `PRODUCTION_DB_USER`,
+`PRODUCTION_DB_PASSWORD`, `PRODUCTION_DB_CA_CERT`,
+`PRODUCTION_BACKUP_PASSPHRASE`). Nenhum valor trafegou por chat.
+
+Armadilha registrada: no Session Pooler do Supabase o usuário precisa do sufixo
+com project ref — `catchbound_runtime.PROJECT_REF` para o runtime na Vercel e
+`catchbound_backup.PROJECT_REF` para o backup no GitHub Actions. Usar apenas o
+nome do papel causa `28P01`.
+
+Ajustes finais aplicados ao workflow, agora versionados nos dois lugares:
+
+- `pg_dump` com `--enable-row-security` e `--inserts`, porque o papel de backup
+  não tem `BYPASSRLS` e depende das policies somente-leitura;
+- restore isolado em contêiner PostgreSQL com `DROP SCHEMA public CASCADE` e
+  papéis placeholder (`anon`, `authenticated`, `catchbound_runtime`,
+  `catchbound_backup`) para as policies/default privileges do dump;
+- `pg_restore --verbose --exit-on-error`;
+- verificação numérica explícita das contagens, com dump de diagnóstico das
+  tabelas/migrations quando a checagem falha (a versão anterior usava `test`
+  puro e escondia a causa do erro);
+- limpeza defensiva `docker rm -f restore-db` antes de subir o contêiner.
+
+Resultado observado na `main`:
+
+- run `33378414585` de **Encrypted production backup** — `success` em 30s;
+- log final: `Restore verified: 11 game tables, 5 migrations`;
+- artifact criptografado `production-db-33378414585` criado;
+- CI da `main` (`33378159885`) verde: lint, typecheck, unit, integration, build.
+
+Estado de produção validado nesta etapa:
+
+- `https://catchbound.vercel.app/api/health` → `{ "ok": true }`;
+- `/api/maintenance` sem segredo → não autorizado;
+- `/api/maintenance` com `CRON_SECRET` rotacionado → `200 ok`;
+- papel `catchbound_backup` somente leitura: 11 policies RLS de leitura, 11
+  grants SELECT em `public`, 1 em `drizzle`, 0 grants de escrita, sem CREATE.
+
+`docs/backup-production.yml` foi ressincronizado com
+`.github/workflows/backup-production.yml` (eram idênticos na origem, mas as
+correções pós-merge só existiam no workflow real).
+
+**Limitação conhecida:** o Supabase Free não tem backup nativo nem PITR, e os
+artifacts do GitHub Actions têm retenção curta. Se o jogo passar a ter usuários
+reais, avaliar armazenamento externo barato e seguro ou plano pago.
+
+**Conclusão:** Fase 5.1 encerrada. Produção controlada online, backup
+criptografado ativo com restore testado, cron/manutenção validados. Próxima
+etapa: Fase 6 — Conteúdo e mundo.
