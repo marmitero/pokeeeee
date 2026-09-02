@@ -1,0 +1,142 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "vale-pallet",
+  "name": "Mapa 1: Vale Pallet",
+  "description": "Lar dos primeiros treinadores. Ginásio do Brock (Pedra) e Loja básica.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Bulbasaur",
+      "weight": 22,
+      "maxLevel": 8,
+      "minLevel": 3,
+      "pokedexId": 1,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Charmander",
+      "weight": 22,
+      "maxLevel": 8,
+      "minLevel": 3,
+      "pokedexId": 4,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Squirtle",
+      "weight": 22,
+      "maxLevel": 8,
+      "minLevel": 3,
+      "pokedexId": 7,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Pikachu",
+      "weight": 18,
+      "maxLevel": 9,
+      "minLevel": 4,
+      "pokedexId": 25,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Eevee",
+      "weight": 16,
+      "maxLevel": 10,
+      "minLevel": 4,
+      "pokedexId": 133,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p1-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "floresta-viridian",
+      "targetMapName": "Floresta de Viridian",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Floresta de Viridian"
+    },
+    {
+      "id": "p1-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "floresta-viridian",
+      "targetMapName": "Floresta de Viridian",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Floresta de Viridian"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "shop-pallet",
+      "x": 2,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja Pallet",
+      "shopId": 1,
+      "dialog": "Bem-vindo! Temos itens básicos para sua jornada!"
+    },
+    {
+      "id": "gym-brock",
+      "x": 11,
+      "y": 4,
+      "type": "gym",
+      "name": "Brock",
+      "gymLeaderName": "Brock",
+      "dialog": "Sou Brock! Líder do Ginásio Pewter! Você tem coragem para me enfrentar?"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Brock",
+      "title": "Líder do Ginásio Pewter",
+      "badgeName": "Insígnia Pedra",
+      "badgeEmoji": "🪨",
+      "specialty": "Rock",
+      "requiredBadges": 0,
+      "rewardMoney": 1500,
+      "shopId": 1,
+      "npcDialog": "Sou Brock, Líder do Ginásio de Pewter! Minhas rochas esmagarão seus sonhos!",
+      "defeatDialog": "Boa sorte nos próximos ginásios... você vai precisar.",
+      "winDialog": "Impossível! Você derrotou meu Geodude e Onix! Tome a Insígnia Pedra!",
+      "team": [
+        {
+          "level": 10,
+          "variant": "Normal",
+          "pokedexId": 74
+        },
+        {
+          "level": 12,
+          "variant": "Normal",
+          "pokedexId": 95
+        }
+      ]
+    }
+  ],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "water", "water", "water", "tree"],
+    ["tree", "grass", "grass", "grass", "flower", "grass", "grass", "stone", "stone", "grass", "grass", "stone", "water", "water", "water", "tree"],
+    ["tree", "grass", "grass", "stone", "center", "grass", "grass", "stone", "stone", "grass", "grass", "stone", "water", "water", "water", "tree"],
+    ["tree", "grass", "grass", "grass", "flower", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "water", "water", "water", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "stone", "stone", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "grass", "grass", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

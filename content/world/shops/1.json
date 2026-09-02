@@ -1,0 +1,39 @@
+{
+  "format": "catchbound-world/1",
+  "shopId": 1,
+  "items": [
+    {
+      "itemKey": "pokeballs",
+      "name": "Pokébola",
+      "description": "Captura Pokémon selvagens.",
+      "category": "ball",
+      "buyPrice": 200,
+      "sellPrice": 100,
+      "iconEmoji": "🔴",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
+      "itemKey": "potions",
+      "name": "Poção",
+      "description": "Restaura 20 HP de um Pokémon.",
+      "category": "potion",
+      "buyPrice": 300,
+      "sellPrice": 150,
+      "iconEmoji": "🧪",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
+      "itemKey": "revives",
+      "name": "Reviver",
+      "description": "Revive um Pokémon com metade do HP.",
+      "category": "potion",
+      "buyPrice": 1500,
+      "sellPrice": 750,
+      "iconEmoji": "⚡",
+      "isPremium": false,
+      "stock": 10
+    }
+  ]
+}

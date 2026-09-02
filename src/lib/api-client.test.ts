@@ -59,6 +59,15 @@ const json = (body: unknown, status = 200) =>
     headers: { "Content-Type": "application/json" },
   });
 
+/**
+ * Timeout folgado nos testes assíncronos: eles não esperam nada de verdade
+ * (o `fetch` é stub), mas em worker frio — logo após `npm install`, ou com o
+ * sandbox ocupado compilando — a primeira `Response` já passou de 5s e até de
+ * 15s uma vez. Nas execuções seguintes o arquivo inteiro leva ~300ms. Melhor
+ * folga que flake.
+ */
+const LENTO = 30_000;
+
 beforeEach(() => {
   clearToken();
   vi.unstubAllGlobals();
@@ -87,7 +96,7 @@ describe("token com armazenamento bloqueado (iframe)", () => {
 
     const headers = new Headers(spy.mock.calls[0][1].headers);
     expect(headers.get("Authorization")).toBe("Bearer tok-iframe");
-  });
+  }, LENTO);
 
   it("clearToken derruba a sessão mesmo sem storage", () => {
     installWindow(blockedStorage());
@@ -126,7 +135,7 @@ describe("captura automática do token em /api/auth", () => {
     await api("/api/auth", { method: "POST", body: JSON.stringify({ action: "login" }) });
 
     expect(getToken()).toBe("tok-login");
-  });
+  }, LENTO);
 
   it("não guarda nada quando o login falha", async () => {
     installWindow(blockedStorage());
@@ -135,7 +144,7 @@ describe("captura automática do token em /api/auth", () => {
     await api("/api/auth", { method: "POST", body: JSON.stringify({ action: "login" }) });
 
     expect(getToken()).toBeNull();
-  });
+  }, LENTO);
 
   it("ignora resposta de outra rota que traga um campo token", async () => {
     installWindow(blockedStorage());
@@ -144,7 +153,7 @@ describe("captura automática do token em /api/auth", () => {
     await api("/api/shop");
 
     expect(getToken()).toBeNull();
-  });
+  }, LENTO);
 
   it("não estraga a resposta para quem chamou (corpo ainda legível)", async () => {
     installWindow(blockedStorage());
@@ -154,7 +163,7 @@ describe("captura automática do token em /api/auth", () => {
     const body = (await res.json()) as { user: { username: string } };
 
     expect(body.user.username).toBe("ash");
-  });
+  }, LENTO);
 });
 
 describe("sessionDiagnostics", () => {

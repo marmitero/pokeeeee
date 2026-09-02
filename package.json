@@ -17,6 +17,8 @@
     "db:set-role": "tsx scripts/set-role.ts",
     "db:rebalance": "tsx scripts/backfill-balance.ts",
     "balance:report": "tsx scripts/balance-report.mts",
+    "world:export": "tsx scripts/world-export.mts",
+    "world:import": "tsx scripts/world-import.mts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.mts",

@@ -1,0 +1,50 @@
+{
+  "format": "catchbound-world/1",
+  "shopId": 2,
+  "items": [
+    {
+      "itemKey": "greatballs",
+      "name": "Greatball",
+      "description": "Maior chance de captura.",
+      "category": "ball",
+      "buyPrice": 600,
+      "sellPrice": 300,
+      "iconEmoji": "🔵",
+      "isPremium": false,
+      "stock": 50
+    },
+    {
+      "itemKey": "pokeballs",
+      "name": "Pokébola",
+      "description": "Captura Pokémon selvagens.",
+      "category": "ball",
+      "buyPrice": 200,
+      "sellPrice": 100,
+      "iconEmoji": "🔴",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
+      "itemKey": "revives",
+      "name": "Reviver",
+      "description": "Revive um Pokémon com metade do HP.",
+      "category": "potion",
+      "buyPrice": 1500,
+      "sellPrice": 750,
+      "iconEmoji": "⚡",
+      "isPremium": false,
+      "stock": 20
+    },
+    {
+      "itemKey": "superPotions",
+      "name": "Super Poção",
+      "description": "Restaura 50 HP de um Pokémon.",
+      "category": "potion",
+      "buyPrice": 700,
+      "sellPrice": 350,
+      "iconEmoji": "🧴",
+      "isPremium": false,
+      "stock": 99
+    }
+  ]
+}

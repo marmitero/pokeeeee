@@ -1,0 +1,142 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "pico-celeste",
+  "name": "Mapa 3: Pico Celeste",
+  "description": "Santuário lendário com Rayquaza, Mewtwo e Dragonite. Ginásio do Lance (Dragão).",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Rayquaza",
+      "weight": 20,
+      "maxLevel": 55,
+      "minLevel": 35,
+      "pokedexId": 384,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mewtwo",
+      "weight": 20,
+      "maxLevel": 55,
+      "minLevel": 35,
+      "pokedexId": 150,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dragonite",
+      "weight": 25,
+      "maxLevel": 45,
+      "minLevel": 28,
+      "pokedexId": 149,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Charizard",
+      "weight": 20,
+      "maxLevel": 45,
+      "minLevel": 25,
+      "pokedexId": 6,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gyarados",
+      "weight": 15,
+      "maxLevel": 44,
+      "minLevel": 26,
+      "pokedexId": 130,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p3-west-1",
+      "sourceX": 0,
+      "sourceY": 7,
+      "targetMapSlug": "floresta-viridian",
+      "targetMapName": "Floresta de Viridian",
+      "targetX": 14,
+      "targetY": 7,
+      "label": "Oeste → Floresta de Viridian"
+    },
+    {
+      "id": "p3-west-2",
+      "sourceX": 0,
+      "sourceY": 8,
+      "targetMapSlug": "floresta-viridian",
+      "targetMapName": "Floresta de Viridian",
+      "targetX": 14,
+      "targetY": 8,
+      "label": "Oeste → Floresta de Viridian"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "shop-peak",
+      "x": 8,
+      "y": 12,
+      "type": "shop",
+      "name": "Loja do Pico",
+      "shopId": 3,
+      "dialog": "Items raros para os mais fortes Treinadores do mundo!"
+    },
+    {
+      "id": "gym-lance",
+      "x": 7,
+      "y": 3,
+      "type": "gym",
+      "name": "Lance",
+      "gymLeaderName": "Lance",
+      "dialog": "Lance, Mestre dos Dragões! Ninguém passou por mim ainda!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Lance",
+      "title": "Campeão do Conselho dos Quatro",
+      "badgeName": "Insígnia do Dragão",
+      "badgeEmoji": "🐉",
+      "specialty": "Dragon",
+      "requiredBadges": 2,
+      "rewardMoney": 5000,
+      "shopId": 3,
+      "npcDialog": "Sou Lance, Mestre dos Dragões! Derrotar-me é conquistar os céus. Você está pronto?",
+      "defeatDialog": "Meus dragões são invencíveis… continue treinando.",
+      "winDialog": "Extraordinário! Você domou meu Dragonite! Tome a lendária Insígnia do Dragão!",
+      "team": [
+        {
+          "level": 38,
+          "variant": "Normal",
+          "pokedexId": 148
+        },
+        {
+          "level": 45,
+          "variant": "Normal",
+          "pokedexId": 149
+        }
+      ]
+    }
+  ],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["portal", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "center", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["portal", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

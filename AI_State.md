@@ -115,7 +115,10 @@ src/
 │   └── api/                  # 10 rotas: auth, maps, maps/[id], pokemon/{catch,heal,manage}, gym, shop, pvp, health
 ├── components/               # AuthModal, BattleArenaModal, GymModal, PokemonBox, ShopModal, SpritePackModal, WorldMapEditor
 ├── db/                       # schema.ts (11 tabelas) + index.ts (Pool global)
-└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop
+└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D)
+content/world/                # mundo versionado: maps/<slug>.json (com ginásios) + shops/<shopId>.json (6.2-D)
+scripts/world-export.mts      # banco → content/world/     (npm run world:export)
+scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
 ```
 
 ### Banco de dados — 11 tabelas
@@ -232,6 +235,16 @@ Amistoso atualiza `wins`/`losses` e o dano persiste; **não** mexe em ELO nem em
 
 O cliente não calcula mais nada: escolhe uma ação e desenha o que o servidor devolver.
 
+### Mundo como código (Fase 6.2-D)
+
+`content/world/` é a cópia versionada de mapas + ginásios + lojas; o banco
+continua sendo a fonte da verdade em runtime. `npm run world:export` tira a
+foto do banco de `DATABASE_URL`; `npm run world:import [-- --dry-run]` aplica
+em qualquer outro banco — idempotente (chave natural), transacional, nunca
+apaga. **Nada no arquivo usa id serial**: portal guarda `targetMapSlug`, NPC
+guarda `gymLeaderName`, ginásio mora dentro do arquivo do mapa; `shopId` fica
+porque é id lógico. Detalhes em `docs/MUNDO-COMO-CODIGO.md`.
+
 ### Papéis de acesso (Fase 1.1)
 `users.role` — `text NOT NULL DEFAULT 'player'`, com hierarquia `player (0) < moderator (1) < admin (2)`.
 
@@ -251,6 +264,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.1 — Balanceamento do início do jogo** ✅ 2026-08-31
 - [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
 - [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
+- [x] **FASE 6.2-D — Mundo como código (export/import de mapas, ginásios e lojas)** ✅ 2026-09-02
 - [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`** ⬅️ próxima
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
@@ -305,6 +319,46 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Fase 6.2-D — Mundo como código (2026-09-02)
+
+**Problema.** O conteúdo do mundo vivia num banco só. O mantenedor montava
+mapas num ambiente e não tinha como levá-los a outro sem refazer no Editor;
+não dava para revisar mudança de mapa num PR nem recuperar o mundo num banco
+novo (o backup diário cobre desastre, não versionamento). Entrou **antes** da
+6.2-C a pedido do mantenedor, para o mapa 1 montado à mão não virar retrabalho.
+
+**Entregue.**
+
+- `src/lib/world-content.ts` — módulo puro: `mapToFile`, `shopsToFiles`,
+  `resolveMapRefs`, `parseMapFile`/`parseShopFile`, `stringifyContent`.
+- `scripts/world-export.mts` → `npm run world:export`: grava
+  `content/world/maps/<slug>.json` (ginásios do mapa dentro, lista `gyms`) e
+  `content/world/shops/<shopId>.json`; remove arquivo órfão (`pruneStale`).
+- `scripts/world-import.mts` → `npm run world:import [-- --dry-run]`: uma
+  transação, 4 passos (mapas sem refs → ginásios → portais/NPCs resolvidos →
+  lojas). `--dry-run` executa tudo e dá `ROLLBACK`.
+- `content/world/` versionado com os 3 mapas, 3 ginásios e 11 itens atuais.
+- `docs/MUNDO-COMO-CODIGO.md` — por quê, estrutura, garantias, limites.
+- 19 testes em `src/lib/world-content.test.ts`.
+
+**Decisões de desenho.**
+
+| Decisão | Motivo |
+|---|---|
+| Chave natural: mapa = `slug`; ginásio = `(mapSlug, leaderName)`; item = `(shopId, itemKey)` | id serial não atravessa banco |
+| Portal → `targetMapSlug`; NPC → `gymLeaderName`; ginásio dentro do mapa | idem; resolvido para o id **do destino** no import |
+| `shopId` mantido | já é id lógico estável, sem FK |
+| `id`, `creatorId`, timestamps fora | não são conteúdo |
+| Import **nunca apaga** | apagar mapa arrasta FK `restrict` de ginásio e posição de jogador; é decisão humana no banco |
+| Referência quebrada **falha alto** (export e import) | melhor abortar que gravar mundo inconsistente |
+| `tileGrid` com uma fileira por linha | senão mudar um tile parece reescrita de 256 linhas no diff |
+| `updated_at` só muda quando algo mudou | import repetido não suja timestamp |
+
+**Também nesta etapa:** timeout folgado (`LENTO = 30_000`) nos 5 testes
+assíncronos de `src/lib/api-client.test.ts`. O `fetch` é stub, mas em worker
+frio (logo após `npm install`, com o sandbox compilando) a primeira `Response`
+estourou 5s e, uma vez, 15s; nas execuções seguintes o arquivo leva ~300ms.
 
 
 ### 🟡 Fase 5.1-D — produção controlada: deploy oficial validado, backup pendente (2026-08-30)
@@ -848,6 +902,54 @@ TEST_PG_URL=... npm run test:integration → Test Files 5 · Tests 70
 **Falta reteste no navegador:** entrar de novo no preview, pintar, salvar (o
 aviso deve ficar **verde** com "✓") e andar na área pintada.
 
+### 4.12 Validação da Fase 6.2-D (2026-09-02)
+
+Ambiente recriado do zero nesta sessão (`npm install`, `npm run db:local`,
+`drizzle-kit migrate`, dev server em `:3100`, seed pelas rotas `/api/maps`,
+`/api/gym`, `/api/shop`).
+
+```
+DATABASE_URL=<app_db> npm run world:export
+→ 3 mapa(s), 3 ginásio(s), 11 item(ns) de loja → 6 criado(s)
+
+# banco novo, só migrations, + mapa "placeholder" e sequências adiantadas de propósito
+CREATE DATABASE app_db_world · drizzle-kit migrate · setval(game_maps_id_seq, 4) · setval(gym_leaders_id_seq, 3)
+
+DATABASE_URL=<app_db_world> npm run world:import -- --dry-run
+→ mapas 3 criados · ginásios 3 criados · itens 11 criados · "dry-run — ROLLBACK"
+→ conferido: game_maps=1, gym_leaders=0 (nada gravado)
+
+DATABASE_URL=<app_db_world> npm run world:import
+→ mapas #8 #9 #10 · ginásios #7 #8 #9 (ids deslocados em relação à origem, que era 1/2/3)
+→ SQL: 8 portais apontam para o id do slug certo · 3 NPCs de ginásio para o líder certo · 0 referências quebradas · 11 itens
+
+2ª importação → mapas 0/0/3 iguais · ginásios 0/0/3 iguais · itens 0/0/11 iguais   (idempotente)
+
+reexport do destino  vs  export da origem:  diff -r -x placeholder.json → IDÊNTICOS
+
+editar rewardMoney do Brock (1500→1600) e stock da Pokébola (99→77) no JSON + import
+→ "1 ginásio atualizado, 1 item atualizado" · banco: reward_money=1600, stock=77
+
+portal com targetMapSlug "nao-existe" (+ outra edição no mesmo arquivo) + import
+→ "falhou, nada gravado: mapa vale-pallet: portal "p1-north-1" aponta para "nao-existe"…" · exit 1 · banco intacto
+
+export com mapa a menos no banco → "removido placeholder.json (não existe mais no banco)"
+
+npx vitest run src/lib/world-content.test.ts → 19 passed
+npx tsc --noEmit · npx eslint scripts src/lib/world-content*.ts → limpos
+```
+
+```
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · Test Files 12 passed · Tests 186 passed · ✓ Compiled successfully
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 5 passed · Tests 70 passed
+```
+
+Nota: eram 167 unitários antes da sessão; 167 + 19 = 186. Integração não mudou
+(os scripts de mundo não têm rota; a prova de banco real está na tabela acima).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -886,9 +988,15 @@ em `docs/FASE-6.2-PLANO.md`.
 - **6.2-A — camadas no servidor** ✅ concluída em 2026-08-31 (seções 3 e 4.9).
 - **6.2-B — editor pinta as camadas** ✅ concluída em 2026-08-31 (seções 3 e
   4.10). Falta a passada no navegador, registrada nas pendências manuais.
+- **6.2-D — mundo como código** ✅ concluída em 2026-09-02 (seções 3 e 4.12).
+  Entrou antes da 6.2-C para o mapa 1 montado à mão poder ser versionado.
 - **6.2-C — próximo passo imediato:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
   6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
-  Misty 18/21). O jogo deve continuar difícil de evoluir.
+  Misty 18/21; Lance segue 38/45). O jogo deve continuar difícil de evoluir.
+  Não mexer na fórmula de dano. `npm run db:rebalance` em produção espera a 6.2-C.
+- **Depois da 6.2-C:** o mantenedor monta o mapa 1 à mão (nível 2–7, espécies
+  comuns, sem vantagem de elemento contra os iniciais), roda
+  `npm run world:export` e versiona `content/world/`.
 
 Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
 6.6 ranked → 6.7 NPCs**.
@@ -925,6 +1033,7 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
 | 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
 | 2026-08-31 | **Correção** — sessão perdida no iframe (401 silencioso) | ✅ Concluída e validada | token em memória · `src/lib/api-client.test.ts` |
+| 2026-09-02 | **Fase 6.2-D** — mundo como código (export/import de mapas, ginásios e lojas) | ✅ Concluída e validada | `content/world/` · `docs/MUNDO-COMO-CODIGO.md` · 19 testes |
 | — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
