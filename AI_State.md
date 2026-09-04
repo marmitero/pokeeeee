@@ -58,6 +58,17 @@
 > realinhado com `git fetch` + `git reset --soft origin/...` (mantém os
 > arquivos, reposiciona o HEAD). **Prefira sempre o remoto.**
 >
+> **Estado em 2026-09-04:** tudo que existe no projeto está no GitHub. A
+> `main` é um único commit de squash (`92936e9`), **sem ancestralidade** — por
+> isso as branchs antigas (`01a03ad9`, `01a0439a`, `01a052dc`) são **histórias
+> separadas** e **não devem ser mescladas** (`--allow-unrelated-histories`
+> reanimaria código obsoleto em cima do atual). O trabalho delas já está em
+> `main` (PRs #1–#3). Após o merge do branch de handoff
+> (`arena/01a06d75-pokeeeee`, que já carrega a Fase 6.2-D + este AI_State),
+> fecha-se o PR #4 (commit vira ancestral — nada se perde) e apagam-se
+> `01a03ad9`, `01a0439a`, `01a052dc` e `01a05735` (o único conteúdo dela — o
+> registro do deploy 6.2 em produção — foi absorvido em §4.13).
+>
 > **Se o `.git` resetou:** os arquivos continuam corretos no disco. Basta
 > `git add -A && git commit` de novo — não é preciso reescrever nada.
 > O histórico completo também está em `docs/repo-backup.bundle`.
@@ -86,7 +97,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a05735-pokeeeee`
+**Branch da sessão atual:** `arena/01a06d75-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -319,6 +330,29 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### 📸 Handoff de sessão — consolidação das branchs (2026-09-04)
+
+Sessão `arena/01a06d75-pokeeeee`: leu o repositório, as 6 branchs remotas, os
+PRs #1–#4 e o estado do CI, e consolidou o estado num único lugar para o
+projeto sobreviver a um reset do sandbox sem perda.
+
+| Branch | Conteúdo | Destino |
+|---|---|---|
+| `main` (`92936e9`) | único commit squash — Fase 6.2 (A+B) | recebe o merge de handoff |
+| `arena/01a061a1` | Fase 6.2-D (PR #4, CI 5/5 verde) | **ancestora deste branch** — PR #4 fecha como duplicado após o merge |
+| `arena/01a05735` | só o registro do deploy 6.2 em produção | absorvido em §4.13 — apagar após o merge |
+| `arena/01a03ad9` / `01a0439a` / `01a052dc` | snapshots obsoletos (08-27/08-30) | **não mesclar** (histórias separadas de `main`) — só apagar |
+
+Decisão do mantenedor: merge de tudo em `main` e reinício da conversa. Para o
+nada se perder nem quebrar: este branch já carrega a 6.2-D + este AI_State
+consolidado; o mantenedor mescla **apenas** este branch em `main`, fecha o
+PR #4 e apaga as demais. Verificado por diff: nenhuma branch antiga tem
+conteúdo único — o AI_State delas é só versão anterior e superada deste
+documento (§4.14).
+
+Depois do merge: `main` é a única fonte. Nova conversa: `git fetch origin`,
+trabalhar de `main`, reler este arquivo e ir para a **6.2-C**.
 
 ### ✅ Fase 6.2-D — Mundo como código (2026-09-02)
 
@@ -950,6 +984,67 @@ TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
 Nota: eram 167 unitários antes da sessão; 167 + 19 = 186. Integração não mudou
 (os scripts de mundo não têm rota; a prova de banco real está na tabela acima).
 
+### 4.13 Deploy da Fase 6.2 em produção (2026-08-31)
+
+*(Registro resgatado da branch `arena/01a05735-pokeeeee`, que não foi mesclada —
+colocado aqui para a memória não depender da branch.)*
+
+Decisão do mantenedor: testar direto em produção em vez de staging, porque o
+preview em iframe era justamente a fonte de ruído.
+
+Ordem cumprida — **migration antes do código**:
+
+1. migration `0005` aplicada pelo mantenedor no Supabase de produção, com o
+   journal corrigido depois (`migrations = 6`);
+2. PR #3 renomeado e mesclado em `main` (merge commit `92936e9`, preservando os
+   commits `d9acd79`, `90c4dc0`, `c0b5edf`);
+3. deploy automático da Vercel.
+
+Verificação em `https://catchbound.vercel.app`:
+
+```
+GET /api/health → {"ok":true}
+GET /api/maps   → "encounterGrid":[], "collisionGrid":[], "encounterRate":22
+```
+
+As três colunas chegam ao cliente e os três mapas estão em **modo legado**, que
+é o esperado: nada mudou para quem está jogando. Em produção a sessão volta a
+ser só cookie `httpOnly` (Bearer fica desligado), e como o jogo é aberto em aba
+de topo o problema do iframe não existe ali.
+
+**Falta o teste manual do mantenedor** (item 8 das pendências).
+
+### 4.14 Validação do handoff (2026-09-04)
+
+Verificações somente-leitura (nenhuma linha de código foi tocada):
+
+```
+git fetch origin --prune · git ls-remote --heads origin
+→ 6 branchs: main + 5 arena (01a03ad9, 01a0439a, 01a052dc, 01a05735, 01a061a1)
+
+git rev-list --count main · git log --format='%H parents=[%P]' main
+→ 1 commit, sem pais: main é raiz (histórico reconstruído por squash)
+
+git merge-tree --write-tree main origin/arena/01a061a1-pokeeeee
+→ árvore de merge limpa (sem conflito) — a 6.2-D mescla de boa em main
+
+git diff --stat main..origin/arena/01a05735-pokeeeee
+→ 1 arquivo (só AI_State.md, +28 linhas): o registro de deploy — absorvido em §4.13
+
+diff do AI_State de cada branch antiga vs main (01a03ad9, 01a0439a, 01a052dc)
+→ só linhas de versão anterior (contagens antigas, etapas já concluídas,
+  branch de sessão antiga): nada único para preservar → apagar sem perda
+
+gh pr list --state all
+→ #1, #2, #3 MERGED · #4 OPEN (Fase 6.2-D)
+
+gh pr view 4 · gh run list --branch arena/01a061a1-pokeeeee
+→ MERGEABLE · CI 5/5 SUCCESS · deploys Vercel SUCCESS (catchbound e staging)
+```
+
+**Não validado aqui:** o merge em si (decisão do mantenedor) e o CI deste
+branch — o PR de handoff dispara o CI; mergear apenas com ele verde.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -990,7 +1085,12 @@ em `docs/FASE-6.2-PLANO.md`.
   4.10). Falta a passada no navegador, registrada nas pendências manuais.
 - **6.2-D — mundo como código** ✅ concluída em 2026-09-02 (seções 3 e 4.12).
   Entrou antes da 6.2-C para o mapa 1 montado à mão poder ser versionado.
-- **6.2-C — próximo passo imediato:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
+  **Neste branch** (ancestral direto) — acompanha o merge de handoff.
+- **Handoff (2026-09-04) — antes de qualquer código:** o mantenedor mescla este
+  branch (`arena/01a06d75-pokeeeee`) em `main`, fecha o PR #4 e apaga as
+  branchs antigas (detalhes na seção 3 e §4.14). Depois disso `main` é a única
+  fonte e a nova conversa parte dela.
+- **6.2-C — próximo passo imediato (depois do merge do handoff):** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
   6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
   Misty 18/21; Lance segue 38/45). O jogo deve continuar difícil de evoluir.
   Não mexer na fórmula de dano. `npm run db:rebalance` em produção espera a 6.2-C.
@@ -1033,7 +1133,9 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
 | 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
 | 2026-08-31 | **Correção** — sessão perdida no iframe (401 silencioso) | ✅ Concluída e validada | token em memória · `src/lib/api-client.test.ts` |
+| 2026-08-31 | **Deploy 6.2 em produção** — PR #3 mesclado, migration `0005` aplicada | ✅ Concluída e validada | merge `92936e9` · `/api/maps` com as 3 colunas · §4.13 |
 | 2026-09-02 | **Fase 6.2-D** — mundo como código (export/import de mapas, ginásios e lojas) | ✅ Concluída e validada | `content/world/` · `docs/MUNDO-COMO-CODIGO.md` · 19 testes |
+| 2026-09-04 | **Handoff de sessão** — consolidação das branchs no AI_State | ✅ Concluída e validada | branch `arena/01a06d75` = 6.2-D + AI_State · §4.14 |
 | — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
