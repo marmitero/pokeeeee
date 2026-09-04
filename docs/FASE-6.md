@@ -293,6 +293,22 @@ moldura.
 - Depois disso o mantenedor monta o mapa 1 à mão: níveis 2–7, espécies comuns,
   sem vantagem de elemento contra os iniciais.
 
+### 6.2-D — Mundo como código *(concluída — 2026-09-02)*
+
+Entrou antes da 6.2-C a pedido do mantenedor: sem isso, o mapa 1 montado à mão
+num ambiente teria que ser refeito no Editor em cada outro.
+
+- `npm run world:export` — banco → `content/world/maps/<slug>.json` (com os
+  ginásios do mapa dentro) + `content/world/shops/<shopId>.json`.
+- `npm run world:import [-- --dry-run]` — arquivos → qualquer banco.
+  Idempotente por chave natural (mapa = slug; ginásio = mapa + líder; item =
+  loja + itemKey), transacional, nunca apaga, resolve `targetMapSlug` e
+  `gymLeaderName` para os ids **do destino** num segundo passo.
+- Validado com banco novo e ids deslocados de propósito: 0 referências
+  quebradas, 2ª importação só "iguais", reexport idêntico byte a byte.
+
+Detalhes, garantias e limites em `docs/MUNDO-COMO-CODIGO.md`.
+
 ## 6.3 — Evolução (servidor)
 
 - Novo campo/tabela de evolução, dirigido por dados:

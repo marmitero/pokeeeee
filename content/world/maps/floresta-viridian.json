@@ -1,0 +1,162 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "floresta-viridian",
+  "name": "Mapa 2: Floresta de Viridian",
+  "description": "Floresta densa com Gengar, Umbreon e Lucario. Ginásio da Misty (Água).",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Gengar",
+      "weight": 25,
+      "maxLevel": 22,
+      "minLevel": 12,
+      "pokedexId": 94,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Umbreon",
+      "weight": 20,
+      "maxLevel": 24,
+      "minLevel": 14,
+      "pokedexId": 197,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lucario",
+      "weight": 20,
+      "maxLevel": 25,
+      "minLevel": 15,
+      "pokedexId": 448,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gardevoir",
+      "weight": 18,
+      "maxLevel": 26,
+      "minLevel": 15,
+      "pokedexId": 282,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lapras",
+      "weight": 17,
+      "maxLevel": 25,
+      "minLevel": 16,
+      "pokedexId": 131,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p2-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "vale-pallet",
+      "targetMapName": "Vale Pallet",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Vale Pallet"
+    },
+    {
+      "id": "p2-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "vale-pallet",
+      "targetMapName": "Vale Pallet",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Vale Pallet"
+    },
+    {
+      "id": "p2-east-1",
+      "sourceX": 15,
+      "sourceY": 7,
+      "targetMapSlug": "pico-celeste",
+      "targetMapName": "Pico Celeste",
+      "targetX": 1,
+      "targetY": 7,
+      "label": "Leste → Pico Celeste"
+    },
+    {
+      "id": "p2-east-2",
+      "sourceX": 15,
+      "sourceY": 8,
+      "targetMapSlug": "pico-celeste",
+      "targetMapName": "Pico Celeste",
+      "targetX": 1,
+      "targetY": 8,
+      "label": "Leste → Pico Celeste"
+    }
+  ],
+  "npcs": [
+    {
+      "id": "shop-viridian",
+      "x": 3,
+      "y": 11,
+      "type": "shop",
+      "name": "Loja da Floresta",
+      "shopId": 2,
+      "dialog": "Estoque intermediário para Treinadores que chegam longe!"
+    },
+    {
+      "id": "gym-misty",
+      "x": 11,
+      "y": 3,
+      "type": "gym",
+      "name": "Misty",
+      "gymLeaderName": "Misty",
+      "dialog": "Sou Misty! A Garota Sereia! Prepare-se para se afogar!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Misty",
+      "title": "Líder do Ginásio Cerulean",
+      "badgeName": "Insígnia Cascata",
+      "badgeEmoji": "💧",
+      "specialty": "Water",
+      "requiredBadges": 1,
+      "rewardMoney": 2200,
+      "shopId": 2,
+      "npcDialog": "Sou Misty! Meus Pokémon Água são os mais poderosos! Prepare-se para molhar!",
+      "defeatDialog": "Você simplesmente foi superior desta vez…",
+      "winDialog": "Incrível! Derrotou minha Starmie! Tome a Insígnia Cascata!",
+      "team": [
+        {
+          "level": 16,
+          "variant": "Normal",
+          "pokedexId": 120
+        },
+        {
+          "level": 19,
+          "variant": "Normal",
+          "pokedexId": 121
+        }
+      ]
+    }
+  ],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "grass", "stone", "stone", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "center", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "stone", "stone", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "format": "catchbound-world/1",
+  "shopId": 3,
+  "items": [
+    {
+      "itemKey": "masterballs",
+      "name": "Masterball",
+      "description": "Captura garantida! 100% de chance.",
+      "category": "ball",
+      "buyPrice": 8000,
+      "sellPrice": 4000,
+      "iconEmoji": "🟣",
+      "isPremium": false,
+      "stock": 5
+    },
+    {
+      "itemKey": "maxPotions",
+      "name": "Hiper Poção",
+      "description": "Restaura todo o HP.",
+      "category": "potion",
+      "buyPrice": 2500,
+      "sellPrice": 1250,
+      "iconEmoji": "💊",
+      "isPremium": false,
+      "stock": 20
+    },
+    {
+      "itemKey": "revives",
+      "name": "Reviver",
+      "description": "Revive um Pokémon com metade do HP.",
+      "category": "potion",
+      "buyPrice": 1500,
+      "sellPrice": 750,
+      "iconEmoji": "⚡",
+      "isPremium": false,
+      "stock": 30
+    },
+    {
+      "itemKey": "ultraballs",
+      "name": "Ultraball",
+      "description": "Alta chance de captura.",
+      "category": "ball",
+      "buyPrice": 1200,
+      "sellPrice": 600,
+      "iconEmoji": "🟡",
+      "isPremium": false,
+      "stock": 30
+    }
+  ]
+}

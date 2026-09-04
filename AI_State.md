@@ -58,6 +58,17 @@
 > realinhado com `git fetch` + `git reset --soft origin/...` (mantém os
 > arquivos, reposiciona o HEAD). **Prefira sempre o remoto.**
 >
+> **Estado em 2026-09-04:** tudo que existe no projeto está no GitHub. A
+> `main` é um único commit de squash (`92936e9`), **sem ancestralidade** — por
+> isso as branchs antigas (`01a03ad9`, `01a0439a`, `01a052dc`) são **histórias
+> separadas** e **não devem ser mescladas** (`--allow-unrelated-histories`
+> reanimaria código obsoleto em cima do atual). O trabalho delas já está em
+> `main` (PRs #1–#3). Após o merge do branch de handoff
+> (`arena/01a06d75-pokeeeee`, que já carrega a Fase 6.2-D + este AI_State),
+> fecha-se o PR #4 (commit vira ancestral — nada se perde) e apagam-se
+> `01a03ad9`, `01a0439a`, `01a052dc` e `01a05735` (o único conteúdo dela — o
+> registro do deploy 6.2 em produção — foi absorvido em §4.13).
+>
 > **Se o `.git` resetou:** os arquivos continuam corretos no disco. Basta
 > `git add -A && git commit` de novo — não é preciso reescrever nada.
 > O histórico completo também está em `docs/repo-backup.bundle`.
@@ -86,7 +97,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a05735-pokeeeee`
+**Branch da sessão atual:** `arena/01a06d75-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -115,7 +126,10 @@ src/
 │   └── api/                  # 10 rotas: auth, maps, maps/[id], pokemon/{catch,heal,manage}, gym, shop, pvp, health
 ├── components/               # AuthModal, BattleArenaModal, GymModal, PokemonBox, ShopModal, SpritePackModal, WorldMapEditor
 ├── db/                       # schema.ts (11 tabelas) + index.ts (Pool global)
-└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop
+└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D)
+content/world/                # mundo versionado: maps/<slug>.json (com ginásios) + shops/<shopId>.json (6.2-D)
+scripts/world-export.mts      # banco → content/world/     (npm run world:export)
+scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
 ```
 
 ### Banco de dados — 11 tabelas
@@ -232,6 +246,16 @@ Amistoso atualiza `wins`/`losses` e o dano persiste; **não** mexe em ELO nem em
 
 O cliente não calcula mais nada: escolhe uma ação e desenha o que o servidor devolver.
 
+### Mundo como código (Fase 6.2-D)
+
+`content/world/` é a cópia versionada de mapas + ginásios + lojas; o banco
+continua sendo a fonte da verdade em runtime. `npm run world:export` tira a
+foto do banco de `DATABASE_URL`; `npm run world:import [-- --dry-run]` aplica
+em qualquer outro banco — idempotente (chave natural), transacional, nunca
+apaga. **Nada no arquivo usa id serial**: portal guarda `targetMapSlug`, NPC
+guarda `gymLeaderName`, ginásio mora dentro do arquivo do mapa; `shopId` fica
+porque é id lógico. Detalhes em `docs/MUNDO-COMO-CODIGO.md`.
+
 ### Papéis de acesso (Fase 1.1)
 `users.role` — `text NOT NULL DEFAULT 'player'`, com hierarquia `player (0) < moderator (1) < admin (2)`.
 
@@ -251,6 +275,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.1 — Balanceamento do início do jogo** ✅ 2026-08-31
 - [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
 - [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
+- [x] **FASE 6.2-D — Mundo como código (export/import de mapas, ginásios e lojas)** ✅ 2026-09-02
 - [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`** ⬅️ próxima
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
@@ -305,6 +330,69 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### 📸 Handoff de sessão — consolidação das branchs (2026-09-04)
+
+Sessão `arena/01a06d75-pokeeeee`: leu o repositório, as 6 branchs remotas, os
+PRs #1–#4 e o estado do CI, e consolidou o estado num único lugar para o
+projeto sobreviver a um reset do sandbox sem perda.
+
+| Branch | Conteúdo | Destino |
+|---|---|---|
+| `main` (`92936e9`) | único commit squash — Fase 6.2 (A+B) | recebe o merge de handoff |
+| `arena/01a061a1` | Fase 6.2-D (PR #4, CI 5/5 verde) | **ancestora deste branch** — PR #4 fecha como duplicado após o merge |
+| `arena/01a05735` | só o registro do deploy 6.2 em produção | absorvido em §4.13 — apagar após o merge |
+| `arena/01a03ad9` / `01a0439a` / `01a052dc` | snapshots obsoletos (08-27/08-30) | **não mesclar** (histórias separadas de `main`) — só apagar |
+
+Decisão do mantenedor: merge de tudo em `main` e reinício da conversa. Para o
+nada se perder nem quebrar: este branch já carrega a 6.2-D + este AI_State
+consolidado; o mantenedor mescla **apenas** este branch em `main`, fecha o
+PR #4 e apaga as demais. Verificado por diff: nenhuma branch antiga tem
+conteúdo único — o AI_State delas é só versão anterior e superada deste
+documento (§4.14).
+
+Depois do merge: `main` é a única fonte. Nova conversa: `git fetch origin`,
+trabalhar de `main`, reler este arquivo e ir para a **6.2-C**.
+
+### ✅ Fase 6.2-D — Mundo como código (2026-09-02)
+
+**Problema.** O conteúdo do mundo vivia num banco só. O mantenedor montava
+mapas num ambiente e não tinha como levá-los a outro sem refazer no Editor;
+não dava para revisar mudança de mapa num PR nem recuperar o mundo num banco
+novo (o backup diário cobre desastre, não versionamento). Entrou **antes** da
+6.2-C a pedido do mantenedor, para o mapa 1 montado à mão não virar retrabalho.
+
+**Entregue.**
+
+- `src/lib/world-content.ts` — módulo puro: `mapToFile`, `shopsToFiles`,
+  `resolveMapRefs`, `parseMapFile`/`parseShopFile`, `stringifyContent`.
+- `scripts/world-export.mts` → `npm run world:export`: grava
+  `content/world/maps/<slug>.json` (ginásios do mapa dentro, lista `gyms`) e
+  `content/world/shops/<shopId>.json`; remove arquivo órfão (`pruneStale`).
+- `scripts/world-import.mts` → `npm run world:import [-- --dry-run]`: uma
+  transação, 4 passos (mapas sem refs → ginásios → portais/NPCs resolvidos →
+  lojas). `--dry-run` executa tudo e dá `ROLLBACK`.
+- `content/world/` versionado com os 3 mapas, 3 ginásios e 11 itens atuais.
+- `docs/MUNDO-COMO-CODIGO.md` — por quê, estrutura, garantias, limites.
+- 19 testes em `src/lib/world-content.test.ts`.
+
+**Decisões de desenho.**
+
+| Decisão | Motivo |
+|---|---|
+| Chave natural: mapa = `slug`; ginásio = `(mapSlug, leaderName)`; item = `(shopId, itemKey)` | id serial não atravessa banco |
+| Portal → `targetMapSlug`; NPC → `gymLeaderName`; ginásio dentro do mapa | idem; resolvido para o id **do destino** no import |
+| `shopId` mantido | já é id lógico estável, sem FK |
+| `id`, `creatorId`, timestamps fora | não são conteúdo |
+| Import **nunca apaga** | apagar mapa arrasta FK `restrict` de ginásio e posição de jogador; é decisão humana no banco |
+| Referência quebrada **falha alto** (export e import) | melhor abortar que gravar mundo inconsistente |
+| `tileGrid` com uma fileira por linha | senão mudar um tile parece reescrita de 256 linhas no diff |
+| `updated_at` só muda quando algo mudou | import repetido não suja timestamp |
+
+**Também nesta etapa:** timeout folgado (`LENTO = 30_000`) nos 5 testes
+assíncronos de `src/lib/api-client.test.ts`. O `fetch` é stub, mas em worker
+frio (logo após `npm install`, com o sandbox compilando) a primeira `Response`
+estourou 5s e, uma vez, 15s; nas execuções seguintes o arquivo leva ~300ms.
 
 
 ### 🟡 Fase 5.1-D — produção controlada: deploy oficial validado, backup pendente (2026-08-30)
@@ -848,6 +936,115 @@ TEST_PG_URL=... npm run test:integration → Test Files 5 · Tests 70
 **Falta reteste no navegador:** entrar de novo no preview, pintar, salvar (o
 aviso deve ficar **verde** com "✓") e andar na área pintada.
 
+### 4.12 Validação da Fase 6.2-D (2026-09-02)
+
+Ambiente recriado do zero nesta sessão (`npm install`, `npm run db:local`,
+`drizzle-kit migrate`, dev server em `:3100`, seed pelas rotas `/api/maps`,
+`/api/gym`, `/api/shop`).
+
+```
+DATABASE_URL=<app_db> npm run world:export
+→ 3 mapa(s), 3 ginásio(s), 11 item(ns) de loja → 6 criado(s)
+
+# banco novo, só migrations, + mapa "placeholder" e sequências adiantadas de propósito
+CREATE DATABASE app_db_world · drizzle-kit migrate · setval(game_maps_id_seq, 4) · setval(gym_leaders_id_seq, 3)
+
+DATABASE_URL=<app_db_world> npm run world:import -- --dry-run
+→ mapas 3 criados · ginásios 3 criados · itens 11 criados · "dry-run — ROLLBACK"
+→ conferido: game_maps=1, gym_leaders=0 (nada gravado)
+
+DATABASE_URL=<app_db_world> npm run world:import
+→ mapas #8 #9 #10 · ginásios #7 #8 #9 (ids deslocados em relação à origem, que era 1/2/3)
+→ SQL: 8 portais apontam para o id do slug certo · 3 NPCs de ginásio para o líder certo · 0 referências quebradas · 11 itens
+
+2ª importação → mapas 0/0/3 iguais · ginásios 0/0/3 iguais · itens 0/0/11 iguais   (idempotente)
+
+reexport do destino  vs  export da origem:  diff -r -x placeholder.json → IDÊNTICOS
+
+editar rewardMoney do Brock (1500→1600) e stock da Pokébola (99→77) no JSON + import
+→ "1 ginásio atualizado, 1 item atualizado" · banco: reward_money=1600, stock=77
+
+portal com targetMapSlug "nao-existe" (+ outra edição no mesmo arquivo) + import
+→ "falhou, nada gravado: mapa vale-pallet: portal "p1-north-1" aponta para "nao-existe"…" · exit 1 · banco intacto
+
+export com mapa a menos no banco → "removido placeholder.json (não existe mais no banco)"
+
+npx vitest run src/lib/world-content.test.ts → 19 passed
+npx tsc --noEmit · npx eslint scripts src/lib/world-content*.ts → limpos
+```
+
+```
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · Test Files 12 passed · Tests 186 passed · ✓ Compiled successfully
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 5 passed · Tests 70 passed
+```
+
+Nota: eram 167 unitários antes da sessão; 167 + 19 = 186. Integração não mudou
+(os scripts de mundo não têm rota; a prova de banco real está na tabela acima).
+
+### 4.13 Deploy da Fase 6.2 em produção (2026-08-31)
+
+*(Registro resgatado da branch `arena/01a05735-pokeeeee`, que não foi mesclada —
+colocado aqui para a memória não depender da branch.)*
+
+Decisão do mantenedor: testar direto em produção em vez de staging, porque o
+preview em iframe era justamente a fonte de ruído.
+
+Ordem cumprida — **migration antes do código**:
+
+1. migration `0005` aplicada pelo mantenedor no Supabase de produção, com o
+   journal corrigido depois (`migrations = 6`);
+2. PR #3 renomeado e mesclado em `main` (merge commit `92936e9`, preservando os
+   commits `d9acd79`, `90c4dc0`, `c0b5edf`);
+3. deploy automático da Vercel.
+
+Verificação em `https://catchbound.vercel.app`:
+
+```
+GET /api/health → {"ok":true}
+GET /api/maps   → "encounterGrid":[], "collisionGrid":[], "encounterRate":22
+```
+
+As três colunas chegam ao cliente e os três mapas estão em **modo legado**, que
+é o esperado: nada mudou para quem está jogando. Em produção a sessão volta a
+ser só cookie `httpOnly` (Bearer fica desligado), e como o jogo é aberto em aba
+de topo o problema do iframe não existe ali.
+
+**Falta o teste manual do mantenedor** (item 8 das pendências).
+
+### 4.14 Validação do handoff (2026-09-04)
+
+Verificações somente-leitura (nenhuma linha de código foi tocada):
+
+```
+git fetch origin --prune · git ls-remote --heads origin
+→ 6 branchs: main + 5 arena (01a03ad9, 01a0439a, 01a052dc, 01a05735, 01a061a1)
+
+git rev-list --count main · git log --format='%H parents=[%P]' main
+→ 1 commit, sem pais: main é raiz (histórico reconstruído por squash)
+
+git merge-tree --write-tree main origin/arena/01a061a1-pokeeeee
+→ árvore de merge limpa (sem conflito) — a 6.2-D mescla de boa em main
+
+git diff --stat main..origin/arena/01a05735-pokeeeee
+→ 1 arquivo (só AI_State.md, +28 linhas): o registro de deploy — absorvido em §4.13
+
+diff do AI_State de cada branch antiga vs main (01a03ad9, 01a0439a, 01a052dc)
+→ só linhas de versão anterior (contagens antigas, etapas já concluídas,
+  branch de sessão antiga): nada único para preservar → apagar sem perda
+
+gh pr list --state all
+→ #1, #2, #3 MERGED · #4 OPEN (Fase 6.2-D)
+
+gh pr view 4 · gh run list --branch arena/01a061a1-pokeeeee
+→ MERGEABLE · CI 5/5 SUCCESS · deploys Vercel SUCCESS (catchbound e staging)
+```
+
+**Não validado aqui:** o merge em si (decisão do mantenedor) e o CI deste
+branch — o PR de handoff dispara o CI; mergear apenas com ele verde.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -886,9 +1083,20 @@ em `docs/FASE-6.2-PLANO.md`.
 - **6.2-A — camadas no servidor** ✅ concluída em 2026-08-31 (seções 3 e 4.9).
 - **6.2-B — editor pinta as camadas** ✅ concluída em 2026-08-31 (seções 3 e
   4.10). Falta a passada no navegador, registrada nas pendências manuais.
-- **6.2-C — próximo passo imediato:** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
+- **6.2-D — mundo como código** ✅ concluída em 2026-09-02 (seções 3 e 4.12).
+  Entrou antes da 6.2-C para o mapa 1 montado à mão poder ser versionado.
+  **Neste branch** (ancestral direto) — acompanha o merge de handoff.
+- **Handoff (2026-09-04) — antes de qualquer código:** o mantenedor mescla este
+  branch (`arena/01a06d75-pokeeeee`) em `main`, fecha o PR #4 e apaga as
+  branchs antigas (detalhes na seção 3 e §4.14). Depois disso `main` é a única
+  fonte e a nova conversa parte dela.
+- **6.2-C — próximo passo imediato (depois do merge do handoff):** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
   6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
-  Misty 18/21). O jogo deve continuar difícil de evoluir.
+  Misty 18/21; Lance segue 38/45). O jogo deve continuar difícil de evoluir.
+  Não mexer na fórmula de dano. `npm run db:rebalance` em produção espera a 6.2-C.
+- **Depois da 6.2-C:** o mantenedor monta o mapa 1 à mão (nível 2–7, espécies
+  comuns, sem vantagem de elemento contra os iniciais), roda
+  `npm run world:export` e versiona `content/world/`.
 
 Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
 6.6 ranked → 6.7 NPCs**.
@@ -925,6 +1133,9 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Fase 6.2-A** — camadas de colisão e área de caça no servidor | ✅ Concluída e validada | migration `0005` · `src/lib/map-rules.ts` |
 | 2026-08-31 | **Fase 6.2-B** — Editor pinta as camadas (3 modos) | ✅ Concluída e validada | `src/lib/map-layers.ts` · 27 testes novos |
 | 2026-08-31 | **Correção** — sessão perdida no iframe (401 silencioso) | ✅ Concluída e validada | token em memória · `src/lib/api-client.test.ts` |
+| 2026-08-31 | **Deploy 6.2 em produção** — PR #3 mesclado, migration `0005` aplicada | ✅ Concluída e validada | merge `92936e9` · `/api/maps` com as 3 colunas · §4.13 |
+| 2026-09-02 | **Fase 6.2-D** — mundo como código (export/import de mapas, ginásios e lojas) | ✅ Concluída e validada | `content/world/` · `docs/MUNDO-COMO-CODIGO.md` · 19 testes |
+| 2026-09-04 | **Handoff de sessão** — consolidação das branchs no AI_State | ✅ Concluída e validada | branch `arena/01a06d75` = 6.2-D + AI_State · §4.14 |
 | — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
