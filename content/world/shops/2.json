@@ -3,6 +3,17 @@
   "shopId": 2,
   "items": [
     {
+      "itemKey": "dragonScale",
+      "name": "Escama de Dragão",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 3000,
+      "sellPrice": 1500,
+      "iconEmoji": "🐉",
+      "isPremium": false,
+      "stock": 5
+    },
+    {
       "itemKey": "greatballs",
       "name": "Greatball",
       "description": "Maior chance de captura.",
@@ -12,6 +23,28 @@
       "iconEmoji": "🔵",
       "isPremium": false,
       "stock": 50
+    },
+    {
+      "itemKey": "kingsRock",
+      "name": "Rocha do Rei",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 3000,
+      "sellPrice": 1500,
+      "iconEmoji": "👑",
+      "isPremium": false,
+      "stock": 5
+    },
+    {
+      "itemKey": "metalCoat",
+      "name": "Revestimento de Metal",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 2500,
+      "sellPrice": 1250,
+      "iconEmoji": "🛡️",
+      "isPremium": false,
+      "stock": 5
     },
     {
       "itemKey": "pokeballs",
@@ -36,6 +69,28 @@
       "stock": 20
     },
     {
+      "itemKey": "shinyStone",
+      "name": "Pedra Brilhante",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 2200,
+      "sellPrice": 1100,
+      "iconEmoji": "✨",
+      "isPremium": false,
+      "stock": 6
+    },
+    {
+      "itemKey": "sunStone",
+      "name": "Pedra do Sol",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 1800,
+      "sellPrice": 900,
+      "iconEmoji": "☀️",
+      "isPremium": false,
+      "stock": 8
+    },
+    {
       "itemKey": "superPotions",
       "name": "Super Poção",
       "description": "Restaura 50 HP de um Pokémon.",
@@ -45,6 +100,17 @@
       "iconEmoji": "🧴",
       "isPremium": false,
       "stock": 99
+    },
+    {
+      "itemKey": "upgrade",
+      "name": "Melhorador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 3000,
+      "sellPrice": 1500,
+      "iconEmoji": "🖥️",
+      "isPremium": false,
+      "stock": 5
     }
   ]
 }

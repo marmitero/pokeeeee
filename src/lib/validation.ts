@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EVOLUTION_ITEM_VALUES } from "./evolution-items";
 import { TILE_DEFINITIONS } from "./tiles";
 
 /**
@@ -34,6 +35,12 @@ export const HEAL_ITEM_VALUES = [
   "revive",
 ] as const;
 
+/** Itens que podem ser usados fora de batalha: cura + evolução (6.4-B). */
+export const USE_ITEM_VALUES = [
+  ...HEAL_ITEM_VALUES,
+  ...EVOLUTION_ITEM_VALUES,
+] as const;
+
 /** Colunas de inventário que uma loja pode creditar (allowlist anti mass-assignment). */
 export const INVENTORY_KEYS = [
   "pokeballs",
@@ -44,6 +51,7 @@ export const INVENTORY_KEYS = [
   "superPotions",
   "maxPotions",
   "revives",
+  ...EVOLUTION_ITEM_VALUES,
 ] as const;
 
 export const variantSchema = z.enum(VARIANT_VALUES);
@@ -167,7 +175,7 @@ export const manageSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("use_item"),
     pokemonId: idSchema,
-    item: z.enum(HEAL_ITEM_VALUES),
+    item: z.enum(USE_ITEM_VALUES),
   }),
 ]);
 

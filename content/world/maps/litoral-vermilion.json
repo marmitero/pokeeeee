@@ -11,83 +11,147 @@
   "encounterTable": [
     {
       "name": "Magikarp",
-      "weight": 14,
-      "maxLevel": 29,
-      "minLevel": 22,
+      "weight": 10,
+      "maxLevel": 31,
+      "minLevel": 24,
       "pokedexId": 129,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Goldeen",
-      "weight": 11,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 8,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 118,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Tentacool",
-      "weight": 11,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 8,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 72,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Krabby",
-      "weight": 11,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 7,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 98,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Horsea",
-      "weight": 11,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 7,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 116,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Staryu",
-      "weight": 9,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 6,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 120,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Psyduck",
-      "weight": 9,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 6,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 54,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Slowpoke",
-      "weight": 9,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 6,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 79,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Shellder",
-      "weight": 5,
+      "weight": 3,
       "maxLevel": 32,
-      "minLevel": 26,
+      "minLevel": 28,
       "pokedexId": 90,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Poliwag",
-      "weight": 10,
-      "maxLevel": 31,
-      "minLevel": 24,
+      "weight": 7,
+      "maxLevel": 32,
+      "minLevel": 26,
       "pokedexId": 60,
       "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Chinchou",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 170,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Marill",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 183,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Wooper",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 194,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Qwilfish",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 211,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Corsola",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 222,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Remoraid",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 223,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Furret",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 162,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ariados",
+      "weight": 4,
+      "maxLevel": 32,
+      "minLevel": 28,
+      "pokedexId": 168,
+      "tileTypes": ["tall_grass"]
     }
   ],
   "portals": [

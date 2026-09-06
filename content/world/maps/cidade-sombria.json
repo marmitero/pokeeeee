@@ -11,15 +11,15 @@
   "encounterTable": [
     {
       "name": "Umbreon",
-      "weight": 11,
-      "maxLevel": 63,
-      "minLevel": 56,
+      "weight": 8,
+      "maxLevel": 64,
+      "minLevel": 58,
       "pokedexId": 197,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Persian",
-      "weight": 12,
+      "weight": 9,
       "maxLevel": 63,
       "minLevel": 56,
       "pokedexId": 53,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Meowth",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 64,
       "minLevel": 58,
       "pokedexId": 52,
@@ -35,23 +35,23 @@
     },
     {
       "name": "Raticate",
-      "weight": 14,
-      "maxLevel": 61,
-      "minLevel": 54,
+      "weight": 11,
+      "maxLevel": 63,
+      "minLevel": 56,
       "pokedexId": 20,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Primeape",
-      "weight": 14,
-      "maxLevel": 61,
-      "minLevel": 54,
+      "weight": 11,
+      "maxLevel": 63,
+      "minLevel": 56,
       "pokedexId": 57,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Hitmonlee",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 64,
       "minLevel": 58,
       "pokedexId": 106,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Hitmonchan",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 64,
       "minLevel": 58,
       "pokedexId": 107,
@@ -67,15 +67,15 @@
     },
     {
       "name": "Lucario",
-      "weight": 11,
-      "maxLevel": 63,
-      "minLevel": 56,
+      "weight": 8,
+      "maxLevel": 64,
+      "minLevel": 58,
       "pokedexId": 448,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Machoke",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 64,
       "minLevel": 58,
       "pokedexId": 67,
@@ -83,10 +83,58 @@
     },
     {
       "name": "Machamp",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 64,
       "minLevel": 58,
       "pokedexId": 68,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Espeon",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 60,
+      "pokedexId": 196,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Murkrow",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 60,
+      "pokedexId": 198,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Granbull",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 60,
+      "pokedexId": 210,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ursaring",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 60,
+      "pokedexId": 217,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Smeargle",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 60,
+      "pokedexId": 235,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Hitmontop",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 60,
+      "pokedexId": 237,
       "tileTypes": ["tall_grass"]
     }
   ],

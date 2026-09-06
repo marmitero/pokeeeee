@@ -11,31 +11,31 @@
   "encounterTable": [
     {
       "name": "Ponyta",
-      "weight": 18,
-      "maxLevel": 45,
-      "minLevel": 38,
+      "weight": 13,
+      "maxLevel": 47,
+      "minLevel": 40,
       "pokedexId": 77,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Growlithe",
-      "weight": 18,
-      "maxLevel": 45,
-      "minLevel": 38,
+      "weight": 13,
+      "maxLevel": 47,
+      "minLevel": 40,
       "pokedexId": 58,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Vulpix",
-      "weight": 14,
-      "maxLevel": 45,
-      "minLevel": 38,
+      "weight": 10,
+      "maxLevel": 47,
+      "minLevel": 40,
       "pokedexId": 37,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Pidgeotto",
-      "weight": 12,
+      "weight": 9,
       "maxLevel": 47,
       "minLevel": 40,
       "pokedexId": 17,
@@ -43,34 +43,90 @@
     },
     {
       "name": "Fearow",
-      "weight": 10,
-      "maxLevel": 47,
-      "minLevel": 40,
+      "weight": 7,
+      "maxLevel": 48,
+      "minLevel": 42,
       "pokedexId": 22,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Doduo",
-      "weight": 10,
-      "maxLevel": 47,
-      "minLevel": 40,
+      "weight": 7,
+      "maxLevel": 48,
+      "minLevel": 42,
       "pokedexId": 84,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Farfetch'd",
-      "weight": 6,
+      "weight": 4,
       "maxLevel": 48,
-      "minLevel": 42,
+      "minLevel": 44,
       "pokedexId": 83,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Snorlax",
-      "weight": 12,
+      "weight": 9,
       "maxLevel": 47,
       "minLevel": 40,
       "pokedexId": 143,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Jumpluff",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 189,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sunflora",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 192,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Girafarig",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 203,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Miltank",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 241,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Stantler",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 234,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ledian",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 166,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Houndoom",
+      "weight": 4,
+      "maxLevel": 48,
+      "minLevel": 44,
+      "pokedexId": 229,
       "tileTypes": ["tall_grass"]
     }
   ],

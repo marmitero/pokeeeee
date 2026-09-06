@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Haunter",
-      "weight": 24,
+      "weight": 19,
       "maxLevel": 53,
       "minLevel": 46,
       "pokedexId": 93,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Hypno",
-      "weight": 22,
+      "weight": 18,
       "maxLevel": 53,
       "minLevel": 46,
       "pokedexId": 97,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Drowzee",
-      "weight": 18,
+      "weight": 14,
       "maxLevel": 53,
       "minLevel": 46,
       "pokedexId": 96,
@@ -35,18 +35,58 @@
     },
     {
       "name": "Mr. Mime",
-      "weight": 16,
-      "maxLevel": 53,
-      "minLevel": 46,
+      "weight": 13,
+      "maxLevel": 55,
+      "minLevel": 48,
       "pokedexId": 122,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Kadabra",
-      "weight": 20,
+      "weight": 16,
       "maxLevel": 53,
       "minLevel": 46,
       "pokedexId": 64,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Crobat",
+      "weight": 4,
+      "maxLevel": 56,
+      "minLevel": 52,
+      "pokedexId": 169,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Xatu",
+      "weight": 4,
+      "maxLevel": 56,
+      "minLevel": 52,
+      "pokedexId": 178,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Misdreavus",
+      "weight": 4,
+      "maxLevel": 56,
+      "minLevel": 52,
+      "pokedexId": 200,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Unown",
+      "weight": 4,
+      "maxLevel": 56,
+      "minLevel": 52,
+      "pokedexId": 201,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Wobbuffet",
+      "weight": 4,
+      "maxLevel": 56,
+      "minLevel": 52,
+      "pokedexId": 202,
       "tileTypes": ["tall_grass"]
     }
   ],

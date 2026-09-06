@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Zubat",
-      "weight": 24,
+      "weight": 20,
       "maxLevel": 25,
       "minLevel": 18,
       "pokedexId": 41,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Golbat",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 28,
       "minLevel": 22,
       "pokedexId": 42,
@@ -27,41 +27,41 @@
     },
     {
       "name": "Clefairy",
-      "weight": 10,
-      "maxLevel": 27,
-      "minLevel": 20,
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 22,
       "pokedexId": 35,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Abra",
-      "weight": 10,
-      "maxLevel": 27,
-      "minLevel": 20,
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 22,
       "pokedexId": 63,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Ekans",
-      "weight": 16,
-      "maxLevel": 25,
-      "minLevel": 18,
+      "weight": 13,
+      "maxLevel": 27,
+      "minLevel": 20,
       "pokedexId": 23,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Jigglypuff",
-      "weight": 10,
-      "maxLevel": 27,
-      "minLevel": 20,
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 22,
       "pokedexId": 39,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Exeggcute",
-      "weight": 10,
-      "maxLevel": 27,
-      "minLevel": 20,
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 22,
       "pokedexId": 102,
       "tileTypes": ["tall_grass"]
     },
@@ -75,10 +75,50 @@
     },
     {
       "name": "Lickitung",
-      "weight": 10,
-      "maxLevel": 27,
-      "minLevel": 20,
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 22,
       "pokedexId": 108,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cleffa",
+      "weight": 3,
+      "maxLevel": 28,
+      "minLevel": 24,
+      "pokedexId": 173,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Igglybuff",
+      "weight": 3,
+      "maxLevel": 28,
+      "minLevel": 24,
+      "pokedexId": 174,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Togepi",
+      "weight": 4,
+      "maxLevel": 28,
+      "minLevel": 24,
+      "pokedexId": 175,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Skiploom",
+      "weight": 4,
+      "maxLevel": 28,
+      "minLevel": 24,
+      "pokedexId": 188,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Snubbull",
+      "weight": 4,
+      "maxLevel": 28,
+      "minLevel": 24,
+      "pokedexId": 209,
       "tileTypes": ["tall_grass"]
     }
   ],

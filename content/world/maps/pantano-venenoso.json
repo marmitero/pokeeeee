@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Grimer",
-      "weight": 18,
+      "weight": 16,
       "maxLevel": 33,
       "minLevel": 26,
       "pokedexId": 88,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Koffing",
-      "weight": 18,
+      "weight": 15,
       "maxLevel": 33,
       "minLevel": 26,
       "pokedexId": 109,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Gastly",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 35,
       "minLevel": 28,
       "pokedexId": 92,
@@ -35,7 +35,7 @@
     },
     {
       "name": "Venomoth",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 36,
       "minLevel": 30,
       "pokedexId": 49,
@@ -43,7 +43,7 @@
     },
     {
       "name": "Gloom",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 35,
       "minLevel": 28,
       "pokedexId": 44,
@@ -51,7 +51,7 @@
     },
     {
       "name": "Ivysaur",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 36,
       "minLevel": 30,
       "pokedexId": 2,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Tangela",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 35,
       "minLevel": 28,
       "pokedexId": 114,
@@ -67,10 +67,42 @@
     },
     {
       "name": "Poliwhirl",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 35,
       "minLevel": 28,
       "pokedexId": 61,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Meganium",
+      "weight": 4,
+      "maxLevel": 36,
+      "minLevel": 32,
+      "pokedexId": 154,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Quagsire",
+      "weight": 4,
+      "maxLevel": 36,
+      "minLevel": 32,
+      "pokedexId": 195,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Bellossom",
+      "weight": 3,
+      "maxLevel": 36,
+      "minLevel": 32,
+      "pokedexId": 182,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Slugma",
+      "weight": 4,
+      "maxLevel": 36,
+      "minLevel": 32,
+      "pokedexId": 218,
       "tileTypes": ["tall_grass"]
     }
   ],

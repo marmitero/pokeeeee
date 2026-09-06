@@ -3,6 +3,39 @@
   "shopId": 1,
   "items": [
     {
+      "itemKey": "fireStone",
+      "name": "Pedra de Fogo",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 1200,
+      "sellPrice": 600,
+      "iconEmoji": "🔥",
+      "isPremium": false,
+      "stock": 10
+    },
+    {
+      "itemKey": "leafStone",
+      "name": "Pedra de Folha",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 1200,
+      "sellPrice": 600,
+      "iconEmoji": "🍃",
+      "isPremium": false,
+      "stock": 10
+    },
+    {
+      "itemKey": "moonStone",
+      "name": "Pedra da Lua",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 1500,
+      "sellPrice": 750,
+      "iconEmoji": "🌙",
+      "isPremium": false,
+      "stock": 8
+    },
+    {
       "itemKey": "pokeballs",
       "name": "Pokébola",
       "description": "Captura Pokémon selvagens.",
@@ -32,6 +65,28 @@
       "buyPrice": 1500,
       "sellPrice": 750,
       "iconEmoji": "⚡",
+      "isPremium": false,
+      "stock": 10
+    },
+    {
+      "itemKey": "thunderStone",
+      "name": "Pedra de Trovão",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 1200,
+      "sellPrice": 600,
+      "iconEmoji": "⚡",
+      "isPremium": false,
+      "stock": 10
+    },
+    {
+      "itemKey": "waterStone",
+      "name": "Pedra d'Água",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 1200,
+      "sellPrice": 600,
+      "iconEmoji": "💧",
       "isPremium": false,
       "stock": 10
     }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { POKEDEX, getPokemonSpecies, ALL_MOVES, movesAtLevel } from "./pokedex";
 import { gen1Rest } from "./pokedex-gen1";
+import { EVOLUTION_ITEM_IDS } from "./evolution-items";
 import { TYPE_NAMES, isKnownType } from "./engine/types";
 
 /**
@@ -12,17 +13,16 @@ import { TYPE_NAMES, isKnownType } from "./engine/types";
  * introduza tipo/golpe inválido sem o CI perceber.
  */
 
-/** Kanto completa (1–151) + os 4 fora de Kanto que o jogo já tinha + Steelix. */
+/** Kanto (1–151) + Johto (152–251) + os 3 modernos que o jogo já tinha. */
 const ESPERADAS = [
   ...Array.from({ length: 151 }, (_, i) => i + 1), // 1–151
-  197, // Umbreon (fechava a Eevee desde a 6.3)
-  208, // Steelix (fecha a linha do Onix)
+  ...Array.from({ length: 100 }, (_, i) => 152 + i), // 152–251
   282, // Gardevoir
   384, // Rayquaza
   448, // Lucario
 ];
 
-describe("catálogo Kanto completo (6.3-A)", () => {
+describe("catálogo Kanto + Johto (6.3-A/6.4-B)", () => {
   it("contém exatamente as espécies esperadas, sem duplicata", () => {
     const ids = POKEDEX.map((s) => s.id).sort((a, b) => a - b);
     const esperadas = [...ESPERADAS].sort((a, b) => a - b);
@@ -31,8 +31,8 @@ describe("catálogo Kanto completo (6.3-A)", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("são 156 espécies — 151 de Kanto + 5 de outras gerações", () => {
-    expect(POKEDEX).toHaveLength(156);
+  it("são 254 espécies — 151 de Kanto + 100 de Johto + 3 de outras gerações", () => {
+    expect(POKEDEX).toHaveLength(254);
   });
 
   it("toda espécie usa os três sprites do CDN no padrão Gen V animado", () => {
@@ -137,47 +137,70 @@ describe("linhas evolutivas de Kanto", () => {
     }
   });
 
-  it("pedra/troca provisionais: Pikachu, Onix e os demais viram nível", () => {
-    const provisorios: Array<[number, number, number]> = [
-      [25, 30, 26], // Pikachu → Raichu (pedra Trovão)
-      [30, 30, 31], // Nidorina → Nidoqueen (pedra Lua)
-      [33, 30, 34], // Nidorino → Nidoking (pedra Lua)
-      [35, 30, 36], // Clefairy → Clefable (pedra Lua)
-      [37, 30, 38], // Vulpix → Ninetales (pedra Fogo)
-      [39, 30, 40], // Jigglypuff → Wigglytuff (pedra Lua)
-      [44, 30, 45], // Gloom → Vileplume (pedra Folha)
-      [58, 30, 59], // Growlithe → Arcanine (pedra Fogo)
-      [61, 30, 62], // Poliwhirl → Poliwrath (pedra Água)
-      [64, 36, 65], // Kadabra → Alakazam (troca)
-      [67, 40, 68], // Machoke → Machamp (troca)
-      [70, 30, 71], // Weepinbell → Victreebel (pedra Folha)
-      [75, 40, 76], // Graveler → Golem (troca)
-      [90, 30, 91], // Shellder → Cloyster (pedra Água)
-      [93, 40, 94], // Haunter → Gengar (troca)
-      [95, 36, 208], // Onix → Steelix (troca + Casaco de Metal)
-      [102, 30, 103], // Exeggcute → Exeggutor (pedra Folha)
+  it("pedras de evolução agora são gatilho de item (6.4-B)", () => {
+    const pedras: Array<[number, number, number, number]> = [
+      // [de, para, itemId, peso mnemônico]
+      [25, 26, EVOLUTION_ITEM_IDS.thunderStone, 0], // Pikachu → Raichu
+      [30, 31, EVOLUTION_ITEM_IDS.moonStone, 0], // Nidorina → Nidoqueen
+      [33, 34, EVOLUTION_ITEM_IDS.moonStone, 0], // Nidorino → Nidoking
+      [35, 36, EVOLUTION_ITEM_IDS.moonStone, 0], // Clefairy → Clefable
+      [37, 38, EVOLUTION_ITEM_IDS.fireStone, 0], // Vulpix → Ninetales
+      [39, 40, EVOLUTION_ITEM_IDS.moonStone, 0], // Jigglypuff → Wigglytuff
+      [44, 45, EVOLUTION_ITEM_IDS.leafStone, 0], // Gloom → Vileplume
+      [44, 182, EVOLUTION_ITEM_IDS.sunStone, 0], // Gloom → Bellossom
+      [58, 59, EVOLUTION_ITEM_IDS.fireStone, 0], // Growlithe → Arcanine
+      [61, 62, EVOLUTION_ITEM_IDS.waterStone, 0], // Poliwhirl → Poliwrath
+      [61, 186, EVOLUTION_ITEM_IDS.kingsRock, 0], // Poliwhirl → Politoed
+      [70, 71, EVOLUTION_ITEM_IDS.leafStone, 0], // Weepinbell → Victreebel
+      [79, 199, EVOLUTION_ITEM_IDS.kingsRock, 0], // Slowpoke → Slowking
+      [90, 91, EVOLUTION_ITEM_IDS.waterStone, 0], // Shellder → Cloyster
+      [95, 208, EVOLUTION_ITEM_IDS.metalCoat, 0], // Onix → Steelix
+      [102, 103, EVOLUTION_ITEM_IDS.leafStone, 0], // Exeggcute → Exeggutor
+      [113, 242, EVOLUTION_ITEM_IDS.ovalStone, 0], // Chansey → Blissey
+      [117, 230, EVOLUTION_ITEM_IDS.dragonScale, 0], // Seadra → Kingdra
+      [120, 121, EVOLUTION_ITEM_IDS.waterStone, 0], // Staryu → Starmie
+      [123, 212, EVOLUTION_ITEM_IDS.metalCoat, 0], // Scyther → Scizor
+      [137, 233, EVOLUTION_ITEM_IDS.upgrade, 0], // Porygon → Porygon2
     ];
 
-    for (const [from, level, to] of provisorios) {
+    for (const [from, to, itemId] of pedras) {
+      const species = getPokemonSpecies(from);
+      const rule = species.evolvesTo?.find((e) => e.trigger === "item" && e.itemId === itemId);
+      expect(rule, `${species.name} deveria ter gatilho item #${itemId}`).toBeDefined();
+      expect(rule!.speciesId).toBe(to);
+    }
+  });
+
+  it("as linhas de troca continuam provisórias por nível (sem item de troca)", () => {
+    const trocas: Array<[number, number, number]> = [
+      [64, 36, 65], // Kadabra → Alakazam
+      [67, 40, 68], // Machoke → Machamp
+      [75, 40, 76], // Graveler → Golem
+      [93, 40, 94], // Haunter → Gengar
+    ];
+    for (const [from, level, to] of trocas) {
       const species = getPokemonSpecies(from);
       const rule = species.evolvesTo?.find((e) => e.trigger === "level");
-      expect(rule, `${species.name} deveria ter gatilho provisório`).toBeDefined();
+      expect(rule, `${species.name} deveria ter gatilho provisório de nível`).toBeDefined();
       expect(rule!.speciesId).toBe(to);
       expect(rule!.level).toBe(level);
     }
   });
 
-  it("eeveelutions de Kanto existem como espécie, sem gatilho da Eevee", () => {
-    // A escolha entre três destinos exige mecânica de pedras/escolha que
-    // ainda não existe; a Eevee segue para Umbreon (6.3). As três existem no
-    // catálogo para a estética futura — e o teste trava a decisão.
-    for (const id of [134, 135, 136]) {
+  it("Eevee ramifica com as cinco pedras, e as formas existem sem evoluir", () => {
+    const eevee = getPokemonSpecies(133);
+    expect(eevee.evolvesTo).toEqual([
+      { speciesId: 134, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone },
+      { speciesId: 135, trigger: "item", itemId: EVOLUTION_ITEM_IDS.thunderStone },
+      { speciesId: 136, trigger: "item", itemId: EVOLUTION_ITEM_IDS.fireStone },
+      { speciesId: 196, trigger: "item", itemId: EVOLUTION_ITEM_IDS.sunStone },
+      { speciesId: 197, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone },
+    ]);
+
+    for (const id of [134, 135, 136, 196, 197]) {
       expect(() => getPokemonSpecies(id)).not.toThrow();
       expect(getPokemonSpecies(id).evolvesTo).toBeUndefined();
     }
-
-    const eevee = getPokemonSpecies(133);
-    expect(eevee.evolvesTo).toEqual([{ speciesId: 197, trigger: "level", level: 30 }]);
   });
 
   it("lendários de Kanto não evoluem", () => {
@@ -205,7 +228,7 @@ describe("sanidade do módulo gen1Rest", () => {
 /**
  * Guardas da Fase 6.3-B — golpes com identidade (Gen 1–3, foco GBA).
  *
- * A fase reescreveu os learnsets das 156 espécies com golpes condizentes
+ * A fase reescreveu os learnsets das espécies do catálogo com golpes condizentes
  * com tipo e raça e adicionou ~80 golpes canônicos ao catálogo. Estes testes
  * fixam o contrato para que um refactor não devolva os "ataques genéricos":
  * cobertura por tipo, nenhum golpe órfão, curva de poder preservada e STAB

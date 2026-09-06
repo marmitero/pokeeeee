@@ -11,15 +11,15 @@
   "encounterTable": [
     {
       "name": "Omanyte",
-      "weight": 14,
-      "maxLevel": 73,
-      "minLevel": 66,
+      "weight": 12,
+      "maxLevel": 75,
+      "minLevel": 68,
       "pokedexId": 138,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Omastar",
-      "weight": 10,
+      "weight": 9,
       "maxLevel": 75,
       "minLevel": 68,
       "pokedexId": 139,
@@ -27,15 +27,15 @@
     },
     {
       "name": "Kabuto",
-      "weight": 14,
-      "maxLevel": 73,
-      "minLevel": 66,
+      "weight": 12,
+      "maxLevel": 75,
+      "minLevel": 68,
       "pokedexId": 140,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Kabutops",
-      "weight": 10,
+      "weight": 9,
       "maxLevel": 75,
       "minLevel": 68,
       "pokedexId": 141,
@@ -43,7 +43,7 @@
     },
     {
       "name": "Aerodactyl",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 73,
       "minLevel": 66,
       "pokedexId": 142,
@@ -51,7 +51,7 @@
     },
     {
       "name": "Golem",
-      "weight": 12,
+      "weight": 11,
       "maxLevel": 75,
       "minLevel": 68,
       "pokedexId": 76,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Nidoking",
-      "weight": 12,
+      "weight": 11,
       "maxLevel": 75,
       "minLevel": 68,
       "pokedexId": 34,
@@ -67,10 +67,34 @@
     },
     {
       "name": "Nidoqueen",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 75,
       "minLevel": 68,
       "pokedexId": 31,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Piloswine",
+      "weight": 4,
+      "maxLevel": 76,
+      "minLevel": 72,
+      "pokedexId": 221,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kingdra",
+      "weight": 4,
+      "maxLevel": 76,
+      "minLevel": 72,
+      "pokedexId": 230,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Shuckle",
+      "weight": 4,
+      "maxLevel": 76,
+      "minLevel": 72,
+      "pokedexId": 213,
       "tileTypes": ["tall_grass"]
     }
   ],

@@ -37,10 +37,11 @@
 | 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
 | 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C |
 | 10 | **Evolução (6.3)**: subir um Charmander até 16 (ou usar um save acima do limiar) e ver o log `★ … evoluiu para Charmeleon!` e o nome novo no PC Box | Login → batalhar até cruzar nível 16 | Fase 6.3 |
-| 11 | **Vitrine de sprites (6.3-A)**: abrir o Pacote de Sprites e conferir que lista 156 espécies × 6 variantes (936 sprites) sem quebrados — em especial Drowzee/Hypno/Krabby/Kingler shiny | Botão de sprites no HUD | Fase 6.3-A |
+| 11 | **Vitrine de sprites (6.3-A + 6.4-B)**: abrir o Pacote de Sprites e conferir que lista as 254 espécies × 6 variantes (1524 sprites) sem quebrados — em especial Drowzee/Hypno/Krabby/Kingler shiny e os Johto novos | Botão de sprites no HUD | Fase 6.3-A/6.4-B |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 | 12 | **Cadastro com e-mail real em produção (pós-incidente 2026-09-06)**: após colar `docs/supabase-production-0006-runtime.sql`, `/api/health` → `emailVerification:"ok"`, criar conta → tela de código → e-mail chega → entrar | catchbound.vercel.app | Incidente §4.27 |
+| 13 | **Pedras de evolução em produção (6.4-B)**: após colar `docs/supabase-production-0007-runtime.sql`, abrir as lojas 1–3 e ver os 15 itens, comprar uma Pedra de Trovão, usar no Pikachu no Pokémon Box e ver `★ … evoluiu para Raichu!` | catchbound.vercel.app | Fase 6.4-B/§4.28 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
@@ -147,7 +148,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06)
 
 ### Conteúdo seedado
-156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+254 espécies (1–151 Kanto + 152–251 Johto + Gardevoir/Rayquaza/Lucario, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 26 itens de loja (11 base + 15 de evolução) · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -167,7 +168,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
-| Pacote de Sprites | ✅ Funciona (vitrine) — 156 espécies × 6 variantes |
+| Pacote de Sprites | ✅ Funciona (vitrine) — 254 espécies × 6 variantes |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -1116,6 +1117,55 @@ O que mudou:
    já capturados + níveis dos ginásios já semeados), idempotente e com
    `--dry-run`.
 
+### ✅ FASE 6.4-B — Johto (152–251) no catálogo + pedras de evolução na loja (2026-09-06)
+
+**Objetivo:** fechar as duas partes restantes da 6.4 — catálogo Johto e itens
+de evolução. Entrega no branch `arena/01a0782e-pokeeeee` (sem commit ainda).
+
+**O que entrou:**
+
+1. **`src/lib/pokedex-johto.ts`** (98 espécies, ids 152–251 exceto 197/208 que
+   já existiam no catálogo): tipos, 6 bases, catchRate, learnset (133 golpes
+   existentes), evoluções dirigidas por dados e sprites Gen V animados.
+   O total da Pokédex passa a **254** (151 Kanto + 100 Johto + Gardevoir/
+   Rayquaza/Lucario), sem duplicata. Corrigido o caso Heracross, que terminava
+   sem golpe forte primário (Bug ≥70) — ganhou `Tesoura X`.
+2. **`src/lib/evolution-items.ts`** (14 itens: 7 pedras clássicas, 4 cascos
+   raros, 3 pedras modernas) — único mapa entre coluna de inventário, ID do
+   motor (`EvolvesTo.itemId`) e nomes/emoji de loja/box.
+3. **Gatilhos de evolução**: as linhas `// pedra` viraram `trigger:"item"` com
+   `itemId` (Pikachu→thunderStone, Nidorina/Nidorino/Clefairy/Jigglypuff→
+   moonStone, Vulpix/Growlithe→fireStone, Gloom→leafStone/sunStone,
+   Poliwhirl→waterStone/kingsRock, Slowpoke→kingsRock, Shellder→waterStone,
+   Exeggcute→leafStone, Chansey→ovalStone, Seadra→dragonScale,
+   Scyther→metalCoat, Porygon→upgrade, Onix→metalCoat, Staryu→waterStone,
+   Eevee→5 pedras, Sunkern→sunStone). Linhas de **troca** (Kadabra/Machoke/
+   Graveler/Haunter) seguem provisórias por nível, sem item de troca.
+4. **Motor**: `evolutionWithItem` + `applyItemEvolution` em
+   `src/lib/engine/evolution.ts` (stats recalculados, % HP preservado,
+   apelido mantido, tipos atualizados). `use_item` em
+   `src/app/api/pokemon/manage/route.ts` valida o gatilho, aplica e **desconta
+   em transação**; item que não evolui → 400 e **não consome**.
+5. **Schema/loja**: `users` ganhou 14 colunas inteiras `DEFAULT 0 NOT NULL` +
+   check não-negativa (migration `0007_flowery_next_avengers`); `INVENTORY_KEYS`
+   inclui os itens; `seed-shop.ts` seeda 15 itens idempotente nas lojas 1–3
+   (preços 1200–6000, estoque 4–10). Corrigido um bug do seed: antes o `return`
+   em loja já semeada pulava os itens de evolução.
+6. **Mundo**: as 98 espécies Johto foram distribuídas nos 20 mapas (tabelas de
+   encontro em `default-world.ts` + `content/world/maps/*.json` regenerados);
+   lendários Johto entram no mapa 20 com peso 3.
+
+**Validação (sandbox, banco local com migration 0007):**
+`npm run check` e `npm run test:integration` verdes — **257 unit + 100
+integração** (incluindo 2 novos de evolução por item pela rota real).
+`npm run build` verde.
+
+**Pendência de produção:** colar `docs/supabase-production-0007-runtime.sql`
+no SQL Editor (não cria tabela — não precisa de policy nova) e depois testar
+loja/box em `catchbound.vercel.app`. As 15 pedras também exigem os 3
+`content/world/shops/*.json` atualizados; em produção a loja seeda o que
+faltar via `ensureShopSeeded` (que agora roda com loja já semeada).
+
 ---
 
 ## 4. Passo a passo de validação da última etapa
@@ -1944,6 +1994,46 @@ mantenedor: colar o SQL, conferir `/api/health` → `emailVerification: "ok"`
 e refazer o cadastro (o mesmo usuário/e-mail/senha de hoje já funciona: o
 servidor reconhece a conta pendente e só reenvia o código).
 
+### 4.28 Fase 6.4-B — Johto + pedras de evolução (2026-09-06, sandbox)
+
+Comandos reais executados e saída observada (banco local em `.pgdata/`,
+PostgreSQL 18.4):
+
+```
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npm run db:generate
+→ [✓] drizzle/0007_flowery_next_avengers.sql (14 colunas + check não-negativa)
+
+DATABASE_URL="..." npm run db:migrate
+→ [✓] migrations applied successfully
+
+DATABASE_URL="..." npm run world:seed
+→ [world:seed] 20 criado(s), 0 atualizado(s), 20 mapa(s) no total
+DATABASE_URL="..." npm run world:export
+→ [world:export] 20 mapa(s), 3 ginásio(s), 25 item(ns) de loja
+   (0 criado, 17 atualizado, 6 igual)
+
+DATABASE_URL="..." npm run test
+→ Test Files 18 passed · Tests 257 passed
+
+DATABASE_URL="..." npm run test:integration
+→ Test Files 8 passed · Tests 100 passed
+   (novos: Pikachu+thunderStone via /api/pokemon/manage consome e persiste;
+    item errado → 400 e não consome)
+
+DATABASE_URL="..." npm run check
+→ lint ok · typecheck ok · 257 unit + build ok (exit 0)
+```
+
+Notas:
+- `POKEDEX` total = **254** (151 Kanto + 100 Johto + 282/384/448). A soma do
+  mundo também fecha em 254 (cada espécie em exatamente um mapa).
+- Mapa 1 permaneceu intocado (contrato 6.2-C); os pesos das tabelas 2–20 foram
+  reequilibrados para caber os Johto novos com soma 100 por mapa.
+- Lendários Johto (Raikou/Entei/Suicune/Lugia/Ho-Oh/Celebi) no mapa 20, peso 3.
+- Não validado aqui: compra de pedra pelo navegador e UI do Pokémon Box (a
+  rota e as lojas estão cobertas por integração; a passada visual é do
+  mantenedor).
+
 ## 5. Qual a próxima etapa a ser aplicada
 
 ### ✅ Fase 5.1 encerrada — a próxima etapa é a FASE 6
@@ -2064,9 +2154,12 @@ mapa da vez) corta o grind da validação em uns 15 min.
 
 **Decisão de rumo para a próxima fase** (com o mantenedor):
 
-- **6.4 restante**: espécies de **Johto e além** (sprites animados até o id
-  649) e **pedras de evolução na loja** (trocariam os gatilhos `// pedra`
-  provisórios de nível por `item`);
+- **6.4-B (Johto + pedras)** já implementada no branch
+  `arena/01a0782e-pokeeeee` e validada no sandbox (§3/§4.28) — falta só o
+  SQL 0007 em produção e a passada visual. **Falta abrir o PR** para essa
+  branch (sem commit ainda).
+- **6.4 além**: sprites animados existem até o id 649 — dar continuidade com
+  Hoenn (252–386) seria o próximo lote;
 - ou pular para **6.5 status** (paralisia/queimadura/veneno) → 6.6 PvP →
   6.7 NPCs (6.8 premium bloqueado até rebranding).
 
@@ -2132,7 +2225,8 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Merge do PR #8** — rebrand CATCHBOUND + confirmação de e-mail + sync de docs de ativação/handoff → `main` (commit `71c40f1`, CI 100% verde) | ✅ Mergido · ⬜ validação pós-deploy pelo mantenedor (e-mail real + passada no navegador) | `docs/PROMPT-NOVA-CONVERSA.md` (handoff da próxima conversa) |
 | 2026-09-06 | **Incidente pós-merge** — cadastro em produção → "Falha na autenticação" (RLS sem policy na tabela `email_verification_codes`; conta presa; erro mascarado). Fix: SQL companheiro `docs/supabase-production-0006-runtime.sql` + cadastro atômico + reenvio para conta pendente + `/api/health.emailVerification` + mensagem de erro honesta | ✅ Reproduzido e corrigido no sandbox · ⬜ SQL em produção pelo mantenedor | 18/250 unit · 8/98 integração · §4.27 |
 | 2026-09-06 | **Merge do PR #9** — fix do incidente do cadastro em produção (`arena/01a077fb-pokeeeee` → `main`, commit `6c18858`) | ✅ Mergeado · CI do run `34053895267` verde · ⬜ validação de produção pelo mantenedor (SQL + e-mail real) | `gh pr show 9` · §3/§4.27 |
-| — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
+| 2026-09-06 | **Fase 6.4-B** — catálogo Johto (98 espécies novas; Pokédex 156 → 254) + pedras/evolução por item (14 itens, schema 0007, lojas 1–3, `/api/pokemon/manage`) + redistribuição das 98 no mundo | ✅ Concluída e validada no sandbox · ⬜ commit/PR · ⬜ SQL `0007` em produção + passada visual | 18/257 unit · 8/100 integração · `docs/supabase-production-0007-runtime.sql` · §3/§4.28 |
+| — | **Fase 6.4 (próximo lote)** — Hoenn e além (sprites animados existem até id 649) + decisão entre 6.5 status | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

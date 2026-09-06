@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Mewtwo",
-      "weight": 10,
+      "weight": 9,
       "maxLevel": 90,
       "minLevel": 82,
       "pokedexId": 150,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Ditto",
-      "weight": 10,
+      "weight": 9,
       "maxLevel": 89,
       "minLevel": 80,
       "pokedexId": 132,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Gengar",
-      "weight": 18,
+      "weight": 17,
       "maxLevel": 87,
       "minLevel": 78,
       "pokedexId": 94,
@@ -35,7 +35,7 @@
     },
     {
       "name": "Alakazam",
-      "weight": 16,
+      "weight": 15,
       "maxLevel": 87,
       "minLevel": 78,
       "pokedexId": 65,
@@ -43,7 +43,7 @@
     },
     {
       "name": "Rhydon",
-      "weight": 18,
+      "weight": 17,
       "maxLevel": 87,
       "minLevel": 78,
       "pokedexId": 112,
@@ -51,7 +51,7 @@
     },
     {
       "name": "Steelix",
-      "weight": 16,
+      "weight": 15,
       "maxLevel": 87,
       "minLevel": 78,
       "pokedexId": 208,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Muk",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 90,
       "minLevel": 82,
       "pokedexId": 89,
@@ -67,10 +67,26 @@
     },
     {
       "name": "Weezing",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 90,
       "minLevel": 82,
       "pokedexId": 110,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tyranitar",
+      "weight": 4,
+      "maxLevel": 90,
+      "minLevel": 84,
+      "pokedexId": 248,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Blissey",
+      "weight": 4,
+      "maxLevel": 90,
+      "minLevel": 84,
+      "pokedexId": 242,
       "tileTypes": ["tall_grass"]
     }
   ],

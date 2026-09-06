@@ -11,39 +11,39 @@
   "encounterTable": [
     {
       "name": "Seel",
-      "weight": 16,
-      "maxLevel": 49,
-      "minLevel": 42,
+      "weight": 13,
+      "maxLevel": 51,
+      "minLevel": 44,
       "pokedexId": 86,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Dewgong",
-      "weight": 14,
-      "maxLevel": 49,
-      "minLevel": 42,
+      "weight": 12,
+      "maxLevel": 51,
+      "minLevel": 44,
       "pokedexId": 87,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Cloyster",
-      "weight": 10,
-      "maxLevel": 51,
-      "minLevel": 44,
+      "weight": 8,
+      "maxLevel": 52,
+      "minLevel": 46,
       "pokedexId": 91,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Jynx",
-      "weight": 14,
-      "maxLevel": 49,
-      "minLevel": 42,
+      "weight": 12,
+      "maxLevel": 51,
+      "minLevel": 44,
       "pokedexId": 124,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Lapras",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 52,
       "minLevel": 46,
       "pokedexId": 131,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Golduck",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 51,
       "minLevel": 44,
       "pokedexId": 55,
@@ -67,7 +67,7 @@
     },
     {
       "name": "Slowbro",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 51,
       "minLevel": 44,
       "pokedexId": 80,
@@ -75,10 +75,42 @@
     },
     {
       "name": "Wartortle",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 51,
       "minLevel": 44,
       "pokedexId": 8,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sneasel",
+      "weight": 4,
+      "maxLevel": 52,
+      "minLevel": 48,
+      "pokedexId": 215,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Swinub",
+      "weight": 4,
+      "maxLevel": 52,
+      "minLevel": 48,
+      "pokedexId": 220,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Delibird",
+      "weight": 4,
+      "maxLevel": 52,
+      "minLevel": 48,
+      "pokedexId": 225,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Smoochum",
+      "weight": 4,
+      "maxLevel": 52,
+      "minLevel": 48,
+      "pokedexId": 238,
       "tileTypes": ["tall_grass"]
     }
   ],

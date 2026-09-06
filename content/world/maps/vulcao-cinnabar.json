@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Charmeleon",
-      "weight": 24,
+      "weight": 20,
       "maxLevel": 57,
       "minLevel": 50,
       "pokedexId": 5,
@@ -19,23 +19,23 @@
     },
     {
       "name": "Ninetales",
-      "weight": 14,
-      "maxLevel": 57,
-      "minLevel": 50,
+      "weight": 12,
+      "maxLevel": 59,
+      "minLevel": 52,
       "pokedexId": 38,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Arcanine",
-      "weight": 14,
-      "maxLevel": 57,
-      "minLevel": 50,
+      "weight": 12,
+      "maxLevel": 59,
+      "minLevel": 52,
       "pokedexId": 59,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Rapidash",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 57,
       "minLevel": 50,
       "pokedexId": 78,
@@ -43,7 +43,7 @@
     },
     {
       "name": "Magmar",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 57,
       "minLevel": 50,
       "pokedexId": 126,
@@ -51,7 +51,7 @@
     },
     {
       "name": "Flareon",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 59,
       "minLevel": 52,
       "pokedexId": 136,
@@ -59,10 +59,42 @@
     },
     {
       "name": "Moltres",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 60,
       "minLevel": 52,
       "pokedexId": 146,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Typhlosion",
+      "weight": 4,
+      "maxLevel": 60,
+      "minLevel": 56,
+      "pokedexId": 157,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ampharos",
+      "weight": 4,
+      "maxLevel": 60,
+      "minLevel": 56,
+      "pokedexId": 181,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magcargo",
+      "weight": 4,
+      "maxLevel": 60,
+      "minLevel": 56,
+      "pokedexId": 219,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magby",
+      "weight": 3,
+      "maxLevel": 60,
+      "minLevel": 56,
+      "pokedexId": 240,
       "tileTypes": ["tall_grass"]
     }
   ],
