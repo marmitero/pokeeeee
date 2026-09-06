@@ -93,6 +93,59 @@ describe("cadastro", () => {
 });
 
 describe("login de conta não confirmada", () => {
+  it("cadastro repetido de conta PENDENTE (mesmo usuário/e-mail/senha) só reenvia o código", async () => {
+    // Cenário do incidente de produção (2026-09-06): jogador não recebeu o
+    // código (ou o cadastro falhou no meio) e tenta CRIAR CONTA de novo.
+    const username = `evagain${Date.now()}`;
+    const { email, r } = await registerClient(username);
+    const firstCode = (r.body as { devCode: string }).devCode;
+
+    // Ainda dentro do cooldown de 60 s → 429, sem criar conta duplicada.
+    const tooSoon = await client().call("/api/auth", {
+      body: { action: "register", username, email, password: TEST_PASSWORD, starterId: 4 },
+    });
+    expect(tooSoon.status).toBe(429);
+    expect(JSON.stringify(tooSoon.body)).toContain("aguarda confirmação");
+
+    await db
+      .update(emailVerificationCodes)
+      .set({ lastSentAt: new Date(Date.now() - 61_000) })
+      .where(eq(emailVerificationCodes.email, email));
+
+    const again = await client().call("/api/auth", {
+      body: { action: "register", username, email, password: TEST_PASSWORD, starterId: 4 },
+    });
+    expect(again.status).toBe(200);
+    const body = again.body as { verified: boolean; devCode: string; message: string };
+    expect(body.verified).toBe(false);
+    expect(body.devCode).toMatch(/^\d{6}$/);
+    expect(body.devCode).not.toBe(firstCode);
+    expect(body.message).toContain("já existia");
+
+    // Uma única conta e um único inicial.
+    const rows = await db.select().from(users).where(eq(users.username, username));
+    expect(rows).toHaveLength(1);
+    const party = await db
+      .select()
+      .from(userPokemon)
+      .where(eq(userPokemon.userId, rows[0].id));
+    expect(party).toHaveLength(1);
+
+    // Senha errada NÃO ganha o atalho: é tratado como nome já registrado.
+    const wrongPass = await client().call("/api/auth", {
+      body: { action: "register", username, email, password: "outraSenha123", starterId: 4 },
+    });
+    expect(wrongPass.status).toBe(400);
+    expect(JSON.stringify(wrongPass.body)).toContain("já está registrado");
+
+    // O novo código confirma e loga.
+    const c = client();
+    const ok = await c.call("/api/auth", {
+      body: { action: "verify_email", email, code: body.devCode },
+    });
+    expect(ok.status).toBe(200);
+  });
+
   it("trava com 403 e orienta a confirmar o e-mail", async () => {
     const username = `evpend${Date.now()}`;
     await registerClient(username);

@@ -40,6 +40,8 @@
 | 11 | **Vitrine de sprites (6.3-A)**: abrir o Pacote de Sprites e conferir que lista 156 espécies × 6 variantes (936 sprites) sem quebrados — em especial Drowzee/Hypno/Krabby/Kingler shiny | Botão de sprites no HUD | Fase 6.3-A |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
+| 12 | **Cadastro com e-mail real em produção (pós-incidente 2026-09-06)**: após colar `docs/supabase-production-0006-runtime.sql`, `/api/health` → `emailVerification:"ok"`, criar conta → tela de código → e-mail chega → entrar | catchbound.vercel.app | Incidente §4.27 |
+>
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
 > **Dica (2026-09-06):** para os itens #9–#11 e a cadeia de mapas, o painel
@@ -104,7 +106,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a07639-pokeeeee`
+**Branch da sessão atual:** `arena/01a077fb-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -343,6 +345,47 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### 🚑 Incidente pós-merge — cadastro em produção respondia "Falha na autenticação" (2026-09-06)
+
+**Sintoma (mantenedor, produção):** ao criar conta nova, em vez da tela
+"CONFIRME SEU E-MAIL" aparecia `Falha na autenticação.`; nenhum e-mail chegou.
+
+**Causa-raiz (reproduzida em sandbox com build de produção + papel
+`catchbound_runtime` + RLS, §4.27):** a migration 0006 cria a tabela
+`email_verification_codes`, mas em produção **todas as tabelas têm RLS ligado
+e o papel de runtime só opera onde existe policy própria**
+(`docs/supabase-production-runtime-role.sql` lista as 11 tabelas antigas —
+a nova não está lá). O `INSERT` do código falhou com `42501 new row violates
+row-level security policy` (ou `permission denied`, se os default privileges
+não cobriram). Dois agravantes de código:
+1. o `catch` da rota usava `GENERIC_AUTH_ERROR` como fallback de **erro
+   inesperado** → incidente de infraestrutura apareceu como senha errada;
+2. usuário + inicial eram gravados **antes** do código, fora de transação →
+   conta "presa" (existe, não verificada, sem código, e o mesmo username /
+   e-mail passam a ser recusados como duplicados).
+
+**Correção (2 partes):**
+- **Banco (mantenedor, SQL Editor):** `docs/supabase-production-0006-runtime.sql`
+  — RLS + grants + policy `catchbound_runtime_all` (e `catchbound_backup_select`)
+  na tabela nova, registro da 0006 no journal Drizzle; idempotente, com
+  pré-condições e tabela final de conferência.
+- **Código:** cadastro **atômico** (`db.transaction`: usuário + inicial +
+  código; envio do e-mail fora da transação); fallback de erro inesperado
+  passa a ser `GENERIC_SERVER_ERROR` ("Erro interno ao processar…") — `Falha
+  na autenticação.` fica só para usuário/senha; **cadastro repetido de conta
+  pendente** (mesmo usuário + e-mail + senha correta) não é mais "duplicado":
+  só reenvia o código (respeitando o cooldown de 60 s) — resolve as contas
+  presas de hoje sem SQL; `/api/health` ganhou `emailVerification: ok |
+  unavailable` (sonda via `has_table_privilege` + `pg_policies`, sem vazar
+  detalhes) para este tipo de falha ser visível de fora.
+- Teste novo de integração (cadastro repetido de pendente: 429 no cooldown →
+  200 com código novo → senha errada recusada → única conta/único inicial).
+
+**Regra nova de protocolo:** toda migration que **cria tabela** precisa de um
+SQL companheiro em `docs/` com RLS + grants + policies para
+`catchbound_runtime`/`catchbound_backup` — e ele é pré-requisito do merge
+junto com a própria migration. Validação em **§4.27**.
 
 ### ✅ Confirmação de e-mail no cadastro + rebrand final (título, description, cookies) (2026-09-06)
 
@@ -1846,6 +1889,52 @@ sairá) e a aparência do passo "CONFIRME SEU E-MAIL" no navegador (mantenedor
 
 ---
 
+### 4.27 Incidente do cadastro em produção — reprodução e correção (2026-09-06, sandbox)
+
+Produção não é alcançável do sandbox; o cenário foi **reconstruído localmente**:
+build de produção (`NODE_ENV=production`, SMTP configurado com credencial
+falsa), banco local com migrations 0000–0006, RLS ligado nas 11 tabelas do
+bootstrap e o papel `catchbound_runtime` criado pelo script oficial
+(`docs/supabase-production-runtime-role.sql`).
+
+```
+# 1) Estado de produção ANTES da correção (tabela nova sem policy):
+ALTER TABLE email_verification_codes ENABLE ROW LEVEL SECURITY;   -- como no Supabase
+POST /api/auth {action:register, username:probe2, email:probe2@example.com, ...}
+→ HTTP 500 {"error":"Falha na autenticação."}          ← EXATAMENTE o sintoma
+log: [auth] Error: Failed query: insert into "email_verification_codes" ...
+     [cause]: error: new row violates row-level security policy for table
+     "email_verification_codes"  code: '42501'
+SELECT username, email_verified FROM users WHERE username='probe2'
+→ [{"username":"probe2","email":"probe2@example.com","email_verified":false}]  ← conta PRESA
+
+# variante sem grant (default privileges não cobriram):
+→ HTTP 500 {"error":"Falha na autenticação."} · log: permission denied for table email_verification_codes
+
+# 2) Código corrigido, MESMO banco quebrado:
+GET  /api/health → {"ok":true,"emailVerification":"unavailable"}    ← agora visível
+POST register     → HTTP 500 {"error":"Erro interno ao processar a solicitação. Tente novamente em instantes."}
+SELECT count(*) FROM users WHERE username='probe4' → 0            ← transação: nada preso
+
+# 3) SQL companheiro aplicado (docs/supabase-production-0006-runtime.sql), 2× (idempotente):
+→ [{"rls_on":true,"runtime_privs":"4","runtime_policy":"1","backup_policy":"0","migrations":"7","unverified_users":"0"}]
+GET  /api/health → {"ok":true,"emailVerification":"ok"}
+POST register     → HTTP 503 "Confirmação por e-mail indisponível…"  (SMTP falso: esperado)
+SELECT … → [{"username":"probe5","email_verified":false,"codigos":"1"}]  ← conta + código gravados
+
+# 4) Suítes
+npx tsc --noEmit                → 0 erros
+npm run lint                    → limpo
+npm run test                    → Test Files 18 passed · Tests 250 passed
+npm run test:integration        → Test Files 8 passed · Tests 98 passed (97 + 1 novo)
+npm run build                   → ✓ Compiled successfully
+```
+
+**Não validado aqui (sandbox sem egress):** produção real. Fica para o
+mantenedor: colar o SQL, conferir `/api/health` → `emailVerification: "ok"`
+e refazer o cadastro (o mesmo usuário/e-mail/senha de hoje já funciona: o
+servidor reconhece a conta pendente e só reenvia o código).
+
 ## 5. Qual a próxima etapa a ser aplicada
 
 ### ✅ Fase 5.1 encerrada — a próxima etapa é a FASE 6
@@ -1945,6 +2034,16 @@ do e-mail estilizado (inclusive spam, remetente novo) — o remetente visível
 é "Catchbound" (display name da `SMTP_FROM`). Handoff da próxima conversa:
 `docs/PROMPT-NOVA-CONVERSA.md`.
 
+**🚑 PRIMEIRO (bloqueia o cadastro em produção, 2026-09-06 — §3/§4.27):**
+1. SQL Editor do Supabase (produção): colar e executar
+   `docs/supabase-production-0006-runtime.sql` → última linha deve mostrar
+   `rls_on=true · runtime_privs=4 · runtime_policy=1 · migrations=7`;
+2. Após o deploy deste branch: `https://catchbound.vercel.app/api/health`
+   → `{"ok":true,"emailVerification":"ok"}`;
+3. Criar conta de novo (pode ser o mesmo usuário/e-mail/senha de hoje) →
+   tela "CONFIRME SEU E-MAIL" → código chega (checar spam) → entrar.
+   Se ainda falhar: log da função na Vercel (`[auth]` mostra a query/causa).
+
 **Para a passada no navegador (itens #9–#11 + cadeia 3→20):** o painel
 `/admin` tem a seção **FERRAMENTAS GM** (admin-only, §4.24) — logar como
 admin e usar "subir nível" (16/36 p/ evolução), "dar Pokémon" (time forte
@@ -2019,6 +2118,7 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Confirmação de e-mail no cadastro** (e-mail real do jogador + código de 6 dígitos, e-mail HTML estilizado, reenvio/cooldown) + rebrand final (título, description sem Deluge, `catchbound_session`/`catchbound_token`) | ✅ Concluída e validada | 18/250 unit · 8/97 integração · migration 0006 · ⚠️ produção: aplicar migration + envs SMTP ANTES do merge · §4.26 |
 | 2026-09-06 | **Ativação do mundo em PRODUÇÃO** — workflow `World activation`: 4 ajustes (`Invalid URL`/GITHUB_ENV → TLS self-signed → fix verify-full+CA `dca8645` → no-op ✅) e `APLICAR-production` ✅ — 20 mapas + rebalance no banco de produção | ✅ Ativado e conferido | run `34043394359` · `SELECT count(*) FROM game_maps` = 20 · `docs/RELATORIO-POS-ATIVACAO.md` · §4.21–4.23 |
 | 2026-09-06 | **Merge do PR #8** — rebrand CATCHBOUND + confirmação de e-mail + sync de docs de ativação/handoff → `main` (commit `71c40f1`, CI 100% verde) | ✅ Mergido · ⬜ validação pós-deploy pelo mantenedor (e-mail real + passada no navegador) | `docs/PROMPT-NOVA-CONVERSA.md` (handoff da próxima conversa) |
+| 2026-09-06 | **Incidente pós-merge** — cadastro em produção → "Falha na autenticação" (RLS sem policy na tabela `email_verification_codes`; conta presa; erro mascarado). Fix: SQL companheiro `docs/supabase-production-0006-runtime.sql` + cadastro atômico + reenvio para conta pendente + `/api/health.emailVerification` + mensagem de erro honesta | ✅ Reproduzido e corrigido no sandbox · ⬜ SQL em produção pelo mantenedor | 18/250 unit · 8/98 integração · §4.27 |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
