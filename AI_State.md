@@ -1120,7 +1120,9 @@ O que mudou:
 ### ✅ FASE 6.4-B — Johto (152–251) no catálogo + pedras de evolução na loja (2026-09-06)
 
 **Objetivo:** fechar as duas partes restantes da 6.4 — catálogo Johto e itens
-de evolução. Entrega no branch `arena/01a0782e-pokeeeee` (sem commit ainda).
+de evolução. Entrega no branch `arena/01a0782e-pokeeeee`, commit
+`2e2c1dc` (pushado) e **PR #10 aberto** (`feat(6.4-b): catálogo Johto +
+pedras de evolução`).
 
 **O que entrou:**
 
@@ -2154,10 +2156,10 @@ mapa da vez) corta o grind da validação em uns 15 min.
 
 **Decisão de rumo para a próxima fase** (com o mantenedor):
 
-- **6.4-B (Johto + pedras)** já implementada no branch
-  `arena/01a0782e-pokeeeee` e validada no sandbox (§3/§4.28) — falta só o
-  SQL 0007 em produção e a passada visual. **Falta abrir o PR** para essa
-  branch (sem commit ainda).
+- **6.4-B (Johto + pedras)** implementada no branch
+  `arena/01a0782e-pokeeeee`, commit `2e2c1dc`, **PR #10 aberto** e validada
+  no sandbox (§3/§4.28) — falta só o SQL 0007 em produção e a passada
+  visual.
 - **6.4 além**: sprites animados existem até o id 649 — dar continuidade com
   Hoenn (252–386) seria o próximo lote;
 - ou pular para **6.5 status** (paralisia/queimadura/veneno) → 6.6 PvP →
@@ -2225,7 +2227,7 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Merge do PR #8** — rebrand CATCHBOUND + confirmação de e-mail + sync de docs de ativação/handoff → `main` (commit `71c40f1`, CI 100% verde) | ✅ Mergido · ⬜ validação pós-deploy pelo mantenedor (e-mail real + passada no navegador) | `docs/PROMPT-NOVA-CONVERSA.md` (handoff da próxima conversa) |
 | 2026-09-06 | **Incidente pós-merge** — cadastro em produção → "Falha na autenticação" (RLS sem policy na tabela `email_verification_codes`; conta presa; erro mascarado). Fix: SQL companheiro `docs/supabase-production-0006-runtime.sql` + cadastro atômico + reenvio para conta pendente + `/api/health.emailVerification` + mensagem de erro honesta | ✅ Reproduzido e corrigido no sandbox · ⬜ SQL em produção pelo mantenedor | 18/250 unit · 8/98 integração · §4.27 |
 | 2026-09-06 | **Merge do PR #9** — fix do incidente do cadastro em produção (`arena/01a077fb-pokeeeee` → `main`, commit `6c18858`) | ✅ Mergeado · CI do run `34053895267` verde · ⬜ validação de produção pelo mantenedor (SQL + e-mail real) | `gh pr show 9` · §3/§4.27 |
-| 2026-09-06 | **Fase 6.4-B** — catálogo Johto (98 espécies novas; Pokédex 156 → 254) + pedras/evolução por item (14 itens, schema 0007, lojas 1–3, `/api/pokemon/manage`) + redistribuição das 98 no mundo | ✅ Concluída e validada no sandbox · ⬜ commit/PR · ⬜ SQL `0007` em produção + passada visual | 18/257 unit · 8/100 integração · `docs/supabase-production-0007-runtime.sql` · §3/§4.28 |
+| 2026-09-06 | **Fase 6.4-B** — catálogo Johto (98 espécies novas; Pokédex 156 → 254) + pedras/evolução por item (14 itens, schema 0007, lojas 1–3, `/api/pokemon/manage`) + redistribuição das 98 no mundo | ✅ Concluída e validada no sandbox · commit `2e2c1dc` · **PR #10** · ⬜ SQL `0007` em produção + passada visual | 18/257 unit · 8/100 integração · `docs/supabase-production-0007-runtime.sql` · §3/§4.28 |
 | — | **Fase 6.4 (próximo lote)** — Hoenn e além (sprites animados existem até id 649) + decisão entre 6.5 status | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

@@ -38,13 +38,14 @@ ESTADO ATUAL (2026-09-06, noite — pós-incidente do cadastro e pós-merge do P
 - Painel /admin com FERRAMENTAS GM (admin-only) para a validação manual.
 - Rebrand CATCHBOUND feito nas strings visíveis + título/description sem
   Deluge + cookies catchbound_session/catchbound_token.
-- **Fase 6.4-B quase fechada (branch arena/01a0782e-pokeeeee, sem commit/PR):**
+- **Fase 6.4-B fechada (branch arena/01a0782e-pokeeeee, commit 2e2c1dc,
+  PR #10 aberto):**
   catálogo Johto 152–251 (98 espécies novas; Pokédex 156 → 254), pedras de
   evolução por item (14 itens), migration 0007 (`users` com 14 colunas +
   check), lojas 1–3 com 15 itens, `/api/pokemon/manage.use_item` evoluindo com
   débito transacional e 98 espécies Johto distribuídas nos 20 mapas.
   Sandbox verde: 257 unit + 100 integração + build.
-  Falta: commit/PR e **colar docs/supabase-production-0007-runtime.sql** em
+  Falta: **colar docs/supabase-production-0007-runtime.sql** em
   produção (não cria tabela → não precisa policy nova) + passada visual
   (comprar Pedra de Trovão e evoluir Pikachu no Box).
 
@@ -75,12 +76,12 @@ O QUE CONFERIR PRIMEIRO (nesta ordem):
 DE ONDE PARTIR (decisões pendentes com o mantenedor):
 - Mantenedor pediu: primeiro fechar o e-mail; depois ELE testa GM +
   evolução no navegador; só então decidir o rumo abaixo.
-- 6.4-B (Johto + pedras) já está implementada e verde no sandbox — o
-  próximo passo natural é **abrir o PR** da branch
-  `arena/01a0782e-pokeeeee` e depois decidir: próximo lote de espécies
-  (Hoenn 252–386, sprites animados existem até id 649) OU pular para
-  6.5 status (paralisia/queimadura/veneno) → 6.6 PvP ranqueado →
-  6.7 NPCs. 6.8 premium segue BLOQUEADO até o rebranding completo.
+- 6.4-B (Johto + pedras) já está implementada, verde no sandbox e com
+  **PR #10 aberto** (`arena/01a0782e-pokeeeee` → `main`). Depois do merge +
+  SQL 0007, decidir: próximo lote de espécies (Hoenn 252–386, sprites
+  animados existem até id 649) OU pular para 6.5 status
+  (paralisia/queimadura/veneno) → 6.6 PvP ranqueado → 6.7 NPCs.
+  6.8 premium segue BLOQUEADO até o rebranding completo.
 - Rebranding completo ainda pendente ANTES de divulgação/monetização:
   identificadores internos (computeDelugeStats, DelugeRPGPage…),
   package.json (name "deluge-rpg"), README/docs, e o nome/sprites Pokémon
