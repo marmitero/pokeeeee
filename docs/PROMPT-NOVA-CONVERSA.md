@@ -1,8 +1,8 @@
 # Prompt para a próxima conversa (copiar e colar como 1ª mensagem)
 
-> Este arquivo é o handoff de **2026-09-06**, após o merge da branch
-> `arena/01a07776-pokeeeee` (GM + rebrand + confirmação de e-mail + sync de
-> docs) e a ativação do mundo em produção. Atualize este arquivo ao final de
+> Este arquivo é o handoff de **2026-09-06 (noite)**, após o merge do PR #8
+> (GM + rebrand + confirmação de e-mail) e a rodada de **incidente do
+> cadastro em produção** (branch `arena/01a077fb-pokeeeee`). Atualize este arquivo ao final de
 > cada nova rodada (mesma função que o histórico do `AI_State.md`).
 
 ```
@@ -11,7 +11,18 @@ marmitero/pokeeeee — Next.js + Drizzle/Postgres + Supabase; produção em
 https://catchbound.vercel.app). Comece LENDO AI_State.md por completo
 (regra do protocolo) e depois docs/RELATORIO-POS-ATIVACAO.md.
 
-ESTADO ATUAL (2026-09-06, pós-merge):
+ESTADO ATUAL (2026-09-06, noite — pós-incidente do cadastro):
+- 🚑 INCIDENTE: após o merge do PR #8, criar conta em produção devolvia
+  "Falha na autenticação" e nenhum e-mail saía. Causa (reproduzida em
+  sandbox, AI_State §4.27): a tabela nova email_verification_codes nasce
+  com RLS em produção e o papel catchbound_runtime não tinha policy/grant
+  nela → INSERT do código falhava (42501); conta ficava "presa" e o erro
+  era mascarado como falha de login. CORREÇÃO: (a) SQL companheiro
+  docs/supabase-production-0006-runtime.sql (mantenedor cola no SQL Editor);
+  (b) código: cadastro atômico em transação, cadastro repetido de conta
+  pendente só reenvia o código, /api/health expõe emailVerification:
+  ok|unavailable, erro inesperado não diz mais "Falha na autenticação".
+  Branch arena/01a077fb-pokeeeee (PR a abrir/mergear).
 - Produção ATIVA com o mundo 1–20 (20 mapas + rebalance) no banco do
   Supabase — aplicado via workflow "World activation" (run 34043394359).
 - Cadastro com CONFIRMAÇÃO DE E-MAIL: jogador informa seu e-mail real,
@@ -25,10 +36,16 @@ ESTADO ATUAL (2026-09-06, pós-merge):
   Deluge + cookies catchbound_session/catchbound_token.
 
 O QUE CONFERIR PRIMEIRO (nesta ordem):
-1. E-MAIL REAL em produção: o mantenedor registrou (ou vai registrar) uma
-   conta em catchbound.vercel.app com e-mail dele — perguntar se chegou
-   (inclusive SPAM; remetente novo pode demorar alguns envios para
-   "esquentar"). Se não chegou, checar logs da função na Vercel
+0. O mantenedor colou docs/supabase-production-0006-runtime.sql no SQL
+   Editor de produção? (última linha: rls_on=true, runtime_privs=4,
+   runtime_policy=1, migrations=7). O PR do fix foi mergeado/deployado?
+   https://catchbound.vercel.app/api/health deve responder
+   {"ok":true,"emailVerification":"ok"} — "unavailable" = SQL não aplicado.
+1. E-MAIL REAL em produção: criar conta de novo (mesmo usuário/e-mail/senha
+   de antes já serve — o servidor reconhece a conta pendente e reenvia o
+   código) → tela "CONFIRME SEU E-MAIL" → código chega (inclusive SPAM;
+   remetente novo pode demorar alguns envios para "esquentar") → entrar.
+   Se não chegou, checar logs da função na Vercel
    (linha "[auth] falha ao enviar e-mail de confirmação").
 2. Jogo em produção após o deploy: /api/health, /api/maps (20), tela de
    login com CATCHBOUND + campo E-MAIL, fluxo cadastro→código→entrar.
@@ -38,6 +55,8 @@ O QUE CONFERIR PRIMEIRO (nesta ordem):
    subir nível 16/36, dar Pokémon, teleportar).
 
 DE ONDE PARTIR (decisões pendentes com o mantenedor):
+- Mantenedor pediu: primeiro fechar o e-mail; depois ELE testa GM +
+  evolução no navegador; só então decidir o rumo abaixo.
 - 6.4 restante: espécies de Johto e além (sprites animados existem até o
   id 649) + pedras de evolução na loja (trocariam gatilhos // pedra de
   nível por item) — OU pular para 6.5 status (paralisia/queimadura/veneno)
@@ -67,6 +86,16 @@ PROTOTOLO E ARMADILHAS (não refazer o que já se sabe):
 - Migrações: drizzle/0000–0006; em produção a aplicação é MANUAL no SQL
   Editor do Supabase (o vercel.json não roda migration em build) — qualquer
   nova migration vira pré-requisito do próximo merge.
+- REGRA NOVA (incidente 2026-09-06): produção tem RLS em TODAS as tabelas e
+  o papel catchbound_runtime só opera onde há policy própria. Toda migration
+  que CRIA TABELA precisa de um SQL companheiro em docs/ (modelo:
+  docs/supabase-production-0006-runtime.sql) com ENABLE RLS + GRANT +
+  CREATE POLICY para catchbound_runtime (e SELECT p/ catchbound_backup),
+  e o /api/health deve continuar sondando o que o cadastro precisa.
+- Simular produção no sandbox: build + NODE_ENV=production + banco local
+  com RLS nas tabelas + papel runtime criado pelo script oficial
+  (docs/supabase-production-runtime-role.sql) + SMTP_* fictício. Foi assim
+  que o incidente foi reproduzido (§4.27).
 - Segredos nunca para chat/log; .env nunca commitado.
 ```
 

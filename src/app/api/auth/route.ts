@@ -72,6 +72,9 @@ const AUTH_WINDOW_MS = 10 * 60 * 1000;
 
 const GENERIC_AUTH_ERROR = "Falha na autenticação.";
 
+const GENERIC_SERVER_ERROR =
+  "Erro interno ao processar a solicitação. Tente novamente em instantes.";
+
 const MAILER_UNAVAILABLE =
   "Confirmação por e-mail indisponível no momento. Tente mais tarde.";
 
@@ -122,7 +125,15 @@ async function issueAndDeliverCode(
   userId: number
 ): Promise<{ devCode?: string }> {
   const code = await issueVerificationCode(email, userId);
+  return deliverCode(email, username, code);
+}
 
+/** Entrega (e-mail real ou `devCode`) de um código já gravado. */
+async function deliverCode(
+  email: string,
+  username: string,
+  code: string
+): Promise<{ devCode?: string }> {
   if (!mailerConfigured()) {
     if (process.env.NODE_ENV !== "production") {
       console.info(`[auth] código de confirmação (dev) para ${email}: ${code}`);
@@ -178,17 +189,45 @@ export async function POST(req: Request) {
       const email = input.email; // já lowercased/trimmed pelo schema
 
       const existingUsername = await db
-        .select({ id: users.id })
+        .select()
         .from(users)
         .where(eq(users.username, username));
+      const existingEmail = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
+
+      // Conta PENDENTE (cadastro feito, e-mail nunca confirmado) com o mesmo
+      // usuário + e-mail + senha: não é "duplicada" — é o mesmo jogador
+      // tentando de novo (ex.: o e-mail não chegou, ou o cadastro anterior
+      // falhou depois de criar a conta). Só reenvia o código. A senha é
+      // exigida para ninguém "sequestrar" um cadastro pendente alheio.
+      const pending = existingUsername[0];
+      if (
+        pending &&
+        !pending.emailVerified &&
+        pending.email === email &&
+        existingEmail[0]?.id === pending.id &&
+        verifyPassword(input.password, pending.passwordHash)
+      ) {
+        const check = await resendAllowed(email);
+        if (!check.ok) {
+          throw tooManyRequests(
+            `Sua conta já existe e aguarda confirmação. Aguarde ${check.retryInSeconds}s para pedir um novo código.`
+          );
+        }
+        const { devCode } = await issueAndDeliverCode(email, username, pending.id);
+        return NextResponse.json({
+          user: publicUser(pending),
+          verified: false,
+          devCode,
+          message: `Sua conta já existia e aguardava confirmação. Novo código enviado para ${email}.`,
+        });
+      }
+
       if (existingUsername.length > 0) {
         throw badRequest("Este nome de treinador já está registrado.");
       }
-
-      const existingEmail = await db
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.email, email));
       if (existingEmail.length > 0) {
         throw badRequest(
           "Este e-mail já está vinculado a outra conta. Tente entrar com ele."
@@ -199,17 +238,6 @@ export async function POST(req: Request) {
         ? Number(input.starterId)
         : DEFAULT_STARTER_ID;
 
-      // Conta nasce **não verificada**: só loga depois do código do e-mail.
-      const [newUser] = await db
-        .insert(users)
-        .values({
-          username,
-          email,
-          passwordHash: hashPassword(input.password),
-          avatarSprite: input.avatarSprite || "red",
-        })
-        .returning();
-
       const species = getPokemonSpecies(starterId);
       // Iniciais sempre começam como variante Normal (não premium).
       const stats = computeDelugeStats(species, STARTER_LEVEL, "Normal");
@@ -217,28 +245,48 @@ export async function POST(req: Request) {
       // de jogo. Era daqui que saía o inicial nível 5 com Lança-Chamas.
       const starterMoves = movesAtLevel(species, STARTER_LEVEL);
 
-      await db.insert(userPokemon).values({
-        userId: newUser.id,
-        pokedexId: species.id,
-        name: species.name,
-        variant: "Normal",
-        isPremiumSkin: false,
-        level: STARTER_LEVEL,
-        xp: 0,
-        xpToNextLevel: xpToNextLevel(STARTER_LEVEL),
-        hp: stats.hp,
-        maxHp: stats.maxHp,
-        attack: stats.attack,
-        defense: stats.defense,
-        spAttack: stats.spAttack,
-        spDefense: stats.spDefense,
-        speed: stats.speed,
-        ...moveSlots(starterMoves),
-        partySlot: 1,
-        isStarter: true,
+      // Conta nasce **não verificada**: só loga depois do código do e-mail.
+      // Tudo numa transação: usuário + inicial + código gravados juntos ou
+      // nada. Antes (incidente de produção, 2026-09-06) a falha ao gravar o
+      // código deixava uma conta "presa" sem código e sem como confirmar.
+      // O envio do e-mail fica FORA da transação (rede lenta não segura lock).
+      const { newUser, code } = await db.transaction(async (tx) => {
+        const [created] = await tx
+          .insert(users)
+          .values({
+            username,
+            email,
+            passwordHash: hashPassword(input.password),
+            avatarSprite: input.avatarSprite || "red",
+          })
+          .returning();
+
+        await tx.insert(userPokemon).values({
+          userId: created.id,
+          pokedexId: species.id,
+          name: species.name,
+          variant: "Normal",
+          isPremiumSkin: false,
+          level: STARTER_LEVEL,
+          xp: 0,
+          xpToNextLevel: xpToNextLevel(STARTER_LEVEL),
+          hp: stats.hp,
+          maxHp: stats.maxHp,
+          attack: stats.attack,
+          defense: stats.defense,
+          spAttack: stats.spAttack,
+          spDefense: stats.spDefense,
+          speed: stats.speed,
+          ...moveSlots(starterMoves),
+          partySlot: 1,
+          isStarter: true,
+        });
+
+        const issued = await issueVerificationCode(email, created.id, tx);
+        return { newUser: created, code: issued };
       });
 
-      const { devCode } = await issueAndDeliverCode(email, username, newUser.id);
+      const { devCode } = await deliverCode(email, username, code);
 
       // Sem sessão: a jornada começa em `verify_email`, que confirma e
       // já faz o login (cookie + bearer, quando aplicável).
@@ -400,7 +448,11 @@ export async function POST(req: Request) {
       token
     );
   } catch (err: unknown) {
-    return routeError(err, "auth", GENERIC_AUTH_ERROR);
+    // Erro inesperado (banco, permissão, etc.) NÃO pode virar "Falha na
+    // autenticação" — essa é a mensagem de usuário/senha errados e esconde
+    // incidentes de infraestrutura (2026-09-06: RLS sem policy em produção
+    // apareceu para o jogador como falha de login). O detalhe vai ao log.
+    return routeError(err, "auth", GENERIC_SERVER_ERROR);
   }
 }
 

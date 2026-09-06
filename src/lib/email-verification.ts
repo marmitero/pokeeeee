@@ -34,16 +34,28 @@ export {
   sendVerificationEmail,
 } from "./verification-email";
 
-/** Cria (ou substitui) o código do e-mail. Devolve o código em texto puro. */
-export async function issueVerificationCode(email: string, userId: number): Promise<string> {
+/** Executor aceito pelas funções: o `db` global ou uma transação aberta. */
+type Executor = Pick<typeof db, "select" | "insert" | "update" | "delete">;
+
+/**
+ * Cria (ou substitui) o código do e-mail. Devolve o código em texto puro.
+ * Aceita uma transação (`tx`) para o cadastro ser atômico: usuário + inicial
+ * + código gravados juntos ou nada (2026-09-06, incidente em produção —
+ * a tabela sem policy RLS deixava a conta criada e o código não).
+ */
+export async function issueVerificationCode(
+  email: string,
+  userId: number,
+  exec: Executor = db
+): Promise<string> {
   const code = generateVerificationCode();
   const now = new Date();
 
-  await db
+  await exec
     .delete(emailVerificationCodes)
     .where(eq(emailVerificationCodes.email, email));
 
-  await db.insert(emailVerificationCodes).values({
+  await exec.insert(emailVerificationCodes).values({
     email,
     userId,
     codeHash: hashVerificationCode(code),
