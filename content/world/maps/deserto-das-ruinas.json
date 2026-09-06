@@ -1,0 +1,141 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "deserto-das-ruinas",
+  "name": "Mapa 8: Deserto das Ruínas",
+  "description": "Dunas e ruínas enterradas (nv 34–44). Fósseis vivos, Graveler e Kangaskhan; Centro Pokémon no oásis.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Sandslash",
+      "weight": 14,
+      "maxLevel": 41,
+      "minLevel": 34,
+      "pokedexId": 28,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dugtrio",
+      "weight": 14,
+      "maxLevel": 41,
+      "minLevel": 34,
+      "pokedexId": 51,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Marowak",
+      "weight": 10,
+      "maxLevel": 43,
+      "minLevel": 36,
+      "pokedexId": 105,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Arbok",
+      "weight": 10,
+      "maxLevel": 43,
+      "minLevel": 36,
+      "pokedexId": 24,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Graveler",
+      "weight": 16,
+      "maxLevel": 41,
+      "minLevel": 34,
+      "pokedexId": 75,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kangaskhan",
+      "weight": 12,
+      "maxLevel": 43,
+      "minLevel": 36,
+      "pokedexId": 115,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tauros",
+      "weight": 12,
+      "maxLevel": 43,
+      "minLevel": 36,
+      "pokedexId": 128,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Pinsir",
+      "weight": 12,
+      "maxLevel": 43,
+      "minLevel": 36,
+      "pokedexId": 127,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p8-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "usina-volt",
+      "targetMapName": "Usina de Volt",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Usina de Volt"
+    },
+    {
+      "id": "p8-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "usina-volt",
+      "targetMapName": "Usina de Volt",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Usina de Volt"
+    },
+    {
+      "id": "p8-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "planicies-douradas",
+      "targetMapName": "Planícies Douradas",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Planícies Douradas"
+    },
+    {
+      "id": "p8-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "planicies-douradas",
+      "targetMapName": "Planícies Douradas",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Planícies Douradas"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "stone", "center", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

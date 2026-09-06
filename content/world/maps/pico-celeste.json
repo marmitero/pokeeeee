@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "pico-celeste",
   "name": "Mapa 3: Pico Celeste",
-  "description": "Santuário lendário com Rayquaza, Mewtwo e Dragonite. Ginásio do Lance (Dragão).",
+  "description": "Colinas rochosas na subida da montanha (nv 14–24). Ginásio do Lance (Dragão); ao norte começa a longa jornada até o mapa 20.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,43 +10,99 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Rayquaza",
-      "weight": 20,
-      "maxLevel": 55,
-      "minLevel": 35,
-      "pokedexId": 384,
+      "name": "Geodude",
+      "weight": 17,
+      "maxLevel": 21,
+      "minLevel": 14,
+      "pokedexId": 74,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Mewtwo",
-      "weight": 20,
-      "maxLevel": 55,
-      "minLevel": 35,
-      "pokedexId": 150,
+      "name": "Diglett",
+      "weight": 12,
+      "maxLevel": 23,
+      "minLevel": 16,
+      "pokedexId": 50,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Dragonite",
-      "weight": 25,
-      "maxLevel": 45,
-      "minLevel": 28,
-      "pokedexId": 149,
+      "name": "Sandshrew",
+      "weight": 10,
+      "maxLevel": 23,
+      "minLevel": 16,
+      "pokedexId": 27,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Charizard",
-      "weight": 20,
-      "maxLevel": 45,
-      "minLevel": 25,
-      "pokedexId": 6,
+      "name": "Machop",
+      "weight": 10,
+      "maxLevel": 23,
+      "minLevel": 16,
+      "pokedexId": 66,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gyarados",
-      "weight": 15,
-      "maxLevel": 44,
-      "minLevel": 26,
-      "pokedexId": 130,
+      "name": "Mankey",
+      "weight": 10,
+      "maxLevel": 23,
+      "minLevel": 16,
+      "pokedexId": 56,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidoran♀",
+      "weight": 9,
+      "maxLevel": 23,
+      "minLevel": 16,
+      "pokedexId": 29,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidoran♂",
+      "weight": 9,
+      "maxLevel": 23,
+      "minLevel": 16,
+      "pokedexId": 32,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidorina",
+      "weight": 5,
+      "maxLevel": 24,
+      "minLevel": 18,
+      "pokedexId": 30,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidorino",
+      "weight": 5,
+      "maxLevel": 24,
+      "minLevel": 18,
+      "pokedexId": 33,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Onix",
+      "weight": 5,
+      "maxLevel": 24,
+      "minLevel": 18,
+      "pokedexId": 95,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cubone",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 104,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rhyhorn",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 111,
       "tileTypes": ["tall_grass"]
     }
   ],
@@ -70,6 +126,26 @@
       "targetX": 14,
       "targetY": 8,
       "label": "Oeste → Floresta de Viridian"
+    },
+    {
+      "id": "p3-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "caverna-monte-lua",
+      "targetMapName": "Caverna do Monte Lua",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Caverna do Monte Lua"
+    },
+    {
+      "id": "p3-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "caverna-monte-lua",
+      "targetMapName": "Caverna do Monte Lua",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Caverna do Monte Lua"
     }
   ],
   "npcs": [
@@ -122,7 +198,7 @@
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
-    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tree"],

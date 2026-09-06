@@ -1,0 +1,141 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "pantano-venenoso",
+  "name": "Mapa 6: Pântano Venenoso",
+  "description": "Lama tóxica e névoa (nv 26–36). Grimer, Koffing e Gastly; Ivysaur medra no lodo.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Grimer",
+      "weight": 18,
+      "maxLevel": 33,
+      "minLevel": 26,
+      "pokedexId": 88,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Koffing",
+      "weight": 18,
+      "maxLevel": 33,
+      "minLevel": 26,
+      "pokedexId": 109,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gastly",
+      "weight": 12,
+      "maxLevel": 35,
+      "minLevel": 28,
+      "pokedexId": 92,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Venomoth",
+      "weight": 8,
+      "maxLevel": 36,
+      "minLevel": 30,
+      "pokedexId": 49,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gloom",
+      "weight": 12,
+      "maxLevel": 35,
+      "minLevel": 28,
+      "pokedexId": 44,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ivysaur",
+      "weight": 8,
+      "maxLevel": 36,
+      "minLevel": 30,
+      "pokedexId": 2,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tangela",
+      "weight": 12,
+      "maxLevel": 35,
+      "minLevel": 28,
+      "pokedexId": 114,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Poliwhirl",
+      "weight": 12,
+      "maxLevel": 35,
+      "minLevel": 28,
+      "pokedexId": 61,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p6-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "litoral-vermilion",
+      "targetMapName": "Litoral de Vermilion",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Litoral de Vermilion"
+    },
+    {
+      "id": "p6-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "litoral-vermilion",
+      "targetMapName": "Litoral de Vermilion",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Litoral de Vermilion"
+    },
+    {
+      "id": "p6-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "usina-volt",
+      "targetMapName": "Usina de Volt",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Usina de Volt"
+    },
+    {
+      "id": "p6-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "usina-volt",
+      "targetMapName": "Usina de Volt",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Usina de Volt"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "grass", "tree"],
+    ["tree", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "grass", "tree"],
+    ["tree", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "grass", "tree"],
+    ["tree", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "grass", "tree"],
+    ["tree", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

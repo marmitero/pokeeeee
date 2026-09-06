@@ -1,0 +1,117 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "torre-dos-espiritos",
+  "name": "Mapa 11: Torre dos Espíritos",
+  "description": "Andares silenciosos entre velas (nv 46–56). Haunter flanqueia; Hypno e Kadabra vigiam os corredores.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Haunter",
+      "weight": 24,
+      "maxLevel": 53,
+      "minLevel": 46,
+      "pokedexId": 93,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Hypno",
+      "weight": 22,
+      "maxLevel": 53,
+      "minLevel": 46,
+      "pokedexId": 97,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Drowzee",
+      "weight": 18,
+      "maxLevel": 53,
+      "minLevel": 46,
+      "pokedexId": 96,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mr. Mime",
+      "weight": 16,
+      "maxLevel": 53,
+      "minLevel": 46,
+      "pokedexId": 122,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kadabra",
+      "weight": 20,
+      "maxLevel": 53,
+      "minLevel": 46,
+      "pokedexId": 64,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p11-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "ilhas-glaciais",
+      "targetMapName": "Ilhas Glaciais",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Ilhas Glaciais"
+    },
+    {
+      "id": "p11-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "ilhas-glaciais",
+      "targetMapName": "Ilhas Glaciais",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Ilhas Glaciais"
+    },
+    {
+      "id": "p11-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "vulcao-cinnabar",
+      "targetMapName": "Vulcão de Cinnabar",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Vulcão de Cinnabar"
+    },
+    {
+      "id": "p11-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "vulcao-cinnabar",
+      "targetMapName": "Vulcão de Cinnabar",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Vulcão de Cinnabar"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

@@ -139,7 +139,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -284,6 +284,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.3 — Evolução no servidor (por nível, dirigida por dados, sem endpoint chamável)** ✅ 2026-09-06
 - [x] **FASE 6.3-A — Catálogo Kanto completo: 25 → 156 espécies, +11 golpes (Poison/Bug/Fairy), linhas fechadas** ✅ 2026-09-06
 - [x] **FASE 6.3-B — Golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies reescritos por tipo e raça** ✅ 2026-09-06
+- [x] **FASE 6.4-A — Mundo até o mapa 20: 17 mapas temáticos novos + 156 espécies redistribuídas (bandas 8–16 → 82–95)** ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -337,6 +338,48 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Fase 6.4-A — Mundo até o mapa 20, com regiões temáticas (2026-09-06)
+
+Pedido do mantenedor: validar as últimas implementações (6.3-B ✔ — auditoria
+re-executada verde) e **gerar mapas até o 20** seguindo o conceito dos
+primeiros, com temas/regiões para os encontros fazerem sentido por tipo, e as
+**156 espécies distribuídas de forma balanceada e separada** (evoluídos/
+raros/nível alto nos mapas avançados; o oposto nos iniciais). Mesma branch do
+PR #6 (acumula 6.2-C + 6.3 + 6.3-A + 6.3-B + 6.4-A).
+
+**O que existe agora:**
+
+1. **20 mapas temáticos** em cadeia de portais 3↔20: Caverna do Monte Lua,
+   Litoral de Vermilion, Pântano Venenoso, Usina de Volt, Deserto das Ruínas,
+   Planícies Douradas, Ilhas Glaciais, Torre dos Espíritos, Vulcão de
+   Cinnabar, Cidade Sombria, Vale das Fadas, Fossa Abissal, Cânion dos
+   Fósseis, Selva Profunda, Rota do Céu, Caverna Suprema e Santuário
+   Celeste. Centro Pokémon só nos mapas 4/8/13/16/20 (dificuldade de
+   propósito). Tabela completa com faixas e destaques em `docs/FASE-6.md` §6.4-A.
+2. **Escada de nível +4/mapa** com sobreposição: 8–16 (M2) → 14–24 (M3) →
+   … → 78–90 (M19) → 82–95 (M20). Peso define a altura na faixa (comum na
+   base; raro/lendário no topo: Chansey 2%, Articuno 2%, Moltres 4%,
+   Mewtwo 10%, Rayquaza 16%, Zapdos 12%, Mew 8%).
+3. **Distribuição 156/156 sem duplicata** — cada espécie em exatamente um
+   mapa; evolução NUNCA em mapa anterior ao da forma prévia (Caterpie M2 →
+   Butterfree M17; Geodude M3 → Graveler M8 → Golem M16; Gastly M6 → Gengar
+   M19). Ases de ginásio protegidos (Dragonite só no 20).
+4. **Mapa 1 intocado** (contrato 6.2-C). Mapas 2–3 trocaram de elenco (o
+   antigo tinha Gengar/Rayquaza commons — herança das 25 espécies); ginásios,
+   lojas, grades e portais originais preservados; mapa 3 ganhou saída norte.
+5. **Estrutura**: `src/lib/default-world.ts` (novo, puro — os 20 mapas como
+   dados); `seed-maps.ts` reescrito sobre ele (semeia 20 em banco vazio);
+   `scripts/world-seed.mts` + `npm run world:seed` (idempotente por slug em
+   banco existente, preserva camadas do Editor); `content/world/maps/` com os
+   20 JSONs versionados.
+6. **Guardas novos no CI** (`world-expansion.test.ts`, 9 testes sobre
+   `content/world/`): 20 mapas/slug/numeração, mapa 1 pinado, 156 exatamente
+   uma vez, pesos = 100, entradas dentro da faixa, escada crescente,
+   evolução sem regressão, lendários ≥ M10 com peso ≤ 20, ases de ginásio,
+   cadeia de portais 3↔20.
+
+Validação completa (comandos e saídas) na §4.19.
 
 ### ✅ Fase 6.3-B — Golpes com identidade, da era GBA (2026-09-06)
 
@@ -1408,6 +1451,52 @@ commit `68c1879`, antes/depois salvos e comparados):
 Encontros, lojas e ginásios **inalterados** (nenhuma tabela mudou — só
 catálogo e learnsets).
 
+### 4.19 Validação da Fase 6.4-A — mundo até o mapa 20 (2026-09-06)
+
+Validação da 6.3-B re-executada antes de começar (auditoria estrutural verde:
+156 espécies · 133 golpes · todas as regras ok). Depois, da expansão:
+
+```
+npx tsx /tmp/check-world.mts            # auditoria offline do builder
+→ ✓ builder ok: 20 mapas, 156/156 espécies, cadeia 3↔20 íntegra
+
+DATABASE_URL=<app_db> npm run world:seed
+→ 17 criado(s), 3 atualizado(s), 20 mapa(s) no total
+
+DATABASE_URL=<app_db> npm run world:export
+→ 20 mapa(s), 3 ginásios, 11 itens → content/world versionado
+
+DATABASE_URL=<app_db> npm run world:import -- --dry-run
+→ mapas: 0 criado(s), 0 atualizado(s), 20 igual(is)   ← round-trip idempotente
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · build ok · 16 arquivos/231 testes
+  (novo world-expansion.test.ts: 9 guardas)
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+
+npx tsx scripts/balance-report.mts
+→ "✓ todas as espécies ok"
+```
+
+Smoke do pipeline real de encontro (DB → encounterPoolAt → pickWeighted →
+rollEncounterLevel → espécie → learnset), 2.000 sorteios por mapa:
+
+- Mapa 4: Zubat 23% nv 18–25 … Chansey 2% nv 24–28;
+- Mapa 12: Charmeleon 23% nv 50–57 … Moltres 4% nv 52–60;
+- Mapa 20: Dragonair 35%/Dragonite 29% nv 82–92, Rayquaza 15%/Zapdos 12%/
+  Mew 8% nv 87–95 — pesos e faixas batendo com o desenho.
+
+Smoke da API real (dev server :3100, hot-reload): `GET /api/health` →
+`{"ok":true}`; `GET /api/maps` → **20 mapas** com nome/portais/elenco.
+
+**Idempotência/segurança**: world:seed preserva `encounterGrid`/
+`collisionGrid` (camadas do Editor) e nunca apaga mapas; world:import
+dry-run confirma 20 iguais. Obs. cosmética: no banco de dev os ids têm um
+salto (1,2,3,5…21) por causa da sequência do serial (mapa de teste antigo
+criado/deletado) — ids são opacos, portais resolvem por slug, sem impacto.
+
 
 **Não validado aqui:** a vitrine de sprites no navegador com 156 espécies
 (pendência #11) e produção (só entra depois do merge).
@@ -1466,22 +1555,24 @@ em `docs/FASE-6.2-PLANO.md`.
 Depois da 6.2 a ordem segue: **6.3 evolução ✅ (2026-09-06)** → **6.4 Pokédex
 (→ próxima)** → 6.5 status → 6.6 ranked → 6.7 NPCs.
 
-### PRÓXIMA ETAPA: aguardar o mantenedor → merge do PR #6 → deploy → 6.4
+### PRÓXIMA ETAPA: aguardar o mantenedor → merge do PR #6 → deploy → passos de produção
 
-O PR #6 (`arena/01a07639-pokeeeee`) acumula **6.2-C + 6.3 + 6.3-A + 6.3-B**
-(catálogo 156 espécies + 133 golpes com learnsets por tipo e raça). O merge
-foi adiado a pedido do mantenedor ("recomeçamos a conversa a cada merge") e
-**a 6.4 NÃO foi começada** por instrução explícita. Quando vier o ok:
+O PR #6 (`arena/01a07639-pokeeeee`) acumula **6.2-C + 6.3 + 6.3-A + 6.3-B +
+6.4-A** (catálogo 156 espécies · 133 golpes · mundo com 20 mapas temáticos).
+O merge segue adiado a pedido do mantenedor. Quando vier o ok:
 
-1. mesclar o PR #6 (CI 5/5 verde), deploy automático (sem migration);
-2. `npm run db:rebalance` em produção;
-3. mantenedor monta o mapa 1 à mão (nv 2–7, sem vantagem de elemento contra
-   os iniciais — agora com 156 espécies para escolher no Editor);
-4. `world:export` + versionar `content/world/`.
+1. mesclar o PR #6 (CI verde nos dois workflows), deploy automático;
+2. **`DATABASE_URL=<produção> npm run world:seed`** — leva os 20 mapas ao
+   banco de produção (idempotente; preserva camadas do Editor; num banco
+   novo o seed da aplicação já cria);
+3. `npm run db:rebalance` em produção;
+4. mapa 1 à mão (opcional — o seed já o mantém como hoje);
+5. `world:export` para conferir/versionar o estado real de produção.
 
-**FASE 6.4** (depois): colocar as 156 espécies para aparecer — novas tabelas
-de encontro por mapa (decisão de conteúdo, com o mantenedor) + Johto e além
-quando quiser mais catálogo (sprites animados existem até o id 649).
+**O que sobrou da 6.4** (só com pedido do mantenedor): espécies de **Johto e
+além** (sprites animados existem até o id 649) e **pedras de evolução na
+loja** (viram os gatilhos `// pedra` provisórios em nível). 6.5 status →
+6.6 PvP → 6.7 NPCs (6.8 premium bloqueado até rebranding).
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -1523,6 +1614,7 @@ quando quiser mais catálogo (sprites animados existem até o id 649).
 | 2026-09-06 | **Fase 6.3** — evolução no servidor por nível (+Ivysaur/Venusaur/Charmeleon/Wartortle) | ✅ Concluída e validada | 14 arquivos/203 unit · 6/73 integração · §4.16 |
 | 2026-09-06 | **Fase 6.3-A** — catálogo Kanto completo: 25 → 156 espécies, +11 golpes, linhas fechadas | ✅ Concluída e validada | 15/215 unit · 6/73 integração · §4.17 |
 | 2026-09-06 | **Fase 6.3-B** — golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies por tipo e raça | ✅ Concluída e validada | 15/222 unit · 6/73 integração · §4.18 |
+| 2026-09-06 | **Fase 6.4-A** — mundo até o mapa 20: 17 mapas temáticos, 156 espécies redistribuídas em bandas 8–95 | ✅ Concluída e validada | 16/231 unit · 6/73 integração · §4.19 |
 | — | **Deploy (merge do PR #6) + `db:rebalance` em produção + mapa 1 à mão** | ⬜ Próxima (mantenedor; merge adiado a pedido) | §5 · `docs/FASE-6.md` |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 

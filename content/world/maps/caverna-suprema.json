@@ -1,0 +1,141 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "caverna-suprema",
+  "name": "Mapa 19: Caverna Suprema",
+  "description": "O fundo do mundo (nv 78–90). Gengar, Alakazam, Steelix e Rhydon no auge; Mewtwo observa de algum lugar.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Mewtwo",
+      "weight": 10,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 150,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ditto",
+      "weight": 10,
+      "maxLevel": 89,
+      "minLevel": 80,
+      "pokedexId": 132,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gengar",
+      "weight": 18,
+      "maxLevel": 87,
+      "minLevel": 78,
+      "pokedexId": 94,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Alakazam",
+      "weight": 16,
+      "maxLevel": 87,
+      "minLevel": 78,
+      "pokedexId": 65,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rhydon",
+      "weight": 18,
+      "maxLevel": 87,
+      "minLevel": 78,
+      "pokedexId": 112,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Steelix",
+      "weight": 16,
+      "maxLevel": 87,
+      "minLevel": 78,
+      "pokedexId": 208,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Muk",
+      "weight": 6,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 89,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Weezing",
+      "weight": 6,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 110,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p19-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "rota-do-ceu",
+      "targetMapName": "Rota do Céu",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Rota do Céu"
+    },
+    {
+      "id": "p19-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "rota-do-ceu",
+      "targetMapName": "Rota do Céu",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Rota do Céu"
+    },
+    {
+      "id": "p19-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "santuario-celeste",
+      "targetMapName": "Santuário Celeste",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Santuário Celeste"
+    },
+    {
+      "id": "p19-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "santuario-celeste",
+      "targetMapName": "Santuário Celeste",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Santuário Celeste"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

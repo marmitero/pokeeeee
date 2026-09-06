@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "floresta-viridian",
   "name": "Mapa 2: Floresta de Viridian",
-  "description": "Floresta densa com Gengar, Umbreon e Lucario. Ginásio da Misty (Água).",
+  "description": "Mata fechada de insetos e plantas selvagens (nv 8–16). Ginásio da Misty (Água) e Loja intermediária.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,43 +10,91 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Gengar",
-      "weight": 25,
-      "maxLevel": 22,
+      "name": "Caterpie",
+      "weight": 10,
+      "maxLevel": 15,
+      "minLevel": 10,
+      "pokedexId": 10,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Weedle",
+      "weight": 10,
+      "maxLevel": 15,
+      "minLevel": 10,
+      "pokedexId": 13,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Metapod",
+      "weight": 6,
+      "maxLevel": 16,
       "minLevel": 12,
-      "pokedexId": 94,
+      "pokedexId": 11,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Umbreon",
-      "weight": 20,
-      "maxLevel": 24,
-      "minLevel": 14,
-      "pokedexId": 197,
+      "name": "Kakuna",
+      "weight": 6,
+      "maxLevel": 16,
+      "minLevel": 12,
+      "pokedexId": 14,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Lucario",
-      "weight": 20,
-      "maxLevel": 25,
-      "minLevel": 15,
-      "pokedexId": 448,
+      "name": "Pidgey",
+      "weight": 13,
+      "maxLevel": 15,
+      "minLevel": 10,
+      "pokedexId": 16,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gardevoir",
-      "weight": 18,
-      "maxLevel": 26,
-      "minLevel": 15,
-      "pokedexId": 282,
+      "name": "Spearow",
+      "weight": 8,
+      "maxLevel": 16,
+      "minLevel": 12,
+      "pokedexId": 21,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Lapras",
-      "weight": 17,
-      "maxLevel": 25,
-      "minLevel": 16,
-      "pokedexId": 131,
+      "name": "Rattata",
+      "weight": 11,
+      "maxLevel": 15,
+      "minLevel": 10,
+      "pokedexId": 19,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Oddish",
+      "weight": 12,
+      "maxLevel": 15,
+      "minLevel": 10,
+      "pokedexId": 43,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Bellsprout",
+      "weight": 12,
+      "maxLevel": 15,
+      "minLevel": 10,
+      "pokedexId": 69,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Paras",
+      "weight": 6,
+      "maxLevel": 16,
+      "minLevel": 12,
+      "pokedexId": 46,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Venonat",
+      "weight": 6,
+      "maxLevel": 16,
+      "minLevel": 12,
+      "pokedexId": 48,
       "tileTypes": ["tall_grass"]
     }
   ],
@@ -149,14 +197,14 @@
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "center", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
-    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
-    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "portal"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "portal"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "stone", "stone", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
-    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "stone", "stone", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
   ]
 }

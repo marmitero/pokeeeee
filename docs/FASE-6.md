@@ -544,6 +544,86 @@ Charmander sofre mais com Brock porque Garra de Metal voltou ao nível canônico
 
 ## 6.4 — Pokédex 21 → 50+
 
+> **Estado após a 6.3-A/6.3-B/6.4-A:** Kanto inteira (156 espécies) já está no
+> catálogo com golpes canônicos e **aparece no mundo** (20 mapas temáticos).
+> O que resta desta fase é **Johto e além** (espécies novas) e as pedras de
+> evolução na loja.
+
+### 6.4-A — Mundo até o mapa 20: regiões temáticas e as 156 espécies distribuídas (2026-09-06, a pedido do mantenedor)
+
+> Pedido: gerar mapas até o 20 seguindo o conceito dos primeiros, com temas
+> (regiões) que justifiquem os tipos encontrados, e distribuir os encontros
+> — dos já existentes e dos implementados na 6.3 — de forma balanceada e
+> separada: evoluídos/raros/nível alto nos mapas avançados, o oposto nos
+> iniciais. Nada pode quebrar.
+
+**Estrutura nova:**
+
+- `src/lib/default-world.ts` (novo, puro): os 20 mapas como dados — grades
+  temáticas 16×16, tabelas de encontro, cadeia de portais 3↔20, NPCs.
+- `src/lib/seed-maps.ts`: reescrito sobre o builder — semeia **20 mapas** num
+  banco vazio (portais resolvidos por slug).
+- `scripts/world-seed.mts` (`npm run world:seed`): aplica o mundo padrão num
+  banco que **já tem** mapas, idempotente por slug — preserva as camadas
+  pintadas no Editor (`encounterGrid`/`collisionGrid`), nunca apaga.
+- `content/world/maps/` versiona os 20 mapas (MUNDO-COMO-CODIGO); round-trip
+  verificado: `world:seed` → `world:export` → `world:import --dry-run` dá
+  **20 iguais, 0 atualizados**.
+
+**As regiões e a escada de nível** (faixa sobe +4 por mapa, com sobreposição;
+dentro da faixa o peso decide a altura: comum na base, raro/lendário no topo):
+
+| # | Mapa | Tema | Faixa | Destaques |
+|---|---|---|---|---|
+| 1 | Vale Pallet | prado inicial | 3–10 | iniciais + Pikachu + Eevee (**fixo 6.2-C**) |
+| 2 | Floresta de Viridian | mata fechada | 8–16 | Caterpie/Weedle/Pidgey/Oddish/Bellsprout |
+| 3 | Pico Celeste | colinas rochosas | 14–24 | Geodude/Machop/Nidoran; Onix e Rhyhorn raros |
+| 4 | Caverna do Monte Lua | caverna | 18–28 | Zubat/Clefairy/Abra; **Chansey 2%** |
+| 5 | Litoral de Vermilion | praia / mar raso | 22–32 | Magikarp/Krabby/Horsea/Poliwag; Shellder raro |
+| 6 | Pântano Venenoso | pântano | 26–36 | Grimer/Koffing/Gastly; Ivysaur no lodo |
+| 7 | Usina de Volt | usina elétrica | 30–40 | Magnemite/Voltorb/Raichu; Jolteon 6% |
+| 8 | Deserto das Ruínas | deserto | 34–44 | Sandslash/Tauros/Pinsir; Graveler/Kangaskhan |
+| 9 | Planícies Douradas | campos | 38–48 | Ponyta/Growlithe/Vulpix; Snorlax na trilha |
+| 10 | Ilhas Glaciais | gelo | 42–52 | Seel/Jynx/Wartortle; Lapras 8%, **Articuno 2%** |
+| 11 | Torre dos Espíritos | fantasma | 46–56 | Haunter/Hypno/Kadabra/Mr. Mime |
+| 12 | Vulcão de Cinnabar | vulcão | 50–60 | Charmeleon→Ninetales/Arcanine/Rapidash; **Moltres 4%** |
+| 13 | Cidade Sombria | becos + dojo | 54–64 | Umbreon/Lucario/Hitmonlee/Hitmonchan/Machamp |
+| 14 | Vale das Fadas | fada | 58–68 | Clefable/Gardevoir/Venusaur/Vileplume |
+| 15 | Fossa Abissal | mar profundo | 62–72 | Starmie/Vaporeon/Seadra; **Blastoise** |
+| 16 | Cânion dos Fósseis | fósseis | 66–76 | Omanyte/Kabuto/Aerodactyl/Golem/Nidoking |
+| 17 | Selva Profunda | selva | 70–80 | Butterfree/Beedrill/Scyther; Dratini 18% |
+| 18 | Rota do Céu | céu | 74–84 | **Charizard**/Gyarados/Pidgeot/Dodrio |
+| 19 | Caverna Suprema | fim do mundo | 78–90 | Gengar/Alakazam/Steelix/Rhydon; **Mewtwo 10%**, Ditto |
+| 20 | Santuário Celeste | santuário lendário | 82–95 | Dragonite/Dragonair; **Rayquaza 16%, Zapdos 12%, Mew 8%** |
+
+**Regras de distribuição (todas viraram teste):**
+
+- Cada uma das **156 espécies aparece em exatamente um mapa** (a soma das
+  tabelas fecha em 156, sem duplicata); pesos somam **100** por mapa.
+- **Evolução nunca regride**: para toda linha, o alvo vive em mapa ≥ ao da
+  forma anterior (Caterpie M2 → Metapod M2 → Butterfree M17; Geodude M3 →
+  Graveler M8 → Golem M16; Gastly M6 → Haunter M11 → Gengar M19).
+- **Lendários só do mapa 10 em diante, peso ≤ 20** (Articuno 2%, Moltres 4%,
+  Mewtwo 10%, Rayquaza 16%, Zapdos 12%, Mew 8%).
+- Ases de ginásio não viram commons antes do próprio ginásio (Dragonite só
+  no mapa 20; Dragonair/Dratini bem depois do Lance).
+- Mapas 2 e 3 trocaram de elenco (eram da época das 25 espécies: Gengar e
+  Rayquaza commons no mapa 2–3). Ginásios, lojas e portais originais
+  permanecem; o mapa 3 ganhou a saída norte que inicia a cadeia até o 20.
+- Centro Pokémon apenas nos mapas 4, 8, 13, 16 e 20 — trecho longo sem curar
+  é dificuldade de propósito (diretriz do mantenedor).
+- Mapa 1 **intocado** (contrato 6.2-C pinado por teste também no conteúdo).
+
+**Validação**: guarda nova `src/lib/world-expansion.test.ts` (9 testes sobre
+`content/world/`); unitários **16 arquivos/231**; integração **6/73**;
+`balance:report` "✓ todas as espécies ok"; smoke da API real (`GET /api/maps`
+→ 20 mapas) e do pipeline de encontro (mapas 4/12/20: sorteio 2.000× por mapa
+confere pesos e faixas — Chansey ~2%, Mew ~8%). Round-trip mundo idempotente.
+
+**Nota para produção**: mapas vivem no banco — depois do merge/deploy o
+mantenedor roda `DATABASE_URL=<produção> npm run world:seed` (ou
+`world:import`) uma vez. Num banco novo, o seed da aplicação já cria os 20.
+
 - Acrescentar espécies em lotes de ~10, cada lote com as linhas evolutivas
   completas. (Kanto inteira já entrou na 6.3-A — o que resta desta fase é
   **Johto e além** e, principalmente, colocar as 156 espécies para aparecer:
@@ -597,7 +677,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução ✅ (+ catálogo 6.3-A ✅ e golpes 6.3-B ✅)  →  6.4 pokédex
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução ✅ (+ catálogo 6.3-A ✅ e golpes 6.3-B ✅)  →  6.4 pokédex (mundo até 20 ✅ 6.4-A)
   →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 

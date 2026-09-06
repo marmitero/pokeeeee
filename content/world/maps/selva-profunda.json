@@ -1,0 +1,125 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "selva-profunda",
+  "name": "Mapa 17: Selva Profunda",
+  "description": "Dossel fechado que engole a luz (nv 70–80). Insetos gigantes tesouram o ar; Dratini desliza nos riachos.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Butterfree",
+      "weight": 16,
+      "maxLevel": 77,
+      "minLevel": 70,
+      "pokedexId": 12,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Beedrill",
+      "weight": 16,
+      "maxLevel": 77,
+      "minLevel": 70,
+      "pokedexId": 15,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Parasect",
+      "weight": 16,
+      "maxLevel": 77,
+      "minLevel": 70,
+      "pokedexId": 47,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Victreebel",
+      "weight": 16,
+      "maxLevel": 77,
+      "minLevel": 70,
+      "pokedexId": 71,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Scyther",
+      "weight": 18,
+      "maxLevel": 77,
+      "minLevel": 70,
+      "pokedexId": 123,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dratini",
+      "weight": 18,
+      "maxLevel": 77,
+      "minLevel": 70,
+      "pokedexId": 147,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p17-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "canion-dos-fosseis",
+      "targetMapName": "Cânion dos Fósseis",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Cânion dos Fósseis"
+    },
+    {
+      "id": "p17-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "canion-dos-fosseis",
+      "targetMapName": "Cânion dos Fósseis",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Cânion dos Fósseis"
+    },
+    {
+      "id": "p17-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "rota-do-ceu",
+      "targetMapName": "Rota do Céu",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Rota do Céu"
+    },
+    {
+      "id": "p17-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "rota-do-ceu",
+      "targetMapName": "Rota do Céu",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Rota do Céu"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "canion-dos-fosseis",
+  "name": "Mapa 16: Cânion dos Fósseis",
+  "description": "Estratos escavados pelo tempo (nv 66–76). Omanyte e Kabuto despertam; Golem, Nidoking e Nidoqueen dominam o leito; Centro Pokémon no acampamento.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Omanyte",
+      "weight": 14,
+      "maxLevel": 73,
+      "minLevel": 66,
+      "pokedexId": 138,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Omastar",
+      "weight": 10,
+      "maxLevel": 75,
+      "minLevel": 68,
+      "pokedexId": 139,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kabuto",
+      "weight": 14,
+      "maxLevel": 73,
+      "minLevel": 66,
+      "pokedexId": 140,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kabutops",
+      "weight": 10,
+      "maxLevel": 75,
+      "minLevel": 68,
+      "pokedexId": 141,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Aerodactyl",
+      "weight": 16,
+      "maxLevel": 73,
+      "minLevel": 66,
+      "pokedexId": 142,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Golem",
+      "weight": 12,
+      "maxLevel": 75,
+      "minLevel": 68,
+      "pokedexId": 76,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidoking",
+      "weight": 12,
+      "maxLevel": 75,
+      "minLevel": 68,
+      "pokedexId": 34,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidoqueen",
+      "weight": 12,
+      "maxLevel": 75,
+      "minLevel": 68,
+      "pokedexId": 31,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p16-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "fossa-abissal",
+      "targetMapName": "Fossa Abissal",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Fossa Abissal"
+    },
+    {
+      "id": "p16-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "fossa-abissal",
+      "targetMapName": "Fossa Abissal",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Fossa Abissal"
+    },
+    {
+      "id": "p16-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "selva-profunda",
+      "targetMapName": "Selva Profunda",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Selva Profunda"
+    },
+    {
+      "id": "p16-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "selva-profunda",
+      "targetMapName": "Selva Profunda",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Selva Profunda"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "stone", "center", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

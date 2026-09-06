@@ -1,0 +1,149 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "ilhas-glaciais",
+  "name": "Mapa 10: Ilhas Glaciais",
+  "description": "Canais congelados (nv 42–52). Seel e Jynx nas margens; Lapras é raro e Articuno, lendário.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Seel",
+      "weight": 16,
+      "maxLevel": 49,
+      "minLevel": 42,
+      "pokedexId": 86,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Dewgong",
+      "weight": 14,
+      "maxLevel": 49,
+      "minLevel": 42,
+      "pokedexId": 87,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Cloyster",
+      "weight": 10,
+      "maxLevel": 51,
+      "minLevel": 44,
+      "pokedexId": 91,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Jynx",
+      "weight": 14,
+      "maxLevel": 49,
+      "minLevel": 42,
+      "pokedexId": 124,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lapras",
+      "weight": 8,
+      "maxLevel": 52,
+      "minLevel": 46,
+      "pokedexId": 131,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Articuno",
+      "weight": 2,
+      "maxLevel": 52,
+      "minLevel": 44,
+      "pokedexId": 144,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Golduck",
+      "weight": 12,
+      "maxLevel": 51,
+      "minLevel": 44,
+      "pokedexId": 55,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Slowbro",
+      "weight": 12,
+      "maxLevel": 51,
+      "minLevel": 44,
+      "pokedexId": 80,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Wartortle",
+      "weight": 12,
+      "maxLevel": 51,
+      "minLevel": 44,
+      "pokedexId": 8,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p10-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "planicies-douradas",
+      "targetMapName": "Planícies Douradas",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Planícies Douradas"
+    },
+    {
+      "id": "p10-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "planicies-douradas",
+      "targetMapName": "Planícies Douradas",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Planícies Douradas"
+    },
+    {
+      "id": "p10-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "torre-dos-espiritos",
+      "targetMapName": "Torre dos Espíritos",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Torre dos Espíritos"
+    },
+    {
+      "id": "p10-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "torre-dos-espiritos",
+      "targetMapName": "Torre dos Espíritos",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Torre dos Espíritos"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}
