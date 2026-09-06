@@ -209,7 +209,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   QuickAttack: {
     name: "Ataque Rápido",
     type: "Normal",
-    power: 45,
+    power: 35,
     accuracy: 100,
     category: "Physical",
     description: "Avanço em alta velocidade imbatível.",
@@ -257,7 +257,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   Tackle: {
     name: "Investida",
     type: "Normal",
-    power: 40,
+    power: 25,
     accuracy: 100,
     category: "Physical",
     description: "Um ataque corporal simples que atinge o alvo em cheio.",
@@ -323,10 +323,19 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   // Antes da 6.1 o catálogo só tinha golpes de fim de jogo (poder 80–110) e
   // toda espécie os carregava desde o nível 1. Estes golpes fracos existem
   // para o `learnset` ter o que entregar nos primeiros níveis.
+  //
+  // Fase 6.2-C: os golpes fracos de iniciais e dos bichos dos primeiros mapas
+  // (aprendidos até o nível ~7) ficam confinados à faixa **15–35**. O `+2`
+  // constante da fórmula achata qualquer coisa abaixo de 15 (poder 5, 10 e 15
+  // causam praticamente o mesmo dano), e acima de ~35 um golpe tipado com
+  // STAB + vantagem já nocauteia um inicial de nível 5 num crítico — o que
+  // forçaria a manter o teto de dano aposentado nesta fase. A progressão do
+  // começo do jogo passou a ser: neutra 20–25 → tipada 25 → upgrade 35 (nível
+  // 7) → 50–65 (nível 12).
   Scratch: {
     name: "Arranhão",
     type: "Normal",
-    power: 40,
+    power: 20,
     accuracy: 100,
     category: "Physical",
     description: "Garras afiadas arranham o alvo repetidamente.",
@@ -344,7 +353,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   Ember: {
     name: "Brasa",
     type: "Fire",
-    power: 40,
+    power: 25,
     accuracy: 100,
     category: "Special",
     description: "Cospe pequenas chamas na direção do alvo.",
@@ -362,7 +371,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   Bubble: {
     name: "Bolha",
     type: "Water",
-    power: 40,
+    power: 25,
     accuracy: 100,
     category: "Special",
     description: "Dispara uma rajada de bolhas contra o alvo.",
@@ -371,7 +380,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   VineWhip: {
     name: "Chicote de Cipó",
     type: "Grass",
-    power: 45,
+    power: 25,
     accuracy: 100,
     category: "Physical",
     description: "Chicoteia o alvo com cipós finos e flexíveis.",
@@ -380,7 +389,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   RazorLeaf: {
     name: "Folha Navalha",
     type: "Grass",
-    power: 55,
+    power: 35,
     accuracy: 95,
     category: "Physical",
     description: "Folhas afiadas cortam o ar em direção ao oponente.",
@@ -389,7 +398,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   ThunderShock: {
     name: "Choque",
     type: "Electric",
-    power: 40,
+    power: 25,
     accuracy: 100,
     category: "Special",
     description: "Uma descarga elétrica fraca, porém certeira.",
@@ -461,7 +470,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   IceShard: {
     name: "Estilhaço de Gelo",
     type: "Ice",
-    power: 40,
+    power: 35,
     accuracy: 100,
     category: "Physical",
     description: "Lascas de gelo disparadas em alta velocidade.",
@@ -488,7 +497,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   Gust: {
     name: "Rajada",
     type: "Flying",
-    power: 40,
+    power: 25,
     accuracy: 100,
     category: "Special",
     description: "Bate as asas e cria um vento cortante.",
@@ -506,7 +515,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
   MetalClaw: {
     name: "Garra de Metal",
     type: "Steel",
-    power: 50,
+    power: 35,
     accuracy: 95,
     category: "Physical",
     description: "Corta o alvo com garras de aço endurecido.",

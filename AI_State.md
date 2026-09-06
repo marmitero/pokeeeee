@@ -35,6 +35,7 @@
 > | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
 > | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
 | 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
+| 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -97,7 +98,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a06d75-pokeeeee`
+**Branch da sessão atual:** `arena/01a07639-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -276,7 +277,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
 - [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
 - [x] **FASE 6.2-D — Mundo como código (export/import de mapas, ginásios e lojas)** ✅ 2026-09-02
-- [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`** ⬅️ próxima
+- [x] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`, Brock 12/14 e Misty 18/21** ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -330,6 +331,64 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Fase 6.2-C — Golpes fracos 15–35, teto aposentado, curva original e ginásios restaurados (2026-09-06)
+
+Sessão `arena/01a07639-pokeeeee`, partindo de `main` `863b36d` (handoff já
+mesclado — PRs #4 e #5 fechados). As decisões vieram do mantenedor via
+`docs/FASE-6.2-PLANO.md` e **não foram reabertas**: faixa útil 15–35, aposentar
+o teto, `nível³ × 0,8`, Brock 12/14, Misty 18/21, Lance 38/45 intacto, fórmula
+de dano intocada, uma zona de encontro por mapa.
+
+**O que mudou:**
+
+1. **Golpes** (`src/lib/pokedex.ts`) — o começo do jogo passou a ter duas
+   tier: neutra 20–25 (Arranhão 20, Investida 25) e tipada 25 (Brasa, Bolha,
+   Chicote de Cipó, Choque, Rajada), com upgrade 35 no nível ~7 (Ataque Rápido,
+   Estilhaço de Gelo, Folha Navalha 55→35, Garra de Metal 50→35). Lambida (30)
+   e Bofetada de Lama (35) já estavam na faixa. Os valores 25/35 foram medidos
+   contra o pior caso (Bolha com STAB ×2 + crítico contra HP 19 do Charmander
+   nível 5 — a 30 já seria nocaute em um golpe).
+2. **Teto de dano aposentado** (`src/lib/engine/damage.ts`) — removidos
+   `maxHitFraction`, `capDamage` e `DAMAGE_CAP_*`. Dano = 100% fórmula clássica
+   em todo nível. Proteção do início = conteúdo (golpes 15–35 + mapa 1 com
+   criaturas 2–7 sem vantagem de elemento), não motor.
+3. **Curva de XP** (`src/lib/engine/xp.ts`) — `xpFloor` volta a
+   `floor(nível³ × 0,8)`; piso de 20 XP/nível mantido (só afeta níveis 1–2).
+4. **Ginásios** (`src/lib/gym-teams.ts`) — Brock 12/14 e Misty 18/21
+   restaurados; Lance 38/45 intocado. Novo `src/lib/gym-teams.test.ts` trava
+   os três times.
+5. **Testes** — `balance.test.ts`: testes do teto removidos, novo teste da
+   faixa 15–35 (escopo: espécies do mapa 1), duelo mínimo 3→2 turnos (sem o
+   teto, vantagem de tipo decide em ~2 — era isso que o teto apagava), teste
+   de selvagem reescrito para a faixa 2–7 do mapa 1 futuro com contrato
+   STAB+super delegado ao conteúdo; `xp.test.ts` recalculado (264/822).
+   Unitários: 12/186 → **13/187** (−3 do teto, +1 faixa, +3 ginásios).
+6. **Relatório** (`scripts/balance-report.mts`) — seção do teto substituída
+   pela varredura "poder × dano neutro no nível 5"; seção da Misty adicionada.
+7. **`content/world/` re-exportado** — `db:rebalance` aplicado no banco local +
+   `world:export`; o diff versionado são só os 4 níveis de ginásio (sem isso,
+   um `world:import` futuro reverteria a mudança). `world:import --dry-run`
+   depois: tudo "igual(is)".
+8. `backfill-balance.ts` **não precisou mudar** — ele lê de `GYM_TEAMS` e
+   `movesAtLevel`, então acompanhou as fontes. Em produção:
+   `npm run db:rebalance` (movesets de Pokémon já capturados continuam válidos
+   porque os golpes mudaram de **poder**, não de nome).
+
+**Números medidos (antes → depois), semente fixa:**
+
+- Duelo inicial nv 5 com vantagem: 6,0 → **10,5** dmg (4,0 → **2,1** turnos);
+  sem vantagem: 6,6–7,6 turnos. **0% OHKO, críticos incluídos** (travado em
+  teste).
+- Poder × dano neutro nv 5 sem teto: 5→2,0 · 10→2,1 · 15→2,1 · 20→2,7 ·
+  25→3,1 · 35→3,6 · 40→4,1 · 55→4,9 (o poder volta a diferenciar).
+- Curva (batalhas/nível): 5→2,7 · 10→4,8 · 15→6,9 · 20→9,1 · 25→11,2; de 5 a
+  15 = 47 batalhas (eram 38).
+- Brock 12/14: Bulbasaur/Squirtle lvl 10–12 ganham; Charmander perde as duas
+  (decisão de design da 6.1, mantida). Misty 18/21: no lvl 18 só Bulbasaur
+  vence a Staryu; ninguém vence a Starmie sozinho — parede de propósito.
+
+Detalhes e tabela completa de golpes em `docs/FASE-6.md` (seção 6.2-C).
 
 ### 📸 Handoff de sessão — consolidação das branchs (2026-09-04)
 
@@ -1045,6 +1104,43 @@ gh pr view 4 · gh run list --branch arena/01a061a1-pokeeeee
 **Não validado aqui:** o merge em si (decisão do mantenedor) e o CI deste
 branch — o PR de handoff dispara o CI; mergear apenas com ele verde.
 
+### 4.15 Validação da Fase 6.2-C (2026-09-06)
+
+Ambiente recriado do zero (§ RECUPERAÇÃO): `npm install` → `.env` →
+`npm run db:local` → `drizzle-kit migrate` → `next dev` → seeds via
+`curl /api/maps`, `/api/gym?mapId=1`, `/api/shop?shopId=1`.
+
+```
+DATABASE_URL=<app_db> npm run balance:report        # capturado ANTES (teto ativo, 6,0 dmg)
+# … edições 6.2-C …
+DATABASE_URL=<app_db> npm run balance:report        # DEPOIS: 0% OHKO, 10,5/10,9 dmg com vantagem
+                                                     # curva 2,7/4,8/6,9/9,1/11,2 · Brock 12/14 · Misty 18/21
+DATABASE_URL=<app_db> npx vitest run src/lib/engine/{balance,xp,damage}.test.ts src/lib/gym-teams.test.ts
+→ 4 arquivos · 50 testes · todos verdes
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · Test Files 13 passed · Tests 187 passed · build ok
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 5 passed · Tests 70 passed
+
+DATABASE_URL=<app_db> npm run db:rebalance -- --dry-run
+→ Brock [10,12]→[12,14] · Misty [16,19]→[18,21] · 0 Pokémon afetado(s)
+DATABASE_URL=<app_db> npm run db:rebalance           # aplicado
+DATABASE_URL=<app_db> npm run world:export           # 2 mapas atualizados (níveis de ginásio)
+git diff content/world/ → exatamente 4 linhas (level 12/14 e 18/21)
+DATABASE_URL=<app_db> npm run world:import -- --dry-run
+→ mapas 3 igual(is) · ginásios 3 igual(is) · itens 11 igual(is) · ROLLBACK
+```
+
+Smoke no servidor real (não só unitários): registro `smoke6c` →
+`POST /api/battle start_wild` no matinho (2,8) do vale-pallet → resposta traz
+jogador e selvagem com `Arranhão (20)` / `Brasa (25)`; `GET /api/gym?mapId=1`
+→ Brock `[12,14]`; `mapId=2` → Misty `[18,21]`.
+
+**Não validado aqui:** produção (o `db:rebalance` lá é passo pós-deploy do
+mantenedor) e a sensação de jogo no navegador (pendência #9 abaixo).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -1074,7 +1170,7 @@ dois confrontos 1 contra 1 com o Brock**, porque Pedra causa dano dobrado em
 Fogo. O jogo dá as saídas (time de até 3, Squirtle e Bulbasaur na grama do mapa
 1, poções). Se isso for indesejado, muda-se o conteúdo — não o número.
 
-#### 6.2 — Editor de Mundos, camadas e golpes fracos (em andamento)
+#### 6.2 — Editor de Mundos, camadas e golpes fracos — ✅ **concluída (2026-09-06)**
 
 Entrou na frente da evolução a pedido do mantenedor: sem editor de camadas não
 há como montar o mapa 1 fácil que valida o balanceamento da 6.1. Plano completo
@@ -1085,18 +1181,16 @@ em `docs/FASE-6.2-PLANO.md`.
   4.10). Falta a passada no navegador, registrada nas pendências manuais.
 - **6.2-D — mundo como código** ✅ concluída em 2026-09-02 (seções 3 e 4.12).
   Entrou antes da 6.2-C para o mapa 1 montado à mão poder ser versionado.
-  **Neste branch** (ancestral direto) — acompanha o merge de handoff.
-- **Handoff (2026-09-04) — antes de qualquer código:** o mantenedor mescla este
-  branch (`arena/01a06d75-pokeeeee`) em `main`, fecha o PR #4 e apaga as
-  branchs antigas (detalhes na seção 3 e §4.14). Depois disso `main` é a única
-  fonte e a nova conversa parte dela.
-- **6.2-C — próximo passo imediato (depois do merge do handoff):** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
-  6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
-  Misty 18/21; Lance segue 38/45). O jogo deve continuar difícil de evoluir.
-  Não mexer na fórmula de dano. `npm run db:rebalance` em produção espera a 6.2-C.
-- **Depois da 6.2-C:** o mantenedor monta o mapa 1 à mão (nível 2–7, espécies
-  comuns, sem vantagem de elemento contra os iniciais), roda
-  `npm run world:export` e versiona `content/world/`.
+  Mesclada em `main` via PR #4/#5 (handoff 2026-09-04, §4.14).
+- **6.2-C — golpes 15–35, teto aposentado, curva `nível³ × 0,8`, ginásios
+  12/14 e 18/21** ✅ concluída em 2026-09-06 (seções 3 e 4.15), na branch
+  `arena/01a07639-pokeeeee`.
+- **Pós-6.2-C imediato (mantenedor, depois do deploy):**
+  1. rodar `npm run db:rebalance` em produção (segurado de propósito até aqui —
+     corrige níveis de ginásio já semeados; movesets por nome não mudaram);
+  2. montar o mapa 1 à mão no Editor (nível 2–7, espécies comuns, sem vantagem
+     de elemento contra os iniciais), `npm run world:export`, versionar
+     `content/world/` num PR.
 
 Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
 6.6 ranked → 6.7 NPCs**.
@@ -1136,7 +1230,8 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Deploy 6.2 em produção** — PR #3 mesclado, migration `0005` aplicada | ✅ Concluída e validada | merge `92936e9` · `/api/maps` com as 3 colunas · §4.13 |
 | 2026-09-02 | **Fase 6.2-D** — mundo como código (export/import de mapas, ginásios e lojas) | ✅ Concluída e validada | `content/world/` · `docs/MUNDO-COMO-CODIGO.md` · 19 testes |
 | 2026-09-04 | **Handoff de sessão** — consolidação das branchs no AI_State | ✅ Concluída e validada | branch `arena/01a06d75` = 6.2-D + AI_State · §4.14 |
-| — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
+| 2026-09-06 | **Fase 6.2-C** — golpes 15–35, teto aposentado, curva `nível³×0,8`, Brock 12/14 e Misty 18/21 | ✅ Concluída e validada | 13 arquivos/187 testes · `content/world` re-exportado · §4.15 |
+| — | **Deploy 6.2-C + `db:rebalance` em produção + mapa 1 à mão** | ⬜ Próxima (mantenedor) | §5 · `docs/FASE-6.md` |
 | — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

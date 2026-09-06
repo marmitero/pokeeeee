@@ -107,12 +107,12 @@
       "winDialog": "Impossível! Você derrotou meu Geodude e Onix! Tome a Insígnia Pedra!",
       "team": [
         {
-          "level": 10,
+          "level": 12,
           "variant": "Normal",
           "pokedexId": 74
         },
         {
-          "level": 12,
+          "level": 14,
           "variant": "Normal",
           "pokedexId": 95
         }

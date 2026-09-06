@@ -19,20 +19,23 @@ export interface GymTeamMember {
  * Estavam embutidos no `insert`, e por isso o script de rebalanceamento
  * precisava repetir os níveis. Duas listas de níveis é uma a mais.
  *
- * Níveis revisados na 6.1 com `scripts/balance-report.mts`: com a curva de XP
- * nova o jogador chega ao primeiro ginásio por volta do nível 10, e Brock
- * 12/14 exigia ~25 batalhas selvagens antes de poder tentar.
+ * Níveis restaurados na 6.2-C (decisão do mantenedor): Brock 12/14 e Misty
+ * 18/21 — os valores originais que a 6.1 tinha baixado para 10/12 e 16/19.
+ * Com a curva de XP de volta a `nível³ × 0,8` e o mapa 1 pronto para receber
+ * criaturas de nível 2–7, o treino até o nível 12 volta a ser progressão
+ * normal, e o ginásio recupera o papel de porta de entrada exigente.
+ * Medição em `scripts/balance-report.mts`.
  */
 export const GYM_TEAMS: Record<string, GymTeamMember[]> = {
-  // era 12/14
+  // 6.1 baixou para 10/12; 6.2-C restaura os níveis originais
   Brock: [
-    { pokedexId: 74, level: 10, variant: "Normal" },
-    { pokedexId: 95, level: 12, variant: "Normal" },
+    { pokedexId: 74, level: 12, variant: "Normal" },
+    { pokedexId: 95, level: 14, variant: "Normal" },
   ],
-  // era 18/21, cinco níveis acima de quem tinha acabado de vencer Brock
+  // 6.1 baixou para 16/19; 6.2-C restaura os níveis originais
   Misty: [
-    { pokedexId: 120, level: 16, variant: "Normal" },
-    { pokedexId: 121, level: 19, variant: "Normal" },
+    { pokedexId: 120, level: 18, variant: "Normal" },
+    { pokedexId: 121, level: 21, variant: "Normal" },
   ],
   // Lance é o desafio de fim de jogo; mantido
   Lance: [

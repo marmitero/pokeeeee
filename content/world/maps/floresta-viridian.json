@@ -127,12 +127,12 @@
       "winDialog": "Incrível! Derrotou minha Starmie! Tome a Insígnia Cascata!",
       "team": [
         {
-          "level": 16,
+          "level": 18,
           "variant": "Normal",
           "pokedexId": 120
         },
         {
-          "level": 19,
+          "level": 21,
           "variant": "Normal",
           "pokedexId": 121
         }

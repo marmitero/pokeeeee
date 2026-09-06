@@ -282,16 +282,68 @@ Ajuste de infraestrutura junto: em **desenvolvimento** o CSP passa a aceitar
 o preview do sandbox fica em branco. Produção continua recusando qualquer
 moldura.
 
-### 6.2-C — Golpes fracos e volta da curva original *(a fazer)*
+### 6.2-C — Golpes fracos e volta da curva original — ✅ **implementada em 2026-09-06**
 
-- Golpes na faixa útil **15–35** de poder para iniciais e bichos dos primeiros
-  mapas (medição: poder 5–15 é achatado pelo `+2` da fórmula de dano).
-- **Aposentar o teto de dano** da 6.1, que satura e apaga a diferença entre
-  golpes, assim que o mapa 1 estiver montado.
-- Curva de XP volta ao original **`nível³ × 0,8`** e ginásios sobem para Brock
-  12/14 e Misty 18/21 — o jogo deve continuar difícil de evoluir.
-- Depois disso o mantenedor monta o mapa 1 à mão: níveis 2–7, espécies comuns,
-  sem vantagem de elemento contra os iniciais.
+Decisões do mantenedor (registradas em `docs/FASE-6.2-PLANO.md`), aplicadas sem
+reabrir: golpes fracos na faixa **15–35**, teto de dano **aposentado**, curva
+`nível³ × 0,8` de volta, Brock **12/14**, Misty **18/21**, Lance 38/45 intacto,
+fórmula de dano intocada.
+
+**O que mudou no código:**
+
+- `src/lib/pokedex.ts` — golpes fracos de iniciais e bichos dos primeiros
+  mapas (aprendidos até o nível ~7) confinados à faixa 15–35:
+
+  | Golpe | Antes | Depois | | Golpe | Antes | Depois |
+  |---|---|---|---|---|---|---|
+  | Arranhão | 40 | **20** | | Estilhaço de Gelo | 40 | **35** |
+  | Investida | 40 | **25** | | Folha Navalha | 55 | **35** |
+  | Brasa | 40 | **25** | | Garra de Metal | 50 | **35** |
+  | Bolha | 40 | **25** | | Ataque Rápido | 45 | **35** |
+  | Chicote de Cipó | 45 | **25** | | Lambida | 30 | 30 |
+  | Choque | 40 | **25** | | Bofetada de Lama | 35 | 35 |
+  | Rajada | 40 | **25** | | | | |
+
+  Progressão do começo do jogo: neutra 20–25 → tipada 25 → upgrade 35 (nível
+  7) → 50–65 (nível 12). Os tetos de 25/35 não são arbitrários: medidos contra
+  o pior caso (Bolha com STAB ×2 e crítico contra o HP 19 do Charmander nível
+  5 — a 30 já daria nocaute em um golpe).
+
+- `src/lib/engine/damage.ts` — removidos `maxHitFraction`, `capDamage` e as
+  constantes `DAMAGE_CAP_*`. O dano volta a ser 100% a fórmula clássica em
+  todos os níveis. A proteção do início agora é conteúdo (golpes 15–35 + mapa
+  1 com criaturas de nível 2–7 sem vantagem de elemento), não motor.
+- `src/lib/engine/xp.ts` — `xpFloor` volta a `floor(nível³ × 0,8)`.
+- `src/lib/gym-teams.ts` — Brock 12/14 e Misty 18/21 restaurados
+  (`npm run db:rebalance` aplica em banco já semeado; o `content/world/` foi
+  re-exportado junto, senão um `world:import` futuro reverteria os níveis).
+- `scripts/balance-report.mts` — seção do teto substituída pela varredura
+  "poder × dano neutro no nível 5"; adicionada a seção da Misty.
+- Novo `src/lib/gym-teams.test.ts` trava os níveis dos três ginásios.
+
+**Resultado medido (`npm run balance:report`, RNG semente fixa — antes → depois):**
+
+- Duelos entre iniciais nível 5 (golpe mais forte): a vantagem de tipo voltou a
+  diferenciar — Brasa contra Bulbasaur **6,0 → 10,5** (2,1 turnos), Bolha
+  contra Charmander **6,0 → 10,9** (2,0 turnos); sem vantagem segue em 6,6–7,6
+  turnos. **0% de OHKO em todos os casos, críticos incluídos** (é o que os
+  testes travam — a faixa 15–35 foi escolhida exatamente para isso).
+- Poder × dano neutro no nível 5, sem teto: 5→2,0 · 10→2,1 · 15→2,1 (achatado,
+  como medido antes) · 20→2,7 · 25→3,1 · 35→3,6 · 40→4,1 · 55→4,9. Cada ponto
+  de poder acima de 15 volta a aparecer no dano.
+- Curva: batalhas para subir de nível 5→**2,7** · 10→**4,8** · 15→**6,9** ·
+  20→**9,1** · 25→**11,2** (a 6.1 pedia 3,0/3,9/4,6/5,2/5,8) — de 5 a 15 são
+  **47** batalhas contra alvos do próprio nível (eram 38).
+- Brock 12/14: Bulbasaur e Squirtle nível 10–12 ganham as trocas; Charmander
+  perde as duas (decisão de design registrada na 6.1, mantida). Misty 18/21
+  exige time/nível — no nível 18 só o Bulbasaur vence a Staryu, e ninguém
+  vence a Starmie sozinho: é a parede do segundo ginásio, de propósito.
+
+**Depois desta fase:** o mantenedor roda `npm run db:rebalance` em produção
+(ficou segurado para depois da 6.2-C de propósito — corrige golpes de Pokémon
+já capturados e níveis de ginásio já semeados) e monta o mapa 1 à mão: níveis
+2–7, espécies comuns, sem vantagem de elemento contra os iniciais; então
+`npm run world:export` + PR do `content/world/`.
 
 ### 6.2-D — Mundo como código *(concluída — 2026-09-02)*
 
@@ -376,7 +428,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C)  →  6.3 evolução  →  6.4 pokédex
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução  →  6.4 pokédex
   →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 

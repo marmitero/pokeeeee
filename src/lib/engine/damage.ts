@@ -66,36 +66,17 @@ export type Rng = () => number;
 
 const defaultRng: Rng = () => Math.random();
 
-// ── Amortecimento de dano em níveis baixos (Fase 6.1) ─────────────────────
+// ── Amortecimento de dano em níveis baixos (Fase 6.1 → aposentado na 6.2-C) ─
 //
-// A fórmula clássica assume o pool de HP do meio/fim de jogo. No nível 5 um
-// Pokémon tem ~20 de HP, e qualquer golpe com STAB e vantagem de tipo passa
-// disso sozinho. Em vez de distorcer a fórmula, limitamos quanto **uma única
-// pancada** pode arrancar do HP máximo do alvo, e soltamos esse limite
-// conforme o nível sobe. A partir de `DAMAGE_CAP_END_LEVEL` não há teto algum
-// e o combate volta a ser 100% a fórmula clássica.
-export const DAMAGE_CAP_START_LEVEL = 5;
-export const DAMAGE_CAP_END_LEVEL = 30;
-export const DAMAGE_CAP_MIN_FRACTION = 0.3;
-
-/** Fração máxima do HP máximo que um golpe pode tirar, dado o nível do alvo. */
-export function maxHitFraction(defenderLevel: number): number {
-  if (defenderLevel >= DAMAGE_CAP_END_LEVEL) return 1;
-  if (defenderLevel <= DAMAGE_CAP_START_LEVEL) return DAMAGE_CAP_MIN_FRACTION;
-
-  const span = DAMAGE_CAP_END_LEVEL - DAMAGE_CAP_START_LEVEL;
-  const progress = (defenderLevel - DAMAGE_CAP_START_LEVEL) / span;
-  return DAMAGE_CAP_MIN_FRACTION + (1 - DAMAGE_CAP_MIN_FRACTION) * progress;
-}
-
-/** Aplica o teto de dano por golpe. Nunca reduz o dano abaixo de 1. */
-export function capDamage(damage: number, defender: Combatant): number {
-  const fraction = maxHitFraction(defender.level);
-  if (fraction >= 1) return damage;
-
-  const cap = Math.max(1, Math.ceil(defender.maxHp * fraction));
-  return Math.min(damage, cap);
-}
+// Entre a 6.1 e a 6.2-C existiu um teto de dano por golpe: no nível 5 um golpe
+// não podia arrancar mais que 30% do HP máximo do alvo, soltando linearmente
+// até 100% no nível 30. Era um remédio para a ausência de learnset. Com o
+// learnset maduro e os golpes fracos confinados à faixa 15–35 (6.2-C), o teto
+// passou a **saturar em quase qualquer golpe** e a apagar a diferença entre um
+// golpe fraco e um forte — medida em `scripts/balance-report.mts`, qualquer
+// poder acima de ~8 batia no máximo já no nível 5. A proteção do início do
+// jogo agora é conteúdo (golpes 15–35 + mapa 1 com criaturas de nível 2–7 sem
+// vantagem de elemento), não motor. Não reintroduzir sem remensurar tudo.
 
 export function rollHit(move: DamageMove, rng: Rng = defaultRng): boolean {
   if (move.accuracy >= 100) return true;
@@ -147,7 +128,7 @@ export function computeDamage(
     random;
 
   return {
-    damage: capDamage(Math.max(1, Math.floor(base)), defender),
+    damage: Math.max(1, Math.floor(base)),
     missed: false,
     critical,
     multiplier,

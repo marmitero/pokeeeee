@@ -14,14 +14,15 @@ export const STARTER_LEVEL = 5;
 /**
  * XP de referência acumulado até um dado nível.
  *
- * Fase 6.1: a curva era `level^3 * 0.8`. Medida com `scripts/balance-report.mts`,
- * ela pedia 2,7 batalhas para sair do nível 5 mas **11,2** para sair do 25 e
- * 17,7 para sair do 40 — o começo passava rápido demais e o meio virava grind.
- * A curva `level^2.5 * 2.5` mantém o começo em ~3 batalhas por nível e sobe
- * para ~5–7 no meio do jogo, em vez de dobrar.
+ * Curva original do jogo: `level³ × 0,8`. A Fase 6.1 trocou por `level^2.5 × 2,5`
+ * temendo que o meio de jogo virasse grind (11,2 batalhas para sair do nível 25,
+ * 17,7 do 40). A 6.2-C **voltou à curva original por decisão do mantenedor**: o
+ * jogo deve ser um pouco difícil de evoluir, e o começo arrumado (mapa 1 com
+ * criaturas de nível 2–7 e golpes fracos na faixa 15–35) faz o treino até o
+ * primeiro ginásio ser progressão, não muro. Medição em `scripts/balance-report.mts`.
  */
 function xpFloor(level: number): number {
-  return Math.floor(Math.pow(level, 2.5) * 2.5);
+  return Math.floor(Math.pow(level, 3) * 0.8);
 }
 
 /** Quanto XP falta para ir de `level` a `level + 1`. */
