@@ -344,6 +344,33 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
+### ✅ Rebrand leve — "DELUGE RPG" → "CATCHBOUND" na estética do jogo (2026-09-06)
+
+Pedido do mantenedor: substituir o branding "DELUGE RPG" por **CATCHBOUND**
+(título e demais lugares visíveis) + ajuste do texto da tela de escolha do
+inicial. Merge em standby (vai junto com o resto).
+
+**O que mudou (só strings visíveis, zero lógica):**
+
+- Título da aba: `Pokémon Deluge RPG • …` → `Catchbound • MMORPG Retro Pixel Online & Editor de Mundos`
+- Logo no HUD (`page.tsx`) e no cabeçalho do AuthModal: `DELUGE RPG` → `CATCHBOUND`
+- Banner de boas-vindas: `Bem-vindo ao DelugeRPG!` → `Bem-vindo ao Catchbound!`
+- Placeholder do chat: `Arena Deluge...` → `Arena Catchbound...`
+- Modal de sprites: `PACOTE DE SPRITES & CLASSES DELUGERPG` → `… CATCHBOUND` e rodapé `× 6 Variantes Deluge` → `× 6 Variantes Especiais`
+- Editor de Mundos: `… FUNCIONAL • DELUGERPG` → `… • CATCHBOUND`
+- Descrição padrão de mapa novo (API): `… Editor de Mundos DelugeRPG.` → `… Catchbound.`
+- Tela do inicial: `ESCOLHA SEU POKÉMON INICIAL: (apenas squirtle, charmander ou bulbasaur)` → `ESCOLHA SEU PARCEIRO INICIAL!`
+- Caixa de variantes premium → `Escolha com sabedoria`
+- Removida a frase `Outros Pokémon são capturados explorando o mundo!`
+
+**De propósito NÃO trocado** (rebranding completo ainda é decisão pendente,
+ver §5): `DELUGE_VARIANTS`/`computeDelugeStats`/`DelugeRPGPage` (identificadores
+internos invisíveis), cookie `deluge_session`/`deluge_token` (trocar derruba
+sessões ativas), e-mail placeholder `@delugerpg.net` (dados de usuário
+existente), `package.json` name `deluge-rpg`, README/docs, e a menção
+`"inspirado no Pokémon Deluge"` (é o jogo real de inspiração, não o nosso
+branding). Validação em **§4.25**.
+
 ### ✅ Ferramentas GM no painel admin — agilizar a validação manual (2026-09-06)
 
 Pedido do mantenedor: comandos de game master no painel admin para **agilizar
@@ -1638,6 +1665,29 @@ respostas. **Não validado aqui:** a seção GM no navegador (mantenedor) e a
 própria passada de teste #9–#11 que ela acelera — a UI é um client
 component, o que o smoke provou foi o contrato da API por baixo.
 
+### 4.25 Rebrand leve "DELUGE RPG" → "CATCHBOUND" (2026-09-06, sandbox)
+
+Só strings visíveis de UI (título/aba, HUD, AuthModal, banner, chat,
+sprites, editor, descrição padrão de mapa) + texto da escolha do inicial.
+Como são client components, a prova é: check completo verde + varredura de
+strings + o preview em dev server para o mantenedor conferir na tela.
+
+```
+grep -rni "deluge" src/ public/ README.md (excluindo identificadores internos)
+→ restam só: "inspirado no Pokémon Deluge" (layout description — jogo real de
+  inspiração, correto manter), e-mail placeholder @delugerpg.net (dados),
+  __delugeRpgPool (chave interna de dev), README (docs, fora do escopo "estética do jogo")
+
+npm run check (DATABASE_URL local)
+→ lint ok · typecheck ok · Test Files 17 passed · Tests 242 passed · build ok
+```
+
+**Não validado aqui:** a aparência final no navegador (mantenedor) — o
+preview dev estava no ar com hot-reload; conferir: aba do navegador,
+tela de login (CATCHBOUND + "ESCOLHA SEU PARCEIRO INICIAL!" + "Escolha com
+sabedoria" sem a frase de captura), HUD do jogo, chat, modal de sprites e
+editor.
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -1737,6 +1787,12 @@ mapa da vez) corta o grind da validação em uns 15 min.
 - ou pular para **6.5 status** (paralisia/queimadura/veneno) → 6.6 PvP →
   6.7 NPCs (6.8 premium bloqueado até rebranding).
 
+**Rebranding:** a parte visível do jogo já passou a ser **CATCHBOUND**
+(2026-09-06, §4.25). O rebranding **completo** continua pendente antes de
+divulgação/monetização: identificadores internos, cookie/token, e-mail
+placeholder, `package.json`, README/docs e os sprites/names Pokémon
+(decisão vigente da `§5` do `RELATORIO-POS-MERGE`).
+
 **Antes de começar:** reler este arquivo (regra do protocolo) e o
 `docs/RELATORIO-POS-MERGE.md`.
 
@@ -1782,6 +1838,7 @@ mapa da vez) corta o grind da validação em uns 15 min.
 | 2026-09-06 | **Merge do PR #6** (6.2-C + 6.3 + fix + 6.3-A + 6.3-B + 6.4-A) — ✅ feito; passos de produção pendentes | ⬜ `world:seed` + `db:rebalance` + testes no navegador + `world:export` | `docs/RELATORIO-POS-MERGE.md` |
 | 2026-09-06 | **Ferramental de ativação em produção** — workflow `World activation` (Actions) + papel mínimo `catchbound_maint`; roda seed/rebalance/export sem máquina local | ✅ Ensaio local verde (§4.20) · ⬜ execução real pelo mantenedor | `docs/world-activation.yml` · `docs/supabase-production-maint-role.sql` |
 | 2026-09-06 | **Ferramentas GM no painel admin** — `gm_list/set_level/give_pokemon/give_item/give_money/heal/teleport/give_badge` (admin-only; reusa o motor de stats/learnset/evolução; UI em `/admin`) | ✅ Concluída e validada | 17/242 unit · 7/88 integração · §4.24 |
+| 2026-09-06 | **Rebrand leve** — "DELUGE RPG" → "CATCHBOUND" nas strings visíveis do jogo + texto da escolha do inicial ("Escolha seu parceiro inicial!" / "Escolha com sabedoria") | ✅ Concluída e validada | 17/242 unit · §4.25 · merge em standby |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

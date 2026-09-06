@@ -204,7 +204,7 @@ export function BattleArenaModal({
             <span className="font-['Press_Start_2P'] text-xs text-amber-400">
               {opponent
                 ? `ENCONTRO SELVAGEM • ${opponent.variant.toUpperCase()} ${opponent.name.toUpperCase()}`
-                : "ARENA DELUGERPG"}
+                : "ARENA CATCHBOUND"}
             </span>
           </div>
           <button
@@ -412,7 +412,7 @@ export function BattleArenaModal({
                 type="text"
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                placeholder="Chat global da Arena Deluge..."
+                placeholder="Chat global da Arena Catchbound..."
                 className="flex-1 border border-slate-700 bg-slate-900 px-3 py-1 font-['IBM_Plex_Mono'] text-xs text-slate-100"
               />
               <button

@@ -87,7 +87,7 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
               PKM
             </div>
             <div>
-              <h1 className="font-['Press_Start_2P'] text-xs text-amber-400">DELUGE RPG</h1>
+              <h1 className="font-['Press_Start_2P'] text-xs text-amber-400">CATCHBOUND</h1>
               <p className="font-['VT323'] text-lg text-slate-400">Sua jornada começa aqui</p>
             </div>
           </div>
@@ -133,8 +133,7 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
               {/* Starter choice – only 3 */}
               <div className="border-2 border-slate-700 bg-slate-950/80 p-4">
                 <div className="mb-3 font-['Press_Start_2P'] text-[9px] text-cyan-300">
-                  ESCOLHA SEU POKÉMON INICIAL:
-                  <span className="ml-2 font-['VT323'] text-base text-slate-400">(apenas squirtle, charmander ou bulbasaur)</span>
+                  ESCOLHA SEU PARCEIRO INICIAL!
                 </div>
                 <div className="grid grid-cols-3 gap-3">
                   {STARTER_CHOICES.filter(Boolean).map((poke) => (
@@ -161,9 +160,7 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
 
                 <div className="mt-3 rounded border border-amber-400/30 bg-amber-500/10 px-3 py-2">
                   <p className="font-['VT323'] text-base text-amber-300">
-                    ⭐ Variantes especiais (Shiny, Metallic, Mystic, Dark, Ghostly) são
-                    <strong className="text-amber-200"> skins premium</strong> — conquistadas no jogo ou desbloqueadas futuramente.
-                    Starters começam como Pokémon Normal.
+                    Escolha com sabedoria
                   </p>
                 </div>
               </div>
@@ -186,11 +183,6 @@ export function AuthModal({ onSuccess }: AuthModalProps) {
           )}
 
           <div className="flex items-center justify-between pt-1">
-            {tab === "register" && (
-              <p className="font-['VT323'] text-base text-slate-500">
-                Outros Pokémon são capturados explorando o mundo!
-              </p>
-            )}
             <button type="submit" disabled={loading}
               className={`ml-auto flex items-center gap-2 border-2 border-amber-400 bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-2.5 font-['Press_Start_2P'] text-[10px] text-slate-950 shadow-[3px_3px_0px_#000] hover:brightness-110 active:translate-y-0.5 ${loading ? "opacity-60" : ""}`}>
               {loading ? "AGUARDE..." : tab === "register"
