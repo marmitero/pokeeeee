@@ -42,6 +42,10 @@
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
+> **Dica (2026-09-06):** para os itens #9–#11 e a cadeia de mapas, o painel
+> admin (admin-only) tem **Ferramentas GM** — subir nível, dar Pokémon,
+> dar item/dinheiro, curar, teleportar e dar insígnia (§3/§4.24).
+>
 > Quando validar, marcar cada linha com ✅/❌ e registrar o resultado na seção 4.
 
 > ## 💾 RECUPERAÇÃO (ler se o ambiente resetou)
@@ -129,7 +133,7 @@ src/
 │   └── api/                  # 10 rotas: auth, maps, maps/[id], pokemon/{catch,heal,manage}, gym, shop, pvp, health
 ├── components/               # AuthModal, BattleArenaModal, GymModal, PokemonBox, ShopModal, SpritePackModal, WorldMapEditor
 ├── db/                       # schema.ts (11 tabelas) + index.ts (Pool global)
-└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D)
+└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D), gm (comandos GM do painel)
 content/world/                # mundo versionado: maps/<slug>.json (com ginásios) + shops/<shopId>.json (6.2-D)
 scripts/world-export.mts      # banco → content/world/     (npm run world:export)
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
@@ -234,7 +238,7 @@ Amistoso atualiza `wins`/`losses` e o dano persiste; **não** mexe em ELO nem em
 | **Migrations versionadas** | `drizzle/0000_*.sql` + `drizzle/0001_*.sql` (`npm run db:migrate`) |
 | **Rate limit compartilhado** | tabela `rate_limits` + `src/lib/rate-limit-store.ts` |
 | PostgreSQL local embutido | `npm run db:local` (dados em `.pgdata/`, gitignored) |
-| **Painel administrativo** | `/admin` + `POST /api/admin` |
+| **Painel administrativo** | `/admin` + `POST /api/admin` — papéis, moderação de chat e **ferramentas GM de teste** (`gm_*`, só admin) |
 
 ### Motor de jogo no servidor (Fase 2)
 | Módulo | Responsabilidade |
@@ -285,6 +289,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.3-A — Catálogo Kanto completo: 25 → 156 espécies, +11 golpes (Poison/Bug/Fairy), linhas fechadas** ✅ 2026-09-06
 - [x] **FASE 6.3-B — Golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies reescritos por tipo e raça** ✅ 2026-09-06
 - [x] **FASE 6.4-A — Mundo até o mapa 20: 17 mapas temáticos novos + 156 espécies redistribuídas (bandas 8–16 → 82–95)** ✅ 2026-09-06
+- [x] **Ferramentas GM no painel admin** — agilizar a validação manual (subir nível, dar Pokémon/item/dinheiro, curar, teleportar, dar insígnia) ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -328,7 +333,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
   - [x] **106 testes** (77 unit + 29 integração) com Vitest
   - [x] **Migrations versionadas** (`drizzle/0000_*`, `drizzle/0001_*`) + `npm run db:migrate`
   - [x] **CI** no GitHub Actions: lint, typecheck, unit, integration, build
-  - [x] **Painel administrativo** `/admin` + `POST /api/admin`
+  - [x] **Painel administrativo** `/admin` + `POST /api/admin` (+ ferramentas GM de teste em 2026-09-06, ver §3/§4.24)
   - [x] **Poderes concretos de `moderator`**: moderação do chat (antes o papel não fazia nada)
   - [x] PostgreSQL local embutido (`npm run db:local`) para os testes não dependerem de Docker
 
@@ -338,6 +343,40 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Ferramentas GM no painel admin — agilizar a validação manual (2026-09-06)
+
+Pedido do mantenedor: comandos de game master no painel admin para **agilizar
+o processo de testes** (o agente não tem navegador; a passada manual #9–#11
+exigia grind até o estado a testar). Antes de decidir a próxima fase.
+
+**O que existe agora** (admin-only; moderador continua só com o chat):
+
+1. `gm_list` — visão do alvo: dinheiro, inventário e time/PC Box completo
+   (id, espécie, nível, HP, golpes, slot).
+2. `gm_set_level` — nível 1–100 de **um Pokémon (id) ou do time inteiro**;
+   reusa o motor: status por `computeDelugeStats`, golpes por
+   `refreshMovesForLevel`, evolução pendente por `applyEvolution` (catch-up
+   da 6.3); cura o alvo; XP zera no nível novo.
+3. `gm_give_pokemon` — espécie (id) + nível + variante + apelido; entra no
+   1º slot livre do time (senão PC Box); espécie que já teria evoluído no
+   nível pedido chega no estágio certo (Charmander nv 40 → Charizard).
+4. `gm_give_item` — 8 itens de inventário, quantidade 1–999.
+5. `gm_give_money` — 1 a 10.000.000.
+6. `gm_heal` — time + PC Box a 100% (idem Centro Pokémon).
+7. `gm_teleport` — mapa (select dos 20) + cai no centro ou x/y dentro da
+   grade; alvo refaz login para a posição valer.
+8. `gm_give_badge` — insígnia por líder (idempotente; desbloqueia o
+   pré-requisito de ginásio: Misty pede 1, Lance pede 2).
+
+**Design:** lógica pura em `src/lib/gm.ts` (testável, sem banco); a rota
+`/api/admin` exige `admin`, age só sobre o alvo por username (mesmo padrão
+do `set_role`), audita cada ação em log (`[gm] quem → alvo → o quê`) e tudo
+passa pelo rate limit existente (30/min). UI: seção "FERRAMENTAS GM" em
+`/admin` (só aparece para admin) — listar time, formulários por comando,
+feedback e auto-refresh após cada mutação. `gm_teleport`/`gm_give_badge`
+rodam os seeds idempotentes de mapas/ginásios para bancos recém-criados.
+Validação real em **§4.24**.
 
 ### 🛠 Pós-merge — Ferramental de ativação dos mapas EM PRODUÇÃO via GitHub Actions (2026-09-06)
 
@@ -1552,6 +1591,52 @@ a commitar". **Não coberto (próprio do destino):** TLS do Session Pooler,
 dados reais de produção e o clique no navegador — ficam para a execução
 real, que é exatamente o que o workflow automatiza.
 
+### 4.24 Ferramentas GM no painel admin (2026-09-06, sandbox)
+
+Sandbox não tem navegador, então a validação foi: (a) suítes completas e
+(b) **smoke HTTP real** no dev server (`npm run dev` :3000) contra o
+Postgres local (`npm run db:local` + `db:migrate`), com sessão Bearer de um
+admin promovido via banco e um alvo registrado:
+
+```
+npm run check (com DATABASE_URL local)
+→ lint ok · typecheck ok · Test Files 17 passed · Tests 242 passed · build ok
+
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+  npm run test:integration
+→ Test Files 7 passed · Tests 88 passed   (novo gm.integration.test.ts: 15)
+
+smoke HTTP (curl, dev server :3000, banco local):
+  GET /api/maps                       → 20 mapas (seed do mundo 6.4-A)
+  gm_list (antes)                     → Charmander nv5 (Arranhão/Brasa) · money 3000 · potions 3
+  gm_give_money +777                  → 3777
+  gm_give_item potions x500           → 503
+  gm_give_pokemon Charmander nv 20    → Charmeleon slot 2 · evolvedFrom "Charmander" · golpes Brasa/Redemoinho de Fogo/Garra de Metal/Presa de Fogo
+  gm_set_level nv 40 (time inteiro)   → 2× Charizard (evoluíram Charmander→Charizard e Charmeleon→Charizard) · golpes Garra de Metal/Presa de Fogo/Sopro do Dragão/Ataque de Asa
+  gm_teleport mapa 2                  → "Mapa 2: Floresta de Viridian" em (8,8) — users.currentMapId/playerX/playerY atualizados
+  gm_give_badge 1 (2×)                → 🪨 Insígnia Pedra · badges: 1 (idempotente)
+  gm_heal                             → "Equipe ... curada 100% (2 Pokémon)"
+  player → gm_give_money              → 403
+  alvo inexistente → gm_heal          → 404
+  gm_give_item quantity 1000          → 400
+  GET /admin                          → 200
+```
+
+**Ajuste no caminho:** `gm_give_badge` falhava em banco recém-criado
+(`gym_leaders` vazio — o seed de ginásios só rodava via `/api/gym`/batalha).
+Conserto: `gm_give_badge` e `gm_teleport` rodam `ensureGymSeeded()`/
+`ensureDefaultMapsSeeded()` antes da consulta (idempotentes, idem a rota de
+mapas) — sem isso o teste de insígnia era flaky pela ordem de execução dos
+arquivos de integração.
+
+**Coberto:** autorização (player/moderator 403, admin ok), 404 de alvo/
+mapa/ginásio, 400 de validação (qtd, espécie, posição fora da grade),
+cadeia evolutiva completa no level up, learnset persistido, HP cheio,
+time→PC Box, idempotência de insígnia e ausência de `passwordHash` nas
+respostas. **Não validado aqui:** a seção GM no navegador (mantenedor) e a
+própria passada de teste #9–#11 que ela acelera — a UI é um client
+component, o que o smoke provou foi o contrato da API por baixo.
 
 ---
 
@@ -1638,6 +1723,12 @@ O passo 5 é feito pelo próprio workflow (export + diff do espelho; artefato
 `world-diff-*` só se produção divergir do git — aï o agente versiona). Sobram
 para o humano: conferir deploy (1), navegador (4) e mapa 1 à mão (6).
 
+**Para a passada no navegador (itens #9–#11 + cadeia 3→20):** o painel
+`/admin` tem a seção **FERRAMENTAS GM** (admin-only, §4.24) — logar como
+admin e usar "subir nível" (16/36 p/ evolução), "dar Pokémon" (time forte
+p/ ginásio), "dar dinheiro/item", "curar" e "teleportar" (pulando para o
+mapa da vez) corta o grind da validação em uns 15 min.
+
 **Decisão de rumo para a próxima fase** (com o mantenedor):
 
 - **6.4 restante**: espécies de **Johto e além** (sprites animados até o id
@@ -1690,6 +1781,7 @@ para o humano: conferir deploy (1), navegador (4) e mapa 1 à mão (6).
 | 2026-09-06 | **Fase 6.4-A** — mundo até o mapa 20: 17 mapas temáticos, 156 espécies redistribuídas em bandas 8–95 | ✅ Concluída e validada | 16/231 unit · 6/73 integração · §4.19 |
 | 2026-09-06 | **Merge do PR #6** (6.2-C + 6.3 + fix + 6.3-A + 6.3-B + 6.4-A) — ✅ feito; passos de produção pendentes | ⬜ `world:seed` + `db:rebalance` + testes no navegador + `world:export` | `docs/RELATORIO-POS-MERGE.md` |
 | 2026-09-06 | **Ferramental de ativação em produção** — workflow `World activation` (Actions) + papel mínimo `catchbound_maint`; roda seed/rebalance/export sem máquina local | ✅ Ensaio local verde (§4.20) · ⬜ execução real pelo mantenedor | `docs/world-activation.yml` · `docs/supabase-production-maint-role.sql` |
+| 2026-09-06 | **Ferramentas GM no painel admin** — `gm_list/set_level/give_pokemon/give_item/give_money/heal/teleport/give_badge` (admin-only; reusa o motor de stats/learnset/evolução; UI em `/admin`) | ✅ Concluída e validada | 17/242 unit · 7/88 integração · §4.24 |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

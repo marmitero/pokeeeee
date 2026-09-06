@@ -78,7 +78,7 @@ export const idSchema = z.coerce
 
 // ─── /api/auth ────────────────────────────────────────────────────────────
 
-const usernameSchema = z
+export const usernameSchema = z
   .string({ message: "Nome de treinador obrigatório" })
   .trim()
   .min(3, "Nome de treinador precisa de ao menos 3 caracteres")
@@ -373,4 +373,56 @@ export const adminActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("list_staff") }),
   z.object({ action: z.literal("list_chat"), limit: z.coerce.number().int().min(1).max(100).default(50) }),
   z.object({ action: z.literal("delete_chat"), messageId: idSchema }),
+
+  // ── Ferramentas GM (só admin) — agilizam a validação manual de gameplay ──
+
+  z.object({ action: z.literal("gm_list"), username: usernameSchema }),
+  z.object({
+    action: z.literal("gm_set_level"),
+    username: usernameSchema,
+    level: levelSchema,
+    /** Omitido = todos os Pokémon do treinador (time + PC Box). */
+    pokemonId: idSchema.optional(),
+  }),
+  z.object({
+    action: z.literal("gm_give_pokemon"),
+    username: usernameSchema,
+    pokedexId: idSchema,
+    level: levelSchema.default(5),
+    variant: variantSchema.default("Normal"),
+    nickname: z.string().trim().min(1, "Apelido muito curto").max(20, "Apelido muito longo").optional(),
+  }),
+  z.object({
+    action: z.literal("gm_give_item"),
+    username: usernameSchema,
+    item: z.enum(INVENTORY_KEYS),
+    quantity: z.coerce
+      .number()
+      .int("Quantidade deve ser inteira")
+      .min(1, "Quantidade mínima é 1")
+      .max(999, "Quantidade máxima é 999"),
+  }),
+  z.object({
+    action: z.literal("gm_give_money"),
+    username: usernameSchema,
+    amount: z.coerce
+      .number()
+      .int("Valor deve ser inteiro")
+      .min(1, "Valor mínimo é 1")
+      .max(10_000_000, "Valor máximo é 10.000.000"),
+  }),
+  z.object({ action: z.literal("gm_heal"), username: usernameSchema }),
+  z.object({
+    action: z.literal("gm_teleport"),
+    username: usernameSchema,
+    mapId: idSchema,
+    /** Omitidos = centro do mapa. */
+    x: coordinateSchema.optional(),
+    y: coordinateSchema.optional(),
+  }),
+  z.object({
+    action: z.literal("gm_give_badge"),
+    username: usernameSchema,
+    gymLeaderId: idSchema,
+  }),
 ]);
