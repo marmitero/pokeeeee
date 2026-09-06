@@ -139,8 +139,8 @@ scripts/world-export.mts      # banco → content/world/     (npm run world:expo
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
 ```
 
-### Banco de dados — 11 tabelas
-`users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
+### Banco de dados — 12 tabelas
+`users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06)
 
 ### Conteúdo seedado
 156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
@@ -148,7 +148,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 ### Estado funcional real
 | Feature | Estado |
 |---|---|
-| Registro / Login / Sessão | ✅ Funciona (inseguro — ver Fase 1) |
+| Registro / Login / Sessão | ✅ Funciona — scrypt, cookie httpOnly, **confirmação por e-mail** (código de 6 dígitos, 2026-09-06) |
 | Exploração + movimento + portais | ✅ Funciona |
 | Encontros selvagens | ✅ Funciona (decididos no cliente) |
 | Batalha selvagem | ✅ **Servidor** — dano, tipos, XP, captura e HP persistidos |
@@ -343,6 +343,62 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Confirmação de e-mail no cadastro + rebrand final (título, description, cookies) (2026-09-06)
+
+Pedido do mantenedor (4 itens): (a) título da aba só `Catchbound • MMORPG
+Retro Pixel Online`; (b) remover "inspirado no Pokémon Deluge" da description
+("deixaremos isso oculto"); (c) renomear `deluge_session`/`deluge_token`
+("não temos players ainda"); (d) o jogador cadastra **seu próprio e-mail** e
+confirma a conta com **código de 6 dígitos enviado a ele** — conta vinculada
+ao e-mail real; o e-mail em si deve ser **estilizado, digno do jogo** (não
+formal).
+
+**Fluxo novo do cadastro:**
+- `POST /api/auth {action:"register", username, email, password, starterId}`
+  → cria usuário **não verificado** + inicial, envia código para o e-mail
+  (SMTP configurado) ou devolve `devCode` no corpo (dev/teste sem SMTP;
+  produção sem SMTP → 503). **Sem sessão/token** na resposta.
+- `action:"verify_email" {email, code}` → confirma, apaga o código e **já
+  faz o login** (cookie `catchbound_session` + Bearer em dev). Respostas
+  genéricas (400/429) — não vazam existência de conta/código.
+- `action:"resend_code" {email}` → reenvia (cooldown 60 s, 5 tentativas de
+  verificação, expiração 10 min; código guardado só como SHA-256).
+- Login de conta não confirmada → **403** com orientação (AuthModal abre a
+  tela de verificação). Contas antigas (admin/testes) grandfatheradas na
+  migration 0006 (`email_verified = true`).
+
+**Mudanças:**
+- `src/db/schema.ts`: `users.email` único, `users.emailVerified`, tabela
+  `email_verification_codes` → **migration `drizzle/0006_melodic_maginty.sql`**
+  (aplicada no banco local; **na produção precisa ser colada no SQL Editor do
+  Supabase ANTES do merge**).
+- `src/lib/mailer.ts` (novo): nodemailer/SMTP (`SMTP_HOST/PORT/SECURE/USER/
+  PASS/FROM` + `APP_URL` no botão).
+- `src/lib/email-verification.ts` (novo): ciclo do código + **e-mail HTML
+  estilizado** (tema do jogo: fundo `#020617`, borda âmbar, monoespaçada,
+  badge PKM, botão "▶ ENTRAR NA JORNADA") — preview em
+  `docs/EMAIL-CONFIRMACAO-PREVIEW.html`.
+- `src/app/api/auth/route.ts`: register/verify_email/resend_code + trava 403
+  no login.
+- `src/components/AuthModal.tsx`: campo E-MAIL no cadastro + passo
+  "CONFIRME SEU E-MAIL" (código de 6 dígitos, REENVIAR com contagem 60 s,
+  devCode visível em teste).
+- `src/lib/session.ts` / `src/lib/api-client.ts`: `catchbound_session` /
+  `catchbound_token` (4 refs em testes atualizadas).
+- `src/app/layout.tsx`: título da aba e description sem menção ao Deluge.
+- `tests/integration/helpers.ts` (novo): `registerVerified()` — fluxo
+  completo via devCode; os 8 testes de integração que faziam register foram
+  atualizados (registro agora exige e-mail + verificação).
+- `.env.example`: bloco SMTP + `APP_URL`.
+
+**⚠️ Pré-requisitos de PRODUÇÃO antes do merge (ordem obrigatória):**
+1. Aplicar a **migration 0006** no banco de produção (SQL Editor do Supabase)
+   — sem `email_verified`, todo `SELECT` de `users` quebra em produção.
+2. Adicionar envs `SMTP_HOST/PORT/SECURE/USER/PASS/FROM` (+ `APP_URL`) na
+   Vercel — sem SMTP, o cadastro em produção responde 503.
+Depois disso, o merge (GM + rebrand + e-mail + sync de docs) deploya sozinho.
+Merge segue em **STANDBY** a pedido do mantenedor. Validação em **§4.26**.
 
 ### ✅ Rebrand leve — "DELUGE RPG" → "CATCHBOUND" na estética do jogo (2026-09-06)
 
@@ -1688,6 +1744,54 @@ tela de login (CATCHBOUND + "ESCOLHA SEU PARCEIRO INICIAL!" + "Escolha com
 sabedoria" sem a frase de captura), HUD do jogo, chat, modal de sprites e
 editor.
 
+### 4.26 Confirmação de e-mail + rebrand final (2026-09-06, sandbox)
+
+Comandos reais executados e saída observada:
+
+```
+npm i nodemailer && npm i -D @types/nodemailer
+→ +1 pacote (nodemailer), +1 devDep (@types/nodemailer)
+
+# schema: users.email único + emailVerified + email_verification_codes
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npm run db:generate
+→ [✓] SQL migration file ➜ drizzle/0006_melodic_maginty.sql
+# + grandfathering colado no fim da migration:
+#   UPDATE "users" SET "email_verified" = true;
+DATABASE_URL="..." npm run db:migrate
+→ [✓] migrations applied successfully
+
+npx tsc --noEmit → 0 erros
+npm run test      → Test Files 18 passed · Tests 250 passed
+npm run test:integration → Test Files 8 passed · Tests 97 passed
+npm run check (DATABASE_URL local)
+→ lint ok · typecheck ok · 250 unit + 97 integração · build ok (exit 0)
+```
+
+Smoke vivo no dev server (127.0.0.1:3000, hot-reload), sem SMTP (devCode):
+```
+1) register username+email+password      → 200 · verified:false · devCode · sem cookie/token
+2) login antes de confirmar               → 403 "…ainda não confirmou o e-mail…"
+3) verify_email código errado             → 400 "Código inválido ou expirado…"
+4) verify_email com o devCode             → 200 · set-cookie: catchbound_session=… ·
+                                            token (dev) · party com o inicial · verified:true
+5) register com e-mail duplicado          → 400 "…já está vinculado a outra conta…"
+6) login após confirmar                   → 200
+7) login admin/admin12345 (legado)        → 200 (grandfathering funciona)
+8) curl / → <title>Catchbound • MMORPG Retro Pixel Online</title>
+          description sem "inspirado no Pokémon Deluge"
+```
+
+Novos testes: `src/lib/email-verification.test.ts` (8 — código, hash, HTML
+estilizado) e `tests/integration/email-verification.integration.test.ts`
+(9 — fluxo completo: cadastro não verificado, duplicado, malformado, login
+403, código certo/errado/5×+6ª→429, reenvio com cooldown e invalidação do
+código antigo, respostas genéricas).
+
+**Não validado aqui:** envio real via SMTP (precisa de credenciais; o
+preview `docs/EMAIL-CONFIRMACAO-PREVIEW.html` mostra o visual exato que
+sairá) e a aparência do passo "CONFIRME SEU E-MAIL" no navegador (mantenedor
+— o preview dev no ar já roda o fluxo com devCode).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -1773,6 +1877,15 @@ O passo 5 é feito pelo próprio workflow (export + diff do espelho; artefato
 `world-diff-*` só se produção divergir do git — aï o agente versiona). Sobram
 para o humano: conferir deploy (1), navegador (4) e mapa 1 à mão (6).
 
+**⚠️ ANTES DO PRÓXIMO MERGE (2026-09-06) — ordem obrigatória:**
+1. **Migration 0006 no banco de produção** (colar
+   `drizzle/0006_melodic_maginty.sql` no SQL Editor do Supabase) — sem a
+   coluna `email_verified`, toda leitura de `users` quebra após o deploy;
+2. **Envs de e-mail na Vercel**: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`,
+   `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (+ `APP_URL`, opcional) — sem
+   SMTP, o cadastro em produção responde 503 (de propósito: melhor bloquear
+   do que criar conta sem a trava).
+
 **Para a passada no navegador (itens #9–#11 + cadeia 3→20):** o painel
 `/admin` tem a seção **FERRAMENTAS GM** (admin-only, §4.24) — logar como
 admin e usar "subir nível" (16/36 p/ evolução), "dar Pokémon" (time forte
@@ -1788,10 +1901,15 @@ mapa da vez) corta o grind da validação em uns 15 min.
   6.7 NPCs (6.8 premium bloqueado até rebranding).
 
 **Rebranding:** a parte visível do jogo já passou a ser **CATCHBOUND**
-(2026-09-06, §4.25). O rebranding **completo** continua pendente antes de
-divulgação/monetização: identificadores internos, cookie/token, e-mail
-placeholder, `package.json`, README/docs e os sprites/names Pokémon
-(decisão vigente da `§5` do `RELATORIO-POS-MERGE`).
+(2026-09-06, §4.25) e o resto do rebrand pendente foi feito na rodada de
+confirmação de e-mail (§4.26): título da aba sem "& Editor de Mundos",
+description **sem** a menção ao Pokémon Deluge ("deixaremos isso oculto"),
+cookies/tokens `catchbound_session`/`catchbound_token` e e-mail placeholder
+`@delugerpg.net` morto (o cadastro agora usa o e-mail real do jogador).
+Restam para o rebranding completo antes de divulgação/monetização:
+identificadores internos (`computeDelugeStats` etc.), `package.json`
+(`deluge-rpg`), README/docs e os sprites/names Pokémon (decisão vigente da
+`§5` do `RELATORIO-POS-MERGE`).
 
 **Antes de começar:** reler este arquivo (regra do protocolo) e o
 `docs/RELATORIO-POS-MERGE.md`.
@@ -1839,6 +1957,7 @@ placeholder, `package.json`, README/docs e os sprites/names Pokémon
 | 2026-09-06 | **Ferramental de ativação em produção** — workflow `World activation` (Actions) + papel mínimo `catchbound_maint`; roda seed/rebalance/export sem máquina local | ✅ Ensaio local verde (§4.20) · ⬜ execução real pelo mantenedor | `docs/world-activation.yml` · `docs/supabase-production-maint-role.sql` |
 | 2026-09-06 | **Ferramentas GM no painel admin** — `gm_list/set_level/give_pokemon/give_item/give_money/heal/teleport/give_badge` (admin-only; reusa o motor de stats/learnset/evolução; UI em `/admin`) | ✅ Concluída e validada | 17/242 unit · 7/88 integração · §4.24 |
 | 2026-09-06 | **Rebrand leve** — "DELUGE RPG" → "CATCHBOUND" nas strings visíveis do jogo + texto da escolha do inicial ("Escolha seu parceiro inicial!" / "Escolha com sabedoria") | ✅ Concluída e validada | 17/242 unit · §4.25 · merge em standby |
+| 2026-09-06 | **Confirmação de e-mail no cadastro** (e-mail real do jogador + código de 6 dígitos, e-mail HTML estilizado, reenvio/cooldown) + rebrand final (título, description sem Deluge, `catchbound_session`/`catchbound_token`) | ✅ Concluída e validada | 18/250 unit · 8/97 integração · migration 0006 · ⚠️ produção: aplicar migration + envs SMTP ANTES do merge · §4.26 |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

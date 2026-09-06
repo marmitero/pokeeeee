@@ -115,12 +115,12 @@ describe("token com armazenamento disponível", () => {
 
     setToken("tok-normal");
 
-    expect(storage.getItem("deluge_token")).toBe("tok-normal");
+    expect(storage.getItem("catchbound_token")).toBe("tok-normal");
   });
 
   it("lê o token gravado numa carga anterior da página", () => {
     const storage = workingStorage();
-    storage.setItem("deluge_token", "tok-antigo");
+    storage.setItem("catchbound_token", "tok-antigo");
     installWindow(storage);
 
     expect(getToken()).toBe("tok-antigo");

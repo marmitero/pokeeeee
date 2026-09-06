@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
 import { client } from "./client";
+import { registerVerified } from "./helpers";
 import { resetRateLimits } from "@/lib/rate-limit";
 import { db } from "@/db";
 import { gameMaps, users } from "@/db/schema";
@@ -34,11 +35,8 @@ beforeEach(async () => {
 });
 
 async function register(username: string) {
-  const c = client();
-  const r = await c.call("/api/auth", {
-    body: { action: "register", username, password: "senhaSegura123", starterId: 4 },
-  });
-  expect(r.status, `registro falhou: ${JSON.stringify(r.body)}`).toBe(200);
+  // Cadastro completo (e-mail + código de confirmação via devCode).
+  const { c } = await registerVerified(username);
   return c;
 }
 
@@ -156,12 +154,8 @@ describe("Encontros — camada de área de caça", () => {
  */
 describe("PUT /api/maps/:id — camadas gravadas pelo editor", () => {
   async function admin() {
-    const c = client();
     const username = nextUser();
-    const r = await c.call("/api/auth", {
-      body: { action: "register", username, password: "senhaSegura123", starterId: 4 },
-    });
-    expect(r.status, JSON.stringify(r.body)).toBe(200);
+    const { c } = await registerVerified(username);
     await db.update(users).set({ role: "admin" }).where(eq(users.username, username));
     return c;
   }

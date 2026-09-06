@@ -14,7 +14,7 @@
  * falha parece "carregar e parar" — foi o que aconteceu na validação manual.
  */
 
-const TOKEN_KEY = "deluge_token";
+const TOKEN_KEY = "catchbound_token";
 
 // ─── Token ────────────────────────────────────────────────────────────────
 

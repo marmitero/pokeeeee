@@ -93,9 +93,21 @@ const passwordSchema = z
   .min(8, "Senha precisa de ao menos 8 caracteres")
   .max(128, "Senha muito longa");
 
+/**
+ * E-mail real do jogador (2026-09-06): a conta fica vinculada a ele e só
+ * loga após confirmar o código enviado para o próprio e-mail. Antes o
+ * e-mail era um placeholder derivado do username (`@delugerpg.net`).
+ */
+const emailSchema = z
+  .email("E-mail inválido")
+  .trim()
+  .toLowerCase()
+  .max(254);
+
 export const authRegisterSchema = z.object({
   action: z.literal("register"),
   username: usernameSchema,
+  email: emailSchema,
   password: passwordSchema,
   starterId: z.coerce.number().int().optional(),
   avatarSprite: z.string().trim().min(1).max(32).optional(),
@@ -107,9 +119,27 @@ export const authLoginSchema = z.object({
   password: z.string().min(1, "Senha obrigatória").max(128),
 });
 
+/**
+ * Confirmação de e-mail do cadastro (2026-09-06). As respostas da rota são
+ * genéricas de propósito: "código enviado" para qualquer e-mail, sem vazar
+ * se a conta existe.
+ */
+export const authVerifyEmailSchema = z.object({
+  action: z.literal("verify_email"),
+  email: emailSchema,
+  code: z.string().trim().regex(/^\d{6}$/, "Código deve ter 6 dígitos"),
+});
+
+export const authResendCodeSchema = z.object({
+  action: z.literal("resend_code"),
+  email: emailSchema,
+});
+
 export const authSchema = z.discriminatedUnion("action", [
   authRegisterSchema,
   authLoginSchema,
+  authVerifyEmailSchema,
+  authResendCodeSchema,
 ]);
 
 // ─── /api/pokemon/heal ────────────────────────────────────────────────────

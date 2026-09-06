@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { registerVerified } from "./helpers";
 import { resetRateLimits } from "@/lib/rate-limit";
 import { POST as authPost, GET as authGet } from "@/app/api/auth/route";
 import { POST as battlePost, GET as battleGet } from "@/app/api/battle/route";
@@ -96,10 +97,10 @@ beforeEach(async () => {
   await resetRateLimits();
 });
 
+// Cadastro completo (e-mail + código de confirmação via devCode). `r` é a
+// resposta do verify_email — a mesma shape de sessão usada pelos testes.
 async function register(username: string, password = "senhaSegura123", starterId = 4) {
-  const c = client();
-  const r = await c.call("/api/auth", { body: { action: "register", username, password, starterId } });
-  expect(r.status, `registro de ${username} falhou: ${JSON.stringify(r.body)}`).toBe(200);
+  const { c, r } = await registerVerified(username, { password, starterId });
   return { c, r, username };
 }
 
@@ -138,7 +139,7 @@ describe("autenticação (V1)", () => {
     const { r } = await register(`ck${Date.now()}`);
     const setCookie = r.headers.get("set-cookie") ?? "";
 
-    expect(setCookie).toContain("deluge_session=");
+    expect(setCookie).toContain("catchbound_session=");
     expect(setCookie.toLowerCase()).toContain("httponly");
   });
 
@@ -155,7 +156,7 @@ describe("cookie de sessão", () => {
     const { r } = await register(`ck${Date.now()}`);
     const setCookie = r.headers.get("set-cookie") ?? "";
 
-    expect(setCookie).toContain("deluge_session=");
+    expect(setCookie).toContain("catchbound_session=");
     expect(setCookie.toLowerCase()).toContain("httponly");
     expect(setCookie).toContain("Max-Age=2592000");
     expect(setCookie.toLowerCase()).toContain("path=/");
