@@ -1,6 +1,7 @@
 import { EVOLUTION_ITEM_IDS } from "./evolution-items";
 import { gen1Rest } from "./pokedex-gen1";
 import { johtoRest } from "./pokedex-johto";
+import { hoennRest } from "./pokedex-hoenn";
 
 export type DelugeVariant =
   | "Normal"
@@ -2157,10 +2158,13 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
 // tipos, sprites do mesmo CDN) e entra aqui, em ordem de id.
 // Fase 6.4-B: Johto (152–251, exceto 197/208 já presentes) entra na sequência;
 // dados derivados de PokeAPI e learnsets do catálogo de golpes existente.
+// Fase 6.4-C: Hoenn (252–386, exceto 282/384 já presentes) fecha a terceira
+// geração — só catálogo; a redistribuição no mundo fica para o lote de mapas.
 const POKEDEX_DATA: PokemonSpeciesData[] = [
   ...POKEDEX_BASE,
   ...gen1Rest(ALL_MOVES),
   ...johtoRest(ALL_MOVES),
+  ...hoennRest(ALL_MOVES),
 ];
 
 /** Golpe padrão usado quando o nome gravado no banco não existe mais no catálogo. */

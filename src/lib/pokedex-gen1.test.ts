@@ -13,16 +13,15 @@ import { TYPE_NAMES, isKnownType } from "./engine/types";
  * introduza tipo/golpe inválido sem o CI perceber.
  */
 
-/** Kanto (1–151) + Johto (152–251) + os 3 modernos que o jogo já tinha. */
+/** Kanto (1–151) + Johto (152–251) + Hoenn (252–386) + Lucario. */
 const ESPERADAS = [
   ...Array.from({ length: 151 }, (_, i) => i + 1), // 1–151
   ...Array.from({ length: 100 }, (_, i) => 152 + i), // 152–251
-  282, // Gardevoir
-  384, // Rayquaza
+  ...Array.from({ length: 135 }, (_, i) => 252 + i), // 252–386 (inclui 282/384)
   448, // Lucario
 ];
 
-describe("catálogo Kanto + Johto (6.3-A/6.4-B)", () => {
+describe("catálogo Kanto + Johto + Hoenn (6.3-A/6.4-B/6.4-C)", () => {
   it("contém exatamente as espécies esperadas, sem duplicata", () => {
     const ids = POKEDEX.map((s) => s.id).sort((a, b) => a - b);
     const esperadas = [...ESPERADAS].sort((a, b) => a - b);
@@ -31,8 +30,8 @@ describe("catálogo Kanto + Johto (6.3-A/6.4-B)", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("são 254 espécies — 151 de Kanto + 100 de Johto + 3 de outras gerações", () => {
-    expect(POKEDEX).toHaveLength(254);
+  it("são 387 espécies — 151 de Kanto + 100 de Johto + 135 de Hoenn + Lucario", () => {
+    expect(POKEDEX).toHaveLength(387);
   });
 
   it("toda espécie usa os três sprites do CDN no padrão Gen V animado", () => {
