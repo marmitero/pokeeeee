@@ -36,6 +36,7 @@
 > | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
 | 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
 | 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C |
+| 10 | **Evolução (6.3)**: subir um Charmander até 16 (ou usar um save acima do limiar) e ver o log `★ … evoluiu para Charmeleon!` e o nome novo no PC Box | Login → batalhar até cruzar nível 16 | Fase 6.3 |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -137,7 +138,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-21 espécies (com learnset por nível) · 41 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+25 espécies (com learnset por nível e linhas evolutivas) · 41 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -148,6 +149,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Batalha selvagem | ✅ **Servidor** — dano, tipos, XP, captura e HP persistidos |
 | Captura | ✅ **Servidor** — `catchRate` + HP + bola; pode falhar |
 | XP / Nível up | ✅ **Servidor** — XP acumula, nível sobe e o Pokémon **aprende golpes** (6.1) |
+| Evolução | ✅ **Servidor** (6.3) — por nível, no fluxo de vitória; stats recalculados, % de HP e apelido preservados, tipos trocam na hora, sem endpoint chamável |
 | PC Box / time / itens | ✅ Funciona |
 | Ginásio | ✅ **Servidor** — luta turno a turno, insígnia só vencendo de verdade |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
@@ -156,7 +158,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
-| Pacote de Sprites | ✅ Funciona (vitrine) — 21 espécies × 6 variantes |
+| Pacote de Sprites | ✅ Funciona (vitrine) — 25 espécies × 6 variantes |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -278,6 +280,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
 - [x] **FASE 6.2-D — Mundo como código (export/import de mapas, ginásios e lojas)** ✅ 2026-09-02
 - [x] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`, Brock 12/14 e Misty 18/21** ✅ 2026-09-06
+- [x] **FASE 6.3 — Evolução no servidor (por nível, dirigida por dados, sem endpoint chamável)** ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -331,6 +334,49 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Fase 6.3 — Evolução no servidor (2026-09-06)
+
+Na mesma branch `arena/01a07639-pokeeeee` (empilhada sobre a 6.2-C — merge
+deixado para depois a pedido do mantenedor; o PR #6 acumula as duas fases).
+Plano em `docs/FASE-6.md` §6.3, seguido sem reabertura.
+
+**O que existe agora:**
+
+1. **Regras dirigidas por dados** — `PokemonSpecies.evolvesTo`:
+   `{ speciesId, trigger: "level"|"item"|"special", level?, itemId? }[]`.
+   Só `"level"` é implementado; o teste de sanidade **proíbe** item/special
+   antes de existirem (regra morta não entra no catálogo).
+2. **+4 espécies** (o buraco das linhas dos iniciais): Ivysaur(2),
+   Venusaur(3), Charmeleon(5), Wartortle(8) — bases canônicas, sprites CDN,
+   learnset herdado da linha. Pokédex: 21 → **25**.
+3. **Motor** `src/lib/engine/evolution.ts`: `evolutionAtLevel(id, nível)`
+   segue a cadeia enquanto `nível ≥ limiar` (salto 15→37 atravessa dois
+   estágios numa batalha; guarda contra ciclos) e `applyEvolution(side)`
+   transforma o combatente no lugar.
+4. **Gatilho no fluxo de vitória** (`battle-service.ts`), junto do `applyXp`
+   — não existe endpoint de evoluir; cliente nenhum pode pedir evolução.
+   Ao evoluir: stats recalculados (variante real), **% de HP preservado**,
+   **apelido mantido**, **tipos trocam na mesma batalha**, golpes rederivados
+   do learnset novo, log `★ … evoluiu para …!`.
+5. **Persistência**: `pokedexId` + `name` entram no `UPDATE user_pokemon` da
+   vitória (no-op quando não evolui).
+6. **Catch-up automático**: gatilho é `nível ≥ limiar`, não "acabou de
+   cruzar" — Pokémon de produção que já passaram de 16 antes da 6.3
+   evolucionam no próximo level up, direto pro estágio certo do nível. Sem
+   backfill.
+
+**Linhas:** iniciais 16/32 e 16/36 (cânon) · Dragonair 55 → Dragonite (cânon)
+· Staryu 30 → Starmie e Eevee 30 → Umbreon (**provisórios**: pedra d'água e
+felicidade não existem como sistema; viraram nível até a 6.4/6.5 trazerem
+itens). Pikachu/Geodude/Onix/Gengar/Lapras etc. não evoluem nesta fase — os
+alvos não estão na Pokédex (conteúdo da 6.4).
+
+**Testes:** `src/lib/engine/evolution.test.ts` (16: integridade de dados,
+gatilhos, salto duplo, % HP, apelido, variante, tipos, time/PC agnóstico) +
+`tests/integration/evolution.integration.test.ts` (3: cruzar 16 numa vitória
+evolui e persiste; fora do gatilho não evolui; catch-up).
+Unitários: 13/187 → **14/203**. Integração: 5/70 → **6/73**.
 
 ### ✅ Fase 6.2-C — Golpes fracos 15–35, teto aposentado, curva original e ginásios restaurados (2026-09-06)
 
@@ -1141,6 +1187,54 @@ jogador e selvagem com `Arranhão (20)` / `Brasa (25)`; `GET /api/gym?mapId=1`
 **Não validado aqui:** produção (o `db:rebalance` lá é passo pós-deploy do
 mantenedor) e a sensação de jogo no navegador (pendência #9 abaixo).
 
+### 4.16 Validação da Fase 6.3 + persistência de mapas (2026-09-06)
+
+**Persistência de mapas (pergunta do mantenedor: "mapas 4 em diante somem a
+cada atualização de versão?"). Resposta: NÃO — provado por execução:**
+
+1. Conta `admin` promovida com `npm run db:set-role` → `POST /api/maps`
+   (admin-only) criou o **mapa 4** (`rota-teste-persistencia`, 16×16 com
+   matinho e tabela de encontro) → `GET /api/maps` = 4 mapas.
+2. `PUT /api/maps/4` editou a descrição → dev server **reiniciado**
+   (simulando deploy de nova versão) → `GET /api/maps` = 4 mapas, edição
+   intacta, seed não rodou de novo (guard `if (existingCount > 0) return;`
+   em `ensureDefaultMapsSeeded`; greps confirmaram que **nenhum** código
+   apaga `game_maps`/`gym_leaders`).
+3. `npm run world:export` versionou o mapa 4 em `content/world/maps/`.
+4. Pior cenário: banco **novo do zero** (`app_db2`) → migrate →
+   `npm run world:import` → **4 mapas restaurados** do código (ids até
+   mudaram — as referências são por slug/chave natural, então nada quebra).
+5. Artefatos da demo removidos em seguida (mapa de teste apagado do banco
+   local, `world:export` pruned o JSON, `app_db2` dropada).
+
+Conclusão registrada para o mantenedor: mapas criados no Editor vivem no
+banco de produção e **sobrevivem a deploys**; `content/world/` é o backup
+versionado — fluxo recomendado após mexer no Editor: `world:export` + commit.
+
+**Fase 6.3 (evolução):**
+
+```
+DATABASE_URL=<app_db> npx vitest run src/lib/engine/evolution.test.ts
+→ 16 passed (integridade de dados + transformação)
+
+DATABASE_URL=<app_db> npx vitest run --config vitest.integration.config.mts tests/integration/evolution.integration.test.ts
+→ 3 passed (cruzar 16 numa vitória → Charmeleon persistido;
+   fora do gatilho não evolui; catch-up do acima do limiar)
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · Test Files 14 passed · Tests 203 passed · build ok
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+```
+
+Smoke no servidor dev (rotas reais): vitória cruzando o nível 16 devolve log
+com `★ O quê?! Charmander está evoluindo!… evoluiu para Charmeleon!` e a
+linha do banco fica `pokedexId=5`, `name=Charmeleon`, HP ≤ maxHp.
+
+**Não validado aqui:** produção (evolução pega Pokémon antigos via catch-up
+no próximo level up, sem backfill) e o navegador (pendência #10).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -1192,8 +1286,16 @@ em `docs/FASE-6.2-PLANO.md`.
      de elemento contra os iniciais), `npm run world:export`, versionar
      `content/world/` num PR.
 
-Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
-6.6 ranked → 6.7 NPCs**.
+Depois da 6.2 a ordem segue: **6.3 evolução ✅ (2026-09-06)** → **6.4 Pokédex
+(→ próxima)** → 6.5 status → 6.6 ranked → 6.7 NPCs.
+
+### PRÓXIMA ETAPA: FASE 6.4 — Pokédex 25 → 50+
+
+Plano em `docs/FASE-6.md` §6.4: lotes de ~10 espécies com linhas evolutivas
+completas (Raichu, Graveler/Golem, Steelix, linha do Gastly, Ralts/Kirlia,
+Riolu…), golpes novos para tipos descobertos, e `evolvesTo` alimentado junto
+(itens de evolução ficam para 6.4/6.5, junto com as pedras na loja). A 6.3
+deixou a estrutura pronta: acrescentar linha evolutiva é editar conteúdo.
 
 **Antes de começar:** reler este arquivo (regra do protocolo).
 
@@ -1231,8 +1333,10 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-09-02 | **Fase 6.2-D** — mundo como código (export/import de mapas, ginásios e lojas) | ✅ Concluída e validada | `content/world/` · `docs/MUNDO-COMO-CODIGO.md` · 19 testes |
 | 2026-09-04 | **Handoff de sessão** — consolidação das branchs no AI_State | ✅ Concluída e validada | branch `arena/01a06d75` = 6.2-D + AI_State · §4.14 |
 | 2026-09-06 | **Fase 6.2-C** — golpes 15–35, teto aposentado, curva `nível³×0,8`, Brock 12/14 e Misty 18/21 | ✅ Concluída e validada | 13 arquivos/187 testes · `content/world` re-exportado · §4.15 |
+| 2026-09-06 | **Verificação de persistência de mapas** — mapa 4 criado, restart, export, banco novo + import | ✅ Provado por execução | §4.16 (pergunta do mantenedor) |
+| 2026-09-06 | **Fase 6.3** — evolução no servidor por nível (+Ivysaur/Venusaur/Charmeleon/Wartortle) | ✅ Concluída e validada | 14 arquivos/203 unit · 6/73 integração · §4.16 |
 | — | **Deploy 6.2-C + `db:rebalance` em produção + mapa 1 à mão** | ⬜ Próxima (mantenedor) | §5 · `docs/FASE-6.md` |
-| — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
+| — | **Fase 6.4** — Pokédex 25 → 50+ | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

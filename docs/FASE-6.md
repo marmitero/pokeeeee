@@ -361,25 +361,85 @@ num ambiente teria que ser refeito no Editor em cada outro.
 
 Detalhes, garantias e limites em `docs/MUNDO-COMO-CODIGO.md`.
 
-## 6.3 — Evolução (servidor)
+## 6.3 — Evolução (servidor) — ✅ **implementada em 2026-09-06**
+
+### O que foi entregue
+
+- **Regras no catálogo** (`src/lib/pokedex.ts`, campo `evolvesTo`): dirigido por
+  dados como o learnset — `{ speciesId, trigger: "level" | "item" | "special",
+  level?, itemId? }[]`. Só o gatilho `"level"` existe hoje; o teste de sanidade
+  **proíbe** citar `item`/`special` antes de existirem.
+- **Espécies intermediárias dos iniciais** (eram o buraco da Pokédex):
+  +Ivysaur(2), Venusaur(3), Charmeleon(5), Wartortle(8) — 21 → **25 espécies**,
+  bases canônicas, learnset herdado da linha (evoluir não esquece golpes).
+- **Motor** (`src/lib/engine/evolution.ts`): `evolutionAtLevel` segue a cadeia
+  enquanto o nível satisfaz o gatilho (salto 15→37 atravessa Charmander →
+  Charmeleon → Charizard numa batalha só), com guarda contra ciclos;
+  `applyEvolution` transforma o combatente no lugar.
+- **Gatilho no level up do servidor** (`battle-service.ts`): avaliado dentro do
+  fluxo de vitória que já aplicava XP — **não existe endpoint de evoluir**
+  chamável pelo cliente.
+- Ao evoluir: status recalculados pela nova espécie e variante reais,
+  **percentual de HP preservado** (evoluir ferido não cura), **apelido
+  mantido** (displayName só troca quando não é apelido), **tipos trocam ainda
+  na mesma batalha** (a desvantagem nova já vale no turno seguinte), golpes
+  rederivados do learnset da forma nova, e `★ … está evoluindo!… evoluiu para
+  …!` no log.
+- **Persistência**: `pokedexId` + `name` passam a ser gravados no
+  `UPDATE user_pokemon` da vitória (sem evolução os valores são no-op).
+- **Catch-up de graça**: o gatilho é `nível ≥ limiar`, não "acabou de cruzar" —
+  Pokémon de produção que já passaram do nível 16 antes da 6.3 existir
+  evolucionam no próximo level up, direto para o estágio certo do nível atual.
+  Sem script de backfill.
+
+### Linhas evolutivas (decisões de conteúdo)
+
+| Linha | Gatilho | Observação |
+|---|---|---|
+| Bulbasaur 16 → Ivysaur 32 → Venusaur | nível | cânon |
+| Charmander 16 → Charmeleon 36 → Charizard | nível | cânon |
+| Squirtle 16 → Wartortle 36 → Blastoise | nível | cânon |
+| Dragonair 55 → Dragonite | nível | cânon |
+| Staryu 30 → Starmie | nível | **provisório** — cânon é Pedra d'Água; pedras entram com itens de evolução (6.4/6.5) |
+| Eevee 30 → Umbreon | nível | **provisório** — cânon é felicidade/noite; sem sistema de felicidade ainda |
+
+Pikachu, Geodude, Onix, Gengar, Lapras etc. não evoluem **nesta fase** porque
+os alvos (Raichu, Graveler, Steelix, linha do Haunter…) não estão na Pokédex —
+isso é conteúdo da 6.4, que completa as linhas em lotes.
+
+### Validação
+
+- Unitários (`src/lib/engine/evolution.test.ts`, 16 testes): integridade dos
+  dados (alvo existe, gatilho com nível válido, sem ciclo, gatilho só sobe na
+  cadeia), estágios por nível, salto duplo, HP percentual, apelido, variante,
+  tipos trocando na hora, agnóstico a time/PC.
+- Integração (`tests/integration/evolution.integration.test.ts`, 3 testes):
+  vitória real cruzando 16 → log "evoluiu para Charmeleon" + `pokedexId=5`
+  persistido; vitória fora do gatilho não evolui; catch-up do Pokémon acima
+  do limiar.
+- Item de evolução (pedra): **não implementado de propósito** — exige itens
+  próprios na loja e consumo transacional; fica para junto da 6.4/6.5.
+
+### Plano original (para referência)
 
 - Novo campo/tabela de evolução, dirigido por dados:
   `evolvesTo: { speciesId: number; trigger: "level" | "item" | "special";
-  level?: number; itemId?: number }[]`.
+  level?: number; itemId?: number }[]`. ✅
 - Gatilho avaliado **no servidor**, dentro do fluxo de level up já existente em
-  `battle-service.ts` (onde `applyXp` roda), nunca por chamada do cliente.
+  `battle-service.ts` (onde `applyXp` roda), nunca por chamada do cliente. ✅
 - Ao evoluir: recalcular stats com a nova espécie preservando percentual de HP,
-  manter apelido, registrar no log da batalha e persistir `pokedexId` novo.
-- Aprendizado de golpes na evolução usa o learnset da 6.1.
+  manter apelido, registrar no log da batalha e persistir `pokedexId` novo. ✅
+- Aprendizado de golpes na evolução usa o learnset da 6.1. ✅
 - Antiabuso: o endpoint de evolução (se existir para item) valida posse do item,
-  consome em transação e é idempotente.
+  consome em transação e é idempotente. ⬜ (sem endpoint; item fica para depois)
 - Testes: Charmander lvl 16 → Charmeleon → lvl 36 Charizard; stats recalculados;
-  Pokémon no time e no PC evoluem igual; falha silenciosa impossível.
+  Pokémon no time e no PC evoluem igual; falha silenciosa impossível. ✅
 
 ## 6.4 — Pokédex 21 → 50+
 
 - Acrescentar espécies em lotes de ~10, cada lote com as linhas evolutivas
-  completas (evita o buraco atual: Charmander sem Charmeleon).
+  completas (o buraco das linhas dos iniciais foi fechado na 6.3; faltam
+  Raichu, Graveler/Golem, Steelix, linha do Gastly, Ralts/Kirlia, Riolu etc.).
 - Cada espécie precisa de: tipos, 6 bases, `catchRate`, learnset, sprites CDN e
   descrição em pt-BR.
 - Ampliar `ALL_MOVES` com golpes fracos/médios e cobrir tipos hoje ausentes.
@@ -428,7 +488,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução  →  6.4 pokédex
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução ✅  →  6.4 pokédex
   →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 

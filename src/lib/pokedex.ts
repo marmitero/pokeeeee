@@ -30,6 +30,21 @@ export interface LearnsetEntry {
   move: PokemonMove;
 }
 
+/**
+ * Para qual espécie esta evolui e o que dispara (Fase 6.3).
+ *
+ * Dirigido por dados, como o learnset da 6.1: a lista aceita gatilhos de
+ * `"level"` (implementados), `"item"` e `"special"` (reservados para pedras de
+ * evolução e afins — nada os usa ainda, e o teste de sanidade proíbe citá-los
+ * antes de existirem). `level` é obrigatório para o gatilho de nível.
+ */
+export interface EvolvesTo {
+  speciesId: number;
+  trigger: "level" | "item" | "special";
+  level?: number;
+  itemId?: number;
+}
+
 export interface PokemonSpecies {
   id: number;
   name: string;
@@ -43,6 +58,11 @@ export interface PokemonSpecies {
   catchRate: number;
   /** Todos os golpes da espécie, com o nível de aprendizado. Fonte da verdade. */
   learnset: LearnsetEntry[];
+  /**
+   * Evoluções possíveis a partir daqui (Fase 6.3). Vazio/omitido = não evolui.
+   * Uma lista (e não um alvo único) porque linhas ramificadas (Eevee) existem.
+   */
+  evolvesTo?: EvolvesTo[];
   /**
    * Conjunto de fim de jogo (os 4 últimos golpes do learnset), derivado.
    *
@@ -564,10 +584,68 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 40, move: ALL_MOVES.Earthquake },
       { level: 48, move: ALL_MOVES.SolarBeam },
     ],
+    evolvesTo: [{ speciesId: 2, trigger: "level", level: 16 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/1.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/1.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/1.gif",
     description: "Um bulbo de semente em suas costas cresce absorvendo energia solar.",
+  },
+  {
+    id: 2,
+    name: "Ivysaur",
+    types: ["Grass", "Poison"],
+    baseHp: 60,
+    baseAtk: 62,
+    baseDef: 63,
+    baseSpAtk: 80,
+    baseSpDef: 80,
+    baseSpd: 60,
+    catchRate: 45,
+    // Fase 6.3: herda o learnset da linha — evoluir no nível 16 não pode
+    // fazer o Pokémon "esquecer" a curva de golpes que ele já seguia.
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.VineWhip },
+      { level: 7, move: ALL_MOVES.RazorLeaf },
+      { level: 12, move: ALL_MOVES.MudSlap },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Dig },
+      { level: 32, move: ALL_MOVES.ShadowBall },
+      { level: 40, move: ALL_MOVES.Earthquake },
+      { level: 48, move: ALL_MOVES.SolarBeam },
+    ],
+    evolvesTo: [{ speciesId: 3, trigger: "level", level: 32 }],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/2.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/2.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/2.gif",
+    description: "Quando o bulbo nas costas desabrocha, perde a capacidade de ficar de pé.",
+  },
+  {
+    id: 3,
+    name: "Venusaur",
+    types: ["Grass", "Poison"],
+    baseHp: 80,
+    baseAtk: 82,
+    baseDef: 83,
+    baseSpAtk: 100,
+    baseSpDef: 100,
+    baseSpd: 80,
+    catchRate: 45,
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.VineWhip },
+      { level: 7, move: ALL_MOVES.RazorLeaf },
+      { level: 12, move: ALL_MOVES.MudSlap },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Dig },
+      { level: 32, move: ALL_MOVES.ShadowBall },
+      { level: 40, move: ALL_MOVES.Earthquake },
+      { level: 48, move: ALL_MOVES.SolarBeam },
+    ],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/3.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/3.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/3.gif",
+    description: "A flor nas costas libera um perfume calmante que emociona quem sente.",
   },
   {
     id: 4,
@@ -592,10 +670,41 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 48, move: ALL_MOVES.DragonClaw },
       { level: 56, move: ALL_MOVES.Flamethrower },
     ],
+    evolvesTo: [{ speciesId: 5, trigger: "level", level: 16 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/4.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/4.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/4.gif",
     description: "A chama na ponta de sua cauda reflete sua emoção de combate.",
+  },
+  {
+    id: 5,
+    name: "Charmeleon",
+    types: ["Fire"],
+    baseHp: 58,
+    baseAtk: 64,
+    baseDef: 58,
+    baseSpAtk: 80,
+    baseSpDef: 65,
+    baseSpd: 80,
+    catchRate: 45,
+    // Fase 6.3: herda o learnset da linha (ver comentário em Ivysaur).
+    learnset: [
+      { level: 1, move: ALL_MOVES.Scratch },
+      { level: 1, move: ALL_MOVES.Ember },
+      { level: 7, move: ALL_MOVES.MetalClaw },
+      { level: 12, move: ALL_MOVES.FireFang },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Bite },
+      { level: 32, move: ALL_MOVES.DragonBreath },
+      { level: 40, move: ALL_MOVES.DarkPulse },
+      { level: 48, move: ALL_MOVES.DragonClaw },
+      { level: 56, move: ALL_MOVES.Flamethrower },
+    ],
+    evolvesTo: [{ speciesId: 6, trigger: "level", level: 36 }],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/5.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/5.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/5.gif",
+    description: "Tem uma cauda ardente e garras afiadas; ataca sem piedade quando irritado.",
   },
   {
     id: 6,
@@ -649,10 +758,41 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 48, move: ALL_MOVES.IceBeam },
       { level: 56, move: ALL_MOVES.HydroPump },
     ],
+    evolvesTo: [{ speciesId: 8, trigger: "level", level: 16 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/7.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/7.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/7.gif",
     description: "Após nascer, seu casco endurece em uma armadura resistente.",
+  },
+  {
+    id: 8,
+    name: "Wartortle",
+    types: ["Water"],
+    baseHp: 59,
+    baseAtk: 63,
+    baseDef: 80,
+    baseSpAtk: 65,
+    baseSpDef: 80,
+    baseSpd: 58,
+    catchRate: 45,
+    // Fase 6.3: herda o learnset da linha (ver comentário em Ivysaur).
+    learnset: [
+      { level: 1, move: ALL_MOVES.Tackle },
+      { level: 1, move: ALL_MOVES.Bubble },
+      { level: 7, move: ALL_MOVES.IceShard },
+      { level: 12, move: ALL_MOVES.WaterPulse },
+      { level: 18, move: ALL_MOVES.QuickAttack },
+      { level: 24, move: ALL_MOVES.Bite },
+      { level: 32, move: ALL_MOVES.IcyWind },
+      { level: 40, move: ALL_MOVES.Earthquake },
+      { level: 48, move: ALL_MOVES.IceBeam },
+      { level: 56, move: ALL_MOVES.HydroPump },
+    ],
+    evolvesTo: [{ speciesId: 9, trigger: "level", level: 36 }],
+    frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/8.gif",
+    backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/8.gif",
+    shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/8.gif",
+    description: "Sua cauda longa e peluda é símbolo de longevidade e sabedoria.",
   },
   {
     id: 9,
@@ -785,6 +925,9 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 42, move: ALL_MOVES.Psychic },
       { level: 50, move: ALL_MOVES.IceBeam },
     ],
+    // Fase 6.3: no cânon é Pedra d'Água; como não há itens de evolução ainda,
+    // vira gatilho de nível (provisório — pedra entra com a 6.4/6.5).
+    evolvesTo: [{ speciesId: 121, trigger: "level", level: 30 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/120.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/120.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/120.gif",
@@ -924,6 +1067,9 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 44, move: ALL_MOVES.Thunderbolt },
       { level: 52, move: ALL_MOVES.Flamethrower },
     ],
+    // Fase 6.3: no cânon é evolução por felicidade (noite); sem o sistema de
+    // felicidade, vira gatilho de nível (provisório).
+    evolvesTo: [{ speciesId: 197, trigger: "level", level: 30 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/133.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/133.gif",
@@ -952,6 +1098,7 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 54, move: ALL_MOVES.IceBeam },
       { level: 60, move: ALL_MOVES.DragonClaw },
     ],
+    evolvesTo: [{ speciesId: 149, trigger: "level", level: 55 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/148.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/148.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/148.gif",
