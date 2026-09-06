@@ -1,5 +1,5 @@
 /**
- * Relatório de balanceamento (Fase 6.1).
+ * Relatório de balanceamento (Fase 6.1; atualizado na 6.2-C).
  *
  *   npx tsx scripts/balance-report.mts
  *
@@ -9,10 +9,11 @@
  * e quantos turnos a luta dura.
  *
  * Compare a saída antes e depois de qualquer ajuste de stats, golpes ou curva.
+ * A 6.2-C aposentou o teto de dano, confinou os golpes fracos à faixa 15–35,
+ * voltou à curva `nível³ × 0,8` e restaurou Brock 12/14 e Misty 18/21.
  */
 import {
   computeDamage,
-  maxHitFraction,
   type Rng,
 } from "../src/lib/engine/damage";
 import { sideFromSpecies, toCombatant, type SideState } from "../src/lib/engine/combatant";
@@ -135,14 +136,38 @@ for (const a of STARTERS) {
   }
 }
 
-section("Teto de dano por nível do alvo");
-console.log(
-  [5, 10, 15, 20, 25, 30]
-    .map((lvl) => `lvl ${lvl}: ${(maxHitFraction(lvl) * 100).toFixed(0)}%`)
-    .join("   ")
-);
+section("Poder × dano neutro no nível 5 (teto de dano: APOSENTADO na 6.2-C)");
+{
+  // Mesma medição que motivou a faixa 15–35: abaixo de 15 o "+2" constante
+  // da fórmula achata o dano (5/10/15 são quase iguais); sem o teto, cada
+  // ponto de poder acima disso volta a aparecer no dano.
+  const attacker = sideFromSpecies(4, STARTER_LEVEL, "Normal"); // Charmander
+  const defender = sideFromSpecies(7, STARTER_LEVEL, "Normal"); // Squirtle
+  const neutro = {
+    name: "neutro",
+    type: "Normal",
+    power: 0,
+    accuracy: 100,
+    category: "Physical",
+  };
+  const rows: string[] = [];
+  for (const power of [5, 10, 15, 20, 25, 30, 35, 40, 55]) {
+    let sum = 0;
+    const runs = 2000;
+    for (let i = 0; i < runs; i++) {
+      sum += computeDamage(
+        toCombatant(attacker),
+        toCombatant(defender),
+        { ...neutro, power },
+        rng
+      ).damage;
+    }
+    rows.push(`${String(power).padStart(2)}→${(sum / runs).toFixed(1)}`);
+  }
+  console.log("  poder: " + rows.join("  ·  "));
+}
 
-section("Duelos de meio de jogo (o teto não deve mais valer)");
+section("Duelos de meio de jogo (fórmula pura, sem teto desde a 6.2-C)");
 for (const [a, d, lvl] of [
   [4, 1, 30],
   [1, 7, 30],
@@ -163,6 +188,32 @@ section(
 for (const starter of STARTERS) {
   for (const lvl of [10, 12]) {
     const linhas = brock.map((member) => {
+      const ataque = duel(starter, member.pokedexId, lvl, rng);
+      const defesa = duel(member.pokedexId, starter, member.level, rng);
+      const meuHp = sideFromSpecies(starter, lvl, "Normal").maxHp;
+      const turnosParaMatar = ataque.maxHp / ataque.avgDamage;
+      const turnosParaMorrer = meuHp / defesa.avgDamage;
+      return (
+        `${getPokemonSpecies(member.pokedexId).name} ` +
+        `${turnosParaMatar.toFixed(1)}t x ${turnosParaMorrer.toFixed(1)}t` +
+        (turnosParaMatar < turnosParaMorrer ? " ✓" : " ✗")
+      );
+    });
+    console.log(
+      `${getPokemonSpecies(starter).name.padEnd(11)} lvl ${String(lvl).padStart(2)}: ` +
+        linhas.join("  |  ")
+    );
+  }
+}
+console.log("  (turnos para vencer x turnos para cair; ✓ = o jogador ganha a troca)");
+
+const misty = GYM_TEAMS.Misty;
+section(
+  `Segundo ginásio: Misty (${misty.map((m) => `${getPokemonSpecies(m.pokedexId).name} ${m.level}`).join(" / ")})`
+);
+for (const starter of STARTERS) {
+  for (const lvl of [16, 18]) {
+    const linhas = misty.map((member) => {
       const ataque = duel(starter, member.pokedexId, lvl, rng);
       const defesa = duel(member.pokedexId, starter, member.level, rng);
       const meuHp = sideFromSpecies(starter, lvl, "Normal").maxHp;

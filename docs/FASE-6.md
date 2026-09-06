@@ -282,16 +282,68 @@ Ajuste de infraestrutura junto: em **desenvolvimento** o CSP passa a aceitar
 o preview do sandbox fica em branco. Produção continua recusando qualquer
 moldura.
 
-### 6.2-C — Golpes fracos e volta da curva original *(a fazer)*
+### 6.2-C — Golpes fracos e volta da curva original — ✅ **implementada em 2026-09-06**
 
-- Golpes na faixa útil **15–35** de poder para iniciais e bichos dos primeiros
-  mapas (medição: poder 5–15 é achatado pelo `+2` da fórmula de dano).
-- **Aposentar o teto de dano** da 6.1, que satura e apaga a diferença entre
-  golpes, assim que o mapa 1 estiver montado.
-- Curva de XP volta ao original **`nível³ × 0,8`** e ginásios sobem para Brock
-  12/14 e Misty 18/21 — o jogo deve continuar difícil de evoluir.
-- Depois disso o mantenedor monta o mapa 1 à mão: níveis 2–7, espécies comuns,
-  sem vantagem de elemento contra os iniciais.
+Decisões do mantenedor (registradas em `docs/FASE-6.2-PLANO.md`), aplicadas sem
+reabrir: golpes fracos na faixa **15–35**, teto de dano **aposentado**, curva
+`nível³ × 0,8` de volta, Brock **12/14**, Misty **18/21**, Lance 38/45 intacto,
+fórmula de dano intocada.
+
+**O que mudou no código:**
+
+- `src/lib/pokedex.ts` — golpes fracos de iniciais e bichos dos primeiros
+  mapas (aprendidos até o nível ~7) confinados à faixa 15–35:
+
+  | Golpe | Antes | Depois | | Golpe | Antes | Depois |
+  |---|---|---|---|---|---|---|
+  | Arranhão | 40 | **20** | | Estilhaço de Gelo | 40 | **35** |
+  | Investida | 40 | **25** | | Folha Navalha | 55 | **35** |
+  | Brasa | 40 | **25** | | Garra de Metal | 50 | **35** |
+  | Bolha | 40 | **25** | | Ataque Rápido | 45 | **35** |
+  | Chicote de Cipó | 45 | **25** | | Lambida | 30 | 30 |
+  | Choque | 40 | **25** | | Bofetada de Lama | 35 | 35 |
+  | Rajada | 40 | **25** | | | | |
+
+  Progressão do começo do jogo: neutra 20–25 → tipada 25 → upgrade 35 (nível
+  7) → 50–65 (nível 12). Os tetos de 25/35 não são arbitrários: medidos contra
+  o pior caso (Bolha com STAB ×2 e crítico contra o HP 19 do Charmander nível
+  5 — a 30 já daria nocaute em um golpe).
+
+- `src/lib/engine/damage.ts` — removidos `maxHitFraction`, `capDamage` e as
+  constantes `DAMAGE_CAP_*`. O dano volta a ser 100% a fórmula clássica em
+  todos os níveis. A proteção do início agora é conteúdo (golpes 15–35 + mapa
+  1 com criaturas de nível 2–7 sem vantagem de elemento), não motor.
+- `src/lib/engine/xp.ts` — `xpFloor` volta a `floor(nível³ × 0,8)`.
+- `src/lib/gym-teams.ts` — Brock 12/14 e Misty 18/21 restaurados
+  (`npm run db:rebalance` aplica em banco já semeado; o `content/world/` foi
+  re-exportado junto, senão um `world:import` futuro reverteria os níveis).
+- `scripts/balance-report.mts` — seção do teto substituída pela varredura
+  "poder × dano neutro no nível 5"; adicionada a seção da Misty.
+- Novo `src/lib/gym-teams.test.ts` trava os níveis dos três ginásios.
+
+**Resultado medido (`npm run balance:report`, RNG semente fixa — antes → depois):**
+
+- Duelos entre iniciais nível 5 (golpe mais forte): a vantagem de tipo voltou a
+  diferenciar — Brasa contra Bulbasaur **6,0 → 10,5** (2,1 turnos), Bolha
+  contra Charmander **6,0 → 10,9** (2,0 turnos); sem vantagem segue em 6,6–7,6
+  turnos. **0% de OHKO em todos os casos, críticos incluídos** (é o que os
+  testes travam — a faixa 15–35 foi escolhida exatamente para isso).
+- Poder × dano neutro no nível 5, sem teto: 5→2,0 · 10→2,1 · 15→2,1 (achatado,
+  como medido antes) · 20→2,7 · 25→3,1 · 35→3,6 · 40→4,1 · 55→4,9. Cada ponto
+  de poder acima de 15 volta a aparecer no dano.
+- Curva: batalhas para subir de nível 5→**2,7** · 10→**4,8** · 15→**6,9** ·
+  20→**9,1** · 25→**11,2** (a 6.1 pedia 3,0/3,9/4,6/5,2/5,8) — de 5 a 15 são
+  **47** batalhas contra alvos do próprio nível (eram 38).
+- Brock 12/14: Bulbasaur e Squirtle nível 10–12 ganham as trocas; Charmander
+  perde as duas (decisão de design registrada na 6.1, mantida). Misty 18/21
+  exige time/nível — no nível 18 só o Bulbasaur vence a Staryu, e ninguém
+  vence a Starmie sozinho: é a parede do segundo ginásio, de propósito.
+
+**Depois desta fase:** o mantenedor roda `npm run db:rebalance` em produção
+(ficou segurado para depois da 6.2-C de propósito — corrige golpes de Pokémon
+já capturados e níveis de ginásio já semeados) e monta o mapa 1 à mão: níveis
+2–7, espécies comuns, sem vantagem de elemento contra os iniciais; então
+`npm run world:export` + PR do `content/world/`.
 
 ### 6.2-D — Mundo como código *(concluída — 2026-09-02)*
 
@@ -309,28 +361,277 @@ num ambiente teria que ser refeito no Editor em cada outro.
 
 Detalhes, garantias e limites em `docs/MUNDO-COMO-CODIGO.md`.
 
-## 6.3 — Evolução (servidor)
+## 6.3 — Evolução (servidor) — ✅ **implementada em 2026-09-06**
+
+### O que foi entregue
+
+- **Regras no catálogo** (`src/lib/pokedex.ts`, campo `evolvesTo`): dirigido por
+  dados como o learnset — `{ speciesId, trigger: "level" | "item" | "special",
+  level?, itemId? }[]`. Só o gatilho `"level"` existe hoje; o teste de sanidade
+  **proíbe** citar `item`/`special` antes de existirem.
+- **Espécies intermediárias dos iniciais** (eram o buraco da Pokédex):
+  +Ivysaur(2), Venusaur(3), Charmeleon(5), Wartortle(8) — 21 → **25 espécies**,
+  bases canônicas, learnset herdado da linha (evoluir não esquece golpes).
+- **Motor** (`src/lib/engine/evolution.ts`): `evolutionAtLevel` segue a cadeia
+  enquanto o nível satisfaz o gatilho (salto 15→37 atravessa Charmander →
+  Charmeleon → Charizard numa batalha só), com guarda contra ciclos;
+  `applyEvolution` transforma o combatente no lugar.
+- **Gatilho no level up do servidor** (`battle-service.ts`): avaliado dentro do
+  fluxo de vitória que já aplicava XP — **não existe endpoint de evoluir**
+  chamável pelo cliente.
+- Ao evoluir: status recalculados pela nova espécie e variante reais,
+  **percentual de HP preservado** (evoluir ferido não cura), **apelido
+  mantido** (displayName só troca quando não é apelido), **tipos trocam ainda
+  na mesma batalha** (a desvantagem nova já vale no turno seguinte), golpes
+  rederivados do learnset da forma nova, e `★ … está evoluindo!… evoluiu para
+  …!` no log.
+- **Persistência**: `pokedexId` + `name` passam a ser gravados no
+  `UPDATE user_pokemon` da vitória (sem evolução os valores são no-op).
+- **Catch-up de graça**: o gatilho é `nível ≥ limiar`, não "acabou de cruzar" —
+  Pokémon de produção que já passaram do nível 16 antes da 6.3 existir
+  evolucionam no próximo level up, direto para o estágio certo do nível atual.
+  Sem script de backfill.
+
+### Linhas evolutivas (decisões de conteúdo)
+
+| Linha | Gatilho | Observação |
+|---|---|---|
+| Bulbasaur 16 → Ivysaur 32 → Venusaur | nível | cânon |
+| Charmander 16 → Charmeleon 36 → Charizard | nível | cânon |
+| Squirtle 16 → Wartortle 36 → Blastoise | nível | cânon |
+| Dragonair 55 → Dragonite | nível | cânon |
+| Staryu 30 → Starmie | nível | **provisório** — cânon é Pedra d'Água; pedras entram com itens de evolução (6.4/6.5) |
+| Eevee 30 → Umbreon | nível | **provisório** — cânon é felicidade/noite; sem sistema de felicidade ainda |
+
+Pikachu, Geodude, Onix, Gengar, Lapras etc. não evoluem **nesta fase** porque
+os alvos (Raichu, Graveler, Steelix, linha do Haunter…) não estão na Pokédex —
+isso é conteúdo da 6.4, que completa as linhas em lotes.
+
+### Validação
+
+- Unitários (`src/lib/engine/evolution.test.ts`, 16 testes): integridade dos
+  dados (alvo existe, gatilho com nível válido, sem ciclo, gatilho só sobe na
+  cadeia), estágios por nível, salto duplo, HP percentual, apelido, variante,
+  tipos trocando na hora, agnóstico a time/PC.
+- Integração (`tests/integration/evolution.integration.test.ts`, 3 testes):
+  vitória real cruzando 16 → log "evoluiu para Charmeleon" + `pokedexId=5`
+  persistido; vitória fora do gatilho não evolui; catch-up do Pokémon acima
+  do limiar.
+- Item de evolução (pedra): **não implementado de propósito** — exige itens
+  próprios na loja e consumo transacional; fica para junto da 6.4/6.5.
+
+### Plano original (para referência)
 
 - Novo campo/tabela de evolução, dirigido por dados:
   `evolvesTo: { speciesId: number; trigger: "level" | "item" | "special";
-  level?: number; itemId?: number }[]`.
+  level?: number; itemId?: number }[]`. ✅
 - Gatilho avaliado **no servidor**, dentro do fluxo de level up já existente em
-  `battle-service.ts` (onde `applyXp` roda), nunca por chamada do cliente.
+  `battle-service.ts` (onde `applyXp` roda), nunca por chamada do cliente. ✅
 - Ao evoluir: recalcular stats com a nova espécie preservando percentual de HP,
-  manter apelido, registrar no log da batalha e persistir `pokedexId` novo.
-- Aprendizado de golpes na evolução usa o learnset da 6.1.
+  manter apelido, registrar no log da batalha e persistir `pokedexId` novo. ✅
+- Aprendizado de golpes na evolução usa o learnset da 6.1. ✅
 - Antiabuso: o endpoint de evolução (se existir para item) valida posse do item,
-  consome em transação e é idempotente.
+  consome em transação e é idempotente. ⬜ (sem endpoint; item fica para depois)
 - Testes: Charmander lvl 16 → Charmeleon → lvl 36 Charizard; stats recalculados;
-  Pokémon no time e no PC evoluem igual; falha silenciosa impossível.
+  Pokémon no time e no PC evoluem igual; falha silenciosa impossível. ✅
+
+### 6.3-A — Catálogo Kanto completo (2026-09-06, a pedido do mantenedor)
+
+> Decisão do mantenedor: encher o catálogo de espécies e evoluções **antes** do
+> merge e antes da 6.4, como base para a estética própria do futuro — "que não
+> fique nada de fora". Não é a 6.4: nenhuma tabela de encontro/loja/mapa mudou.
+
+**Escopo: Pokédex 25 → 156 espécies** — as 151 de Kanto completas + Steelix
+(208, fecha a linha do Onix) + as 5 não-Kanto que já existiam (Umbreon,
+Gardevoir, Rayquaza, Lucario — mantidas).
+
+- **Verificação da fonte de sprites** (PokeAPI/sprites, CDN GitHub, padrão Gen V
+  animado front/back/shiny): cobertura confirmada por listagem da árvore Git do
+  repositório — todos os ids 1–151 e 208 têm as três variações. Detalhe que
+  quase enganou: a API de contents pagina em 1000 entradas e "escondeu" 4
+  arquivos (96–99); a árvore Git mostra os 1005. Animações existem só até o id
+  649 — **Gen 6+ exigirá outra fonte** (registrado para o futuro).
+- **Novo módulo `src/lib/pokedex-gen1.ts`**: 131 espécies em dados compactos
+  (construtor gera as 3 URLs de sprite do id). Sem ciclo de módulos: recebe
+  `ALL_MOVES` de `pokedex.ts` e só importa tipos de lá.
+- **+11 golpes** em `ALL_MOVES` (41 → 52): Poison (Ferrão/Lodo/Bomba de Lodo),
+  Bug (Corte Fúria/Insetada/Tesoura X), Fairy (Vento de Fada/Luta Fofa/Força
+  Lunar) — tipos que não tinham NENHUM golpe — e Surf/Trovoada para variedade.
+- **Tipagem/status canônicos modernos** (Clefairy/Jigglypuff/Mr. Mime são Fairy;
+  Magnemite é Electric/Steel) — a tabela 18×18 já cobria tudo desde a Fase 2.
+- **Evoluções**: linhas de nível canônicas onde existem; pedra/troca viram
+  gatilho de nível **provisório** (mesma decisão da 6.3), marcados no código.
+  Vaporeon/Jolteon/Flareon existem como espécie mas **não estão ligadas** à
+  Eevee — escolher entre três destinos exige mecânica de pedras/escolha futura.
+- Pikachu→Raichu, Geodude→Graveler→Golem e Onix→Steelix ligados; Gastly/Haunter
+  agora chegam ao Gengar; Magikarp→Gyarados e Dratini→Dragonair entraram.
+- **Learnsets** seguem a filosofia 6.2-C (fraco 20–40 no nível 1; médio 50–65 no
+  12–20; forte 80+ do 28 em diante) — os testes de balanceamento existentes
+  passam para as 156 espécies automaticamente.
+- **NADA de gameplay mudou**: tabelas de encontro, ginásios e lojas intactos
+  (isso é conteúdo da 6.4). As espécies novas só aparecem no jogo quando
+  entrarem nas tabelas dos mapas.
+
+**Validação**: `src/lib/pokedex-gen1.test.ts` (13 testes: roster exato 1–151+5,
+sprites no padrão do CDN, tipos conhecidos, golpes reais, linhas canônicas e
+provisórias, lendários sem evolução, eeveelutions sem gatilho). Unitários
+15 arquivos/215; integração 6/73; `balance:report` limpo para todas as espécies.
+
+### 6.3-B — Golpes com identidade, da era GBA (2026-09-06, a pedido do mantenedor)
+
+> Pedido do mantenedor: pesquisar os movimentos de cada Pokémon nos jogos de
+> geração antiga (**principalmente os de GBA** — Ruby/Sapphire/Emerald/
+> FireRed/LeafGreen — mas não só eles), listar golpes para o jogo deixar de
+> ter "ataques genéricos", implementar com balanceamento consistente mesmo
+> vindo de fontes diferentes e **atribuir técnicas a todos os 156 Pokémon,
+> conforme tipo e raça**.
+
+**Pesquisa.** Fontes: learnsets de nível/TM/tutor da Gen 3 em
+`pokemondb.net/pokedex/<espécie>/moves/3` e `bulbapedia.bulbagarden.net`
+(página de golpes assinatura), mais Gen 1/2 para golpes antigos. Dados da era
+GBA quando divergem dos modernos (Premonição 80/90, Fúria 90, Dança das
+Pétalas 70, Terremoto 100). Assinaturas por linha confirmadas na pesquisa:
+Cabeçada Ossuda (Squirtle), Hiperpresa (Rattata), Agulha Dupla (Beedrill),
+Dança das Pétalas (Oddish), Dia de Pagamento (Meowth), Arremesso Vital
+(Machop), Martelo Pinça (Krabby), Clava de Osso/Ossomerangue (Cubone),
+Chute de Salto Alto + Chute Rolante (Hitmonlee), Soco Sônico + Gancho do Céu
+(Hitmonchan), Cachoeira (Goldeen), Poder Antigo (fósseis + Tangela),
+Velocidade Extrema (Arcanine), Chupavidas (Zubat), Soco Dinâmico (Machamp).
+
+**Catálogo: 52 → 133 golpes (+81).** Cobertura por tipo após a fase:
+Normal 14 · Lutador 12 · Grama 9 · Fogo 8 · Água 8 · Elétrico 8 · Gelo 8 ·
+Voador 8 · Terrestre 7 · Inseto 7 · Sombrio 6 · Pedra 6 · Aço 6 · Veneno 6 ·
+Fada 6 · Dragão 5 · Psíquico 5 · Fantasma 4. (Antes: tipos inteiros com 2–3
+golpes e quase tudo concentrado em 80+ de poder.)
+
+**Rúbrio de conversão** (fontes diferentes → uma casa só; documentado também
+no código, bloco 6.3-B de `pokedex.ts`):
+
+- Valores da era GBA quando existem; senão, valores modernos.
+- Multigolpes → golpe único com a soma e ~10–15% de desconto (Agulha Dupla 45,
+  Ossomerangue 85).
+- Efeito secundário não modelado pelo motor (recuo, dreno, carga, troca) →
+  desconto de ~5 de poder ou precisão; golpes de status ficam de fora (o motor
+  os trataria como "nada aconteceu").
+- "Nunca erra" vira precisão 100 (o motor não modela redução de precisão);
+  a descrição preserva a identidade.
+- Teto da casa: poder ≤ 115, precisão ≥ 50. Hiper Raio 115/85 e
+  Superaquecimento 115/90 são os tetos; Jato d'Água (110/80) segue no topo da
+  água. Os três socos elementais do Hitmonchan entraram com 75.
+
+**Learnsets: 1102 entradas nas 156 espécies** (antes ~4,7 golpes/espécie em
+média, agora ~7), cada linha reescrita por tipo e raça: Pikachu termina em
+Soco Trovejante/Carga Selvagem; Gyarados desenha Tornado→Presa de Gelo→
+Mastigar→Cachoeira→Salto→Hiper Raio; Alakazam ganha Premonição; o
+Hitmonchan carrega os três socos elementais; Vulpix/Ninetales mantêm a curva
+de fogo com Presa de Fogo; Nidoran♂ bica (Bicada), Nidoran♀ morde. As
+restrições estruturais viraram teste: golpes até o nível 7 ≤ 50 de poder
+(mapa 1 continua 15–35 pelo teste 6.2-C), STAB de cada tipo até o nível 40,
+formas finais com golpe ≥ 70 do tipo primário nos 4 últimos slots, nenhum
+golpe órfão, ≥ 4 golpes de dano por tipo.
+
+**O que NÃO mudou**: motor de batalha, fórmula de dano, tabelas de
+encontro/ginásio/loja, evoluções, XP. Pokémon já capturados em produção
+continuam com seus golpes salvos; `refreshMovesForLevel` os atualiza ao subir
+de nível, como já acontecia.
+
+**Validação**: `npm run check` verde (unitários 15 arquivos/**222** — +5
+guardas novos em `pokedex-gen1.test.ts`); integração **6/73**; balance-report
+com **todas as ✓/✗ de ginásio idênticas ao baseline 6.3-A** (diff executado
+via `git worktree` do commit anterior — números moveram para o lado canônico:
+Charmander sofre mais com Brock porque Garra de Metal voltou ao nível canônico
+13; Bulbasaur de fato vence a Misty) e "✓ todas as espécies ok".
 
 ## 6.4 — Pokédex 21 → 50+
 
+> **Estado após a 6.3-A/6.3-B/6.4-A:** Kanto inteira (156 espécies) já está no
+> catálogo com golpes canônicos e **aparece no mundo** (20 mapas temáticos).
+> O que resta desta fase é **Johto e além** (espécies novas) e as pedras de
+> evolução na loja.
+
+### 6.4-A — Mundo até o mapa 20: regiões temáticas e as 156 espécies distribuídas (2026-09-06, a pedido do mantenedor)
+
+> Pedido: gerar mapas até o 20 seguindo o conceito dos primeiros, com temas
+> (regiões) que justifiquem os tipos encontrados, e distribuir os encontros
+> — dos já existentes e dos implementados na 6.3 — de forma balanceada e
+> separada: evoluídos/raros/nível alto nos mapas avançados, o oposto nos
+> iniciais. Nada pode quebrar.
+
+**Estrutura nova:**
+
+- `src/lib/default-world.ts` (novo, puro): os 20 mapas como dados — grades
+  temáticas 16×16, tabelas de encontro, cadeia de portais 3↔20, NPCs.
+- `src/lib/seed-maps.ts`: reescrito sobre o builder — semeia **20 mapas** num
+  banco vazio (portais resolvidos por slug).
+- `scripts/world-seed.mts` (`npm run world:seed`): aplica o mundo padrão num
+  banco que **já tem** mapas, idempotente por slug — preserva as camadas
+  pintadas no Editor (`encounterGrid`/`collisionGrid`), nunca apaga.
+- `content/world/maps/` versiona os 20 mapas (MUNDO-COMO-CODIGO); round-trip
+  verificado: `world:seed` → `world:export` → `world:import --dry-run` dá
+  **20 iguais, 0 atualizados**.
+
+**As regiões e a escada de nível** (faixa sobe +4 por mapa, com sobreposição;
+dentro da faixa o peso decide a altura: comum na base, raro/lendário no topo):
+
+| # | Mapa | Tema | Faixa | Destaques |
+|---|---|---|---|---|
+| 1 | Vale Pallet | prado inicial | 3–10 | iniciais + Pikachu + Eevee (**fixo 6.2-C**) |
+| 2 | Floresta de Viridian | mata fechada | 8–16 | Caterpie/Weedle/Pidgey/Oddish/Bellsprout |
+| 3 | Pico Celeste | colinas rochosas | 14–24 | Geodude/Machop/Nidoran; Onix e Rhyhorn raros |
+| 4 | Caverna do Monte Lua | caverna | 18–28 | Zubat/Clefairy/Abra; **Chansey 2%** |
+| 5 | Litoral de Vermilion | praia / mar raso | 22–32 | Magikarp/Krabby/Horsea/Poliwag; Shellder raro |
+| 6 | Pântano Venenoso | pântano | 26–36 | Grimer/Koffing/Gastly; Ivysaur no lodo |
+| 7 | Usina de Volt | usina elétrica | 30–40 | Magnemite/Voltorb/Raichu; Jolteon 6% |
+| 8 | Deserto das Ruínas | deserto | 34–44 | Sandslash/Tauros/Pinsir; Graveler/Kangaskhan |
+| 9 | Planícies Douradas | campos | 38–48 | Ponyta/Growlithe/Vulpix; Snorlax na trilha |
+| 10 | Ilhas Glaciais | gelo | 42–52 | Seel/Jynx/Wartortle; Lapras 8%, **Articuno 2%** |
+| 11 | Torre dos Espíritos | fantasma | 46–56 | Haunter/Hypno/Kadabra/Mr. Mime |
+| 12 | Vulcão de Cinnabar | vulcão | 50–60 | Charmeleon→Ninetales/Arcanine/Rapidash; **Moltres 4%** |
+| 13 | Cidade Sombria | becos + dojo | 54–64 | Umbreon/Lucario/Hitmonlee/Hitmonchan/Machamp |
+| 14 | Vale das Fadas | fada | 58–68 | Clefable/Gardevoir/Venusaur/Vileplume |
+| 15 | Fossa Abissal | mar profundo | 62–72 | Starmie/Vaporeon/Seadra; **Blastoise** |
+| 16 | Cânion dos Fósseis | fósseis | 66–76 | Omanyte/Kabuto/Aerodactyl/Golem/Nidoking |
+| 17 | Selva Profunda | selva | 70–80 | Butterfree/Beedrill/Scyther; Dratini 18% |
+| 18 | Rota do Céu | céu | 74–84 | **Charizard**/Gyarados/Pidgeot/Dodrio |
+| 19 | Caverna Suprema | fim do mundo | 78–90 | Gengar/Alakazam/Steelix/Rhydon; **Mewtwo 10%**, Ditto |
+| 20 | Santuário Celeste | santuário lendário | 82–95 | Dragonite/Dragonair; **Rayquaza 16%, Zapdos 12%, Mew 8%** |
+
+**Regras de distribuição (todas viraram teste):**
+
+- Cada uma das **156 espécies aparece em exatamente um mapa** (a soma das
+  tabelas fecha em 156, sem duplicata); pesos somam **100** por mapa.
+- **Evolução nunca regride**: para toda linha, o alvo vive em mapa ≥ ao da
+  forma anterior (Caterpie M2 → Metapod M2 → Butterfree M17; Geodude M3 →
+  Graveler M8 → Golem M16; Gastly M6 → Haunter M11 → Gengar M19).
+- **Lendários só do mapa 10 em diante, peso ≤ 20** (Articuno 2%, Moltres 4%,
+  Mewtwo 10%, Rayquaza 16%, Zapdos 12%, Mew 8%).
+- Ases de ginásio não viram commons antes do próprio ginásio (Dragonite só
+  no mapa 20; Dragonair/Dratini bem depois do Lance).
+- Mapas 2 e 3 trocaram de elenco (eram da época das 25 espécies: Gengar e
+  Rayquaza commons no mapa 2–3). Ginásios, lojas e portais originais
+  permanecem; o mapa 3 ganhou a saída norte que inicia a cadeia até o 20.
+- Centro Pokémon apenas nos mapas 4, 8, 13, 16 e 20 — trecho longo sem curar
+  é dificuldade de propósito (diretriz do mantenedor).
+- Mapa 1 **intocado** (contrato 6.2-C pinado por teste também no conteúdo).
+
+**Validação**: guarda nova `src/lib/world-expansion.test.ts` (9 testes sobre
+`content/world/`); unitários **16 arquivos/231**; integração **6/73**;
+`balance:report` "✓ todas as espécies ok"; smoke da API real (`GET /api/maps`
+→ 20 mapas) e do pipeline de encontro (mapas 4/12/20: sorteio 2.000× por mapa
+confere pesos e faixas — Chansey ~2%, Mew ~8%). Round-trip mundo idempotente.
+
+**Nota para produção**: mapas vivem no banco — depois do merge/deploy o
+mantenedor roda `DATABASE_URL=<produção> npm run world:seed` (ou
+`world:import`) uma vez. Num banco novo, o seed da aplicação já cria os 20.
+
 - Acrescentar espécies em lotes de ~10, cada lote com as linhas evolutivas
-  completas (evita o buraco atual: Charmander sem Charmeleon).
+  completas. (Kanto inteira já entrou na 6.3-A — o que resta desta fase é
+  **Johto e além** e, principalmente, colocar as 156 espécies para aparecer:
+  novas tabelas de encontro por mapa usando o catálogo que agora existe.)
 - Cada espécie precisa de: tipos, 6 bases, `catchRate`, learnset, sprites CDN e
   descrição em pt-BR.
-- Ampliar `ALL_MOVES` com golpes fracos/médios e cobrir tipos hoje ausentes.
+- ~~Ampliar `ALL_MOVES` com golpes fracos/médios e cobrir tipos hoje ausentes~~
+  — concluído na 6.3-B (133 golpes, todos os 18 tipos com ≥ 4 golpes de dano).
 - Validação: teste que garante que todo `move` citado num learnset existe em
   `ALL_MOVES`, que todo alvo de evolução existe na Pokédex e que os sprites
   seguem o padrão de URL.
@@ -376,7 +677,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C)  →  6.3 evolução  →  6.4 pokédex
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução ✅ (+ catálogo 6.3-A ✅ e golpes 6.3-B ✅)  →  6.4 pokédex (mundo até 20 ✅ 6.4-A)
   →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 

@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  capDamage,
-  computeDamage,
-  maxHitFraction,
-  DAMAGE_CAP_END_LEVEL,
-  DAMAGE_CAP_MIN_FRACTION,
-  type Combatant,
-  type Rng,
-} from "./damage";
+import { computeDamage, type Rng } from "./damage";
+import { typeMultiplier } from "./types";
 import {
   moveNamesForDb,
   refreshMovesForLevel,
@@ -18,17 +11,25 @@ import { STARTER_LEVEL, battleXpGain, xpToNextLevel } from "./xp";
 import { POKEDEX, getPokemonSpecies, moveSlots, movesAtLevel, MOVE_SLOTS } from "../pokedex";
 
 /**
- * Testes de balanceamento da Fase 6.1.
+ * Testes de balanceamento (Fase 6.1, ajustados na 6.2-C).
  *
- * O defeito que originou esta fase: um inicial nível 5 nocauteava outro inicial
+ * O defeito que originou a 6.1: um inicial nível 5 nocauteava outro inicial
  * nível 5 em **um golpe** (100% de OHKO com vantagem de tipo, medido). A causa
  * não era a fórmula de dano — era não existir learnset: toda espécie carregava
  * 4 golpes de fim de jogo (poder 80–110) desde o nível 1.
  *
- * Estes testes travam as duas metades da correção (learnset e teto de dano) com
- * RNG determinístico, para que um ajuste futuro de conteúdo não reintroduza o
+ * A 6.1 corrigiu com learnset + teto de dano proporcional ao HP. A 6.2-C
+ * **aposentou o teto** (ele saturava em quase qualquer golpe e apagava a
+ * diferença entre fraco e forte) e transferiu a proteção do início para o
+ * conteúdo: golpes fracos na faixa 15–35 para iniciais e bichos dos primeiros
+ * mapas, e mapa 1 planejado com criaturas de nível 2–7 sem vantagem de
+ * elemento contra os iniciais. Estes testes travam esse contrato com RNG
+ * determinístico — um ajuste futuro de conteúdo não pode reintroduzir o
  * one-shot sem que o CI perceba.
  */
+
+/** Espécies da tabela de encontro do primeiro mapa (seed-maps: vale-pallet). */
+const MAP1_SPECIES = [1, 4, 7, 25, 133];
 
 /** Mulberry32: mesma semente, mesma sequência — sem espionar `Math.random`. */
 function seeded(seed: number): Rng {
@@ -94,6 +95,20 @@ describe("learnset", () => {
     }
   });
 
+  it("iniciais e bichos do primeiro mapa: golpes até o nível 7 na faixa 15–35 (6.2-C)", () => {
+    // A faixa foi medida contra o "+2" constante da fórmula: abaixo de 15 o
+    // dano é achatado (5/10/15 são quase iguais); acima de ~35 um golpe tipado
+    // com STAB + vantagem nocauteia um inicial de nível 5 num crítico.
+    for (const id of MAP1_SPECIES) {
+      const species = getPokemonSpecies(id);
+      for (const entry of species.learnset) {
+        if (entry.level > 7) continue;
+        expect(entry.move.power, `${species.name} lvl ${entry.level}: ${entry.move.name}`).toBeGreaterThanOrEqual(15);
+        expect(entry.move.power, `${species.name} lvl ${entry.level}: ${entry.move.name}`).toBeLessThanOrEqual(35);
+      }
+    }
+  });
+
   it("o conjunto de golpes só melhora com o nível", () => {
     for (const species of POKEDEX) {
       const early = movesAtLevel(species, STARTER_LEVEL);
@@ -123,37 +138,8 @@ describe("learnset", () => {
   });
 });
 
-describe("teto de dano em níveis baixos", () => {
-  it("é mais apertado no começo e some no fim da rampa", () => {
-    expect(maxHitFraction(STARTER_LEVEL)).toBe(DAMAGE_CAP_MIN_FRACTION);
-    expect(maxHitFraction(DAMAGE_CAP_END_LEVEL)).toBe(1);
-    expect(maxHitFraction(DAMAGE_CAP_END_LEVEL + 30)).toBe(1);
-    expect(maxHitFraction(12)).toBeGreaterThan(maxHitFraction(8));
-  });
-
-  it("não interfere no meio e fim de jogo", () => {
-    const alvo: Combatant = {
-      pokedexId: 1, name: "x", types: ["Normal"], level: 40,
-      hp: 100, maxHp: 100, attack: 50, defense: 50,
-      spAttack: 50, spDefense: 50, speed: 50,
-    };
-
-    expect(capDamage(999, alvo)).toBe(999);
-  });
-
-  it("nunca reduz o dano abaixo de 1", () => {
-    const alvo: Combatant = {
-      pokedexId: 1, name: "x", types: ["Normal"], level: 2,
-      hp: 1, maxHp: 1, attack: 5, defense: 5,
-      spAttack: 5, spDefense: 5, speed: 5,
-    };
-
-    expect(capDamage(50, alvo)).toBeGreaterThanOrEqual(1);
-  });
-});
-
-describe("início do jogo (o defeito que abriu a Fase 6.1)", () => {
-  it("nenhum inicial nocauteia outro em um golpe no nível 5", () => {
+describe("início do jogo sem teto de dano (proteção é conteúdo, 6.2-C)", () => {
+  it("nenhum inicial nocauteia outro em um golpe no nível 5 (nem com crítico)", () => {
     const rng = seeded(6100);
 
     for (const attacker of STARTERS) {
@@ -166,7 +152,7 @@ describe("início do jogo (o defeito que abriu a Fase 6.1)", () => {
     }
   });
 
-  it("todo duelo entre iniciais dura pelo menos 3 turnos no nível 5", () => {
+  it("todo duelo entre iniciais dura pelo menos 2 turnos no nível 5", () => {
     const rng = seeded(6101);
 
     for (const attacker of STARTERS) {
@@ -174,7 +160,7 @@ describe("início do jogo (o defeito que abriu a Fase 6.1)", () => {
         if (attacker === defender) continue;
         const { turns } = turnsToKo(attacker, defender, STARTER_LEVEL, rng);
 
-        expect(turns).toBeGreaterThanOrEqual(3);
+        expect(turns).toBeGreaterThanOrEqual(2);
       }
     }
   });
@@ -182,23 +168,36 @@ describe("início do jogo (o defeito que abriu a Fase 6.1)", () => {
   it("vantagem de tipo encurta a luta sem decidi-la sozinha", () => {
     const rng = seeded(6102);
     // Charmander (Fogo) contra Bulbasaur (Grama) é a vantagem clássica.
+    // Sem o teto da 6.1, a vantagem volta a valer ~2 turnos contra ~7 —
+    // era isso que o teto achatava (4,0 x 5,1 na medição antiga).
     const comVantagem = turnsToKo(4, 1, STARTER_LEVEL, rng).turns;
     const semVantagem = turnsToKo(4, 7, STARTER_LEVEL, rng).turns;
 
     expect(comVantagem).toBeLessThan(semVantagem);
-    expect(comVantagem).toBeGreaterThanOrEqual(3);
+    expect(comVantagem).toBeGreaterThanOrEqual(2);
   });
 
-  it("nenhum selvagem do primeiro mapa nocauteia o inicial em um golpe", () => {
+  it("selvagem 2–7 sem dupla vantagem não nocauteia o inicial de nível 5 (nem com crítico)", () => {
     const rng = seeded(6103);
-    // Faixa do mapa 1 em seed-maps: níveis 3 a 10.
-    for (const wild of [1, 4, 7, 25, 133]) {
-      for (const wildLevel of [3, 8, 10]) {
+    // Faixa planejada para o mapa 1 na 6.2-C: níveis 2–7. Sem o teto, o que
+    // protege o jogador é conteúdo: golpes 15–35 e nenhuma espécie com STAB +
+    // vantagem de tipo contra os iniciais no mapa 1. Este teste cobre a parte
+    // que o motor garante sozinho: fora STAB+super (multiplicador combinado
+    // acima de 2), nenhum golpe vindo de um selvagem 2–7 derruba um inicial
+    // de nível 5 em um golpe.
+    for (const wild of MAP1_SPECIES) {
+      for (let wildLevel = 2; wildLevel <= 7; wildLevel++) {
+        const attacker = sideFromSpecies(wild, wildLevel, "Normal");
+
         for (const starter of STARTERS) {
-          const attacker = sideFromSpecies(wild, wildLevel, "Normal");
           const defender = sideFromSpecies(starter, STARTER_LEVEL, "Normal");
 
           for (const move of attacker.moves) {
+            if (move.category === "Status") continue;
+            const stab = attacker.types.includes(move.type) ? 1.5 : 1;
+            const multiplier = typeMultiplier(move.type, defender.types);
+            if (stab * multiplier > 2) continue; // contrato de conteúdo do mapa 1
+
             let biggest = 0;
             for (let i = 0; i < 50; i++) {
               const r = computeDamage(toCombatant(attacker), toCombatant(defender), move, rng);
@@ -212,7 +211,7 @@ describe("início do jogo (o defeito que abriu a Fase 6.1)", () => {
   });
 });
 
-describe("curva de progressão", () => {
+describe("curva de progressão (nível³ × 0,8 — decisão 6.2-C)", () => {
   it("subir do nível inicial custa entre 2 e 4 vitórias", () => {
     const bulbasaur = getPokemonSpecies(1);
     const total =
@@ -225,13 +224,17 @@ describe("curva de progressão", () => {
     expect(battles).toBeLessThanOrEqual(4);
   });
 
-  it("o meio de jogo não vira grind (nunca mais que 8 vitórias por nível)", () => {
+  it("a progressão fica mais lenta conforme o nível sobe (o jogo é difícil de evoluir)", () => {
+    // Decisão registrada do mantenedor na 6.2-C: a 6.1 achava que o meio de
+    // jogo "virava grind" (>8 vitórias/nível) e achatou a curva. A 6.2-C
+    // aceita o custo crescente como design — medido: lvl 10→4,8 · 25→11,2 ·
+    // 40→17,7 batalhas contra alvos do próprio nível.
     const total = 318;
+    const battles = (level: number) => xpToNextLevel(level) / battleXpGain(total, level, level);
 
-    for (const level of [10, 15, 20, 25, 30, 40]) {
-      const battles = xpToNextLevel(level) / battleXpGain(total, level, level);
-      expect(battles).toBeLessThanOrEqual(8);
-    }
+    expect(battles(10)).toBeGreaterThan(battles(5));
+    expect(battles(25)).toBeGreaterThan(battles(10));
+    expect(battles(40)).toBeGreaterThan(2 * battles(10));
   });
 });
 

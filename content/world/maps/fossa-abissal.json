@@ -1,0 +1,141 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "fossa-abissal",
+  "name": "Mapa 15: Fossa Abissal",
+  "description": "Águas negras sem luz (nv 62–72). Os aquáticos definitivos — Starmie, Vaporeon e o próprio Blastoise.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Tentacruel",
+      "weight": 14,
+      "maxLevel": 69,
+      "minLevel": 62,
+      "pokedexId": 73,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Kingler",
+      "weight": 14,
+      "maxLevel": 69,
+      "minLevel": 62,
+      "pokedexId": 99,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Seadra",
+      "weight": 14,
+      "maxLevel": 69,
+      "minLevel": 62,
+      "pokedexId": 117,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Seaking",
+      "weight": 14,
+      "maxLevel": 69,
+      "minLevel": 62,
+      "pokedexId": 119,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Starmie",
+      "weight": 12,
+      "maxLevel": 71,
+      "minLevel": 64,
+      "pokedexId": 121,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Vaporeon",
+      "weight": 12,
+      "maxLevel": 71,
+      "minLevel": 64,
+      "pokedexId": 134,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Poliwrath",
+      "weight": 8,
+      "maxLevel": 72,
+      "minLevel": 66,
+      "pokedexId": 62,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Blastoise",
+      "weight": 12,
+      "maxLevel": 71,
+      "minLevel": 64,
+      "pokedexId": 9,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p15-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "vale-das-fadas",
+      "targetMapName": "Vale das Fadas",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Vale das Fadas"
+    },
+    {
+      "id": "p15-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "vale-das-fadas",
+      "targetMapName": "Vale das Fadas",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Vale das Fadas"
+    },
+    {
+      "id": "p15-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "canion-dos-fosseis",
+      "targetMapName": "Cânion dos Fósseis",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Cânion dos Fósseis"
+    },
+    {
+      "id": "p15-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "canion-dos-fosseis",
+      "targetMapName": "Cânion dos Fósseis",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Cânion dos Fósseis"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "usina-volt",
+  "name": "Mapa 7: Usina de Volt",
+  "description": "Geradores zumbindo (nv 30–40). Magnemite e Voltorb sobrecarregam os corredores; Jolteon é raríssimo.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Magnemite",
+      "weight": 20,
+      "maxLevel": 37,
+      "minLevel": 30,
+      "pokedexId": 81,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magneton",
+      "weight": 12,
+      "maxLevel": 39,
+      "minLevel": 32,
+      "pokedexId": 82,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Voltorb",
+      "weight": 20,
+      "maxLevel": 37,
+      "minLevel": 30,
+      "pokedexId": 100,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Electrode",
+      "weight": 12,
+      "maxLevel": 39,
+      "minLevel": 32,
+      "pokedexId": 101,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Raichu",
+      "weight": 8,
+      "maxLevel": 40,
+      "minLevel": 34,
+      "pokedexId": 26,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Jolteon",
+      "weight": 6,
+      "maxLevel": 40,
+      "minLevel": 34,
+      "pokedexId": 135,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Electabuzz",
+      "weight": 8,
+      "maxLevel": 40,
+      "minLevel": 34,
+      "pokedexId": 125,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Porygon",
+      "weight": 14,
+      "maxLevel": 37,
+      "minLevel": 30,
+      "pokedexId": 137,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p7-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "pantano-venenoso",
+      "targetMapName": "Pântano Venenoso",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Pântano Venenoso"
+    },
+    {
+      "id": "p7-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "pantano-venenoso",
+      "targetMapName": "Pântano Venenoso",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Pântano Venenoso"
+    },
+    {
+      "id": "p7-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "deserto-das-ruinas",
+      "targetMapName": "Deserto das Ruínas",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Deserto das Ruínas"
+    },
+    {
+      "id": "p7-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "deserto-das-ruinas",
+      "targetMapName": "Deserto das Ruínas",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Deserto das Ruínas"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

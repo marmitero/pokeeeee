@@ -1,0 +1,157 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "litoral-vermilion",
+  "name": "Mapa 5: Litoral de Vermilion",
+  "description": "Praia e mar raso (nv 22–32). Pequenos aquáticos na água e na restinga; Shellder é o achado raro.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Magikarp",
+      "weight": 14,
+      "maxLevel": 29,
+      "minLevel": 22,
+      "pokedexId": 129,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Goldeen",
+      "weight": 11,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 118,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Tentacool",
+      "weight": 11,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 72,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Krabby",
+      "weight": 11,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 98,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Horsea",
+      "weight": 11,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 116,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Staryu",
+      "weight": 9,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 120,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Psyduck",
+      "weight": 9,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 54,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Slowpoke",
+      "weight": 9,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 79,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Shellder",
+      "weight": 5,
+      "maxLevel": 32,
+      "minLevel": 26,
+      "pokedexId": 90,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Poliwag",
+      "weight": 10,
+      "maxLevel": 31,
+      "minLevel": 24,
+      "pokedexId": 60,
+      "tileTypes": ["tall_grass", "water"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p5-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "caverna-monte-lua",
+      "targetMapName": "Caverna do Monte Lua",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Caverna do Monte Lua"
+    },
+    {
+      "id": "p5-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "caverna-monte-lua",
+      "targetMapName": "Caverna do Monte Lua",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Caverna do Monte Lua"
+    },
+    {
+      "id": "p5-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "pantano-venenoso",
+      "targetMapName": "Pântano Venenoso",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Pântano Venenoso"
+    },
+    {
+      "id": "p5-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "pantano-venenoso",
+      "targetMapName": "Pântano Venenoso",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Pântano Venenoso"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

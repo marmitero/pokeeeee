@@ -46,10 +46,10 @@ const statusMove: PokemonMove = {
 };
 
 /**
- * HP alto de propósito: a partir da Fase 6.1 existe um **teto de dano por
- * golpe** proporcional ao HP máximo do alvo (`capDamage`). Nos testes de
- * fórmula o teto precisa não valer, senão eles medem o teto e não a fórmula.
- * O teto tem os seus próprios testes mais abaixo.
+ * HP alto de propósito: entre a Fase 6.1 e a 6.2-C existiu um **teto de dano
+ * por golpe** proporcional ao HP máximo do alvo (`capDamage`), e os testes de
+ * fórmula precisavam neutralizá-lo para medir a fórmula, não o teto. O teto
+ * foi aposentado na 6.2-C — os valores altos ficam por legibilidade.
  */
 function side(overrides: Partial<Combatant> = {}): Combatant {
   return {

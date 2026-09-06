@@ -1,0 +1,133 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "vulcao-cinnabar",
+  "name": "Mapa 12: Vulcão de Cinnabar",
+  "description": "Cinzas e magma (nv 50–60). As linhas de fogo completas; Charmeleon treina aqui antes das asas; Moltres aninha na cratera.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Charmeleon",
+      "weight": 24,
+      "maxLevel": 57,
+      "minLevel": 50,
+      "pokedexId": 5,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ninetales",
+      "weight": 14,
+      "maxLevel": 57,
+      "minLevel": 50,
+      "pokedexId": 38,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Arcanine",
+      "weight": 14,
+      "maxLevel": 57,
+      "minLevel": 50,
+      "pokedexId": 59,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rapidash",
+      "weight": 16,
+      "maxLevel": 57,
+      "minLevel": 50,
+      "pokedexId": 78,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magmar",
+      "weight": 16,
+      "maxLevel": 57,
+      "minLevel": 50,
+      "pokedexId": 126,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Flareon",
+      "weight": 12,
+      "maxLevel": 59,
+      "minLevel": 52,
+      "pokedexId": 136,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Moltres",
+      "weight": 4,
+      "maxLevel": 60,
+      "minLevel": 52,
+      "pokedexId": 146,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p12-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "torre-dos-espiritos",
+      "targetMapName": "Torre dos Espíritos",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Torre dos Espíritos"
+    },
+    {
+      "id": "p12-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "torre-dos-espiritos",
+      "targetMapName": "Torre dos Espíritos",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Torre dos Espíritos"
+    },
+    {
+      "id": "p12-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "cidade-sombria",
+      "targetMapName": "Cidade Sombria",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Cidade Sombria"
+    },
+    {
+      "id": "p12-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "cidade-sombria",
+      "targetMapName": "Cidade Sombria",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Cidade Sombria"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

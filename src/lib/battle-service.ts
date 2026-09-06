@@ -24,6 +24,7 @@ import {
   type SideState,
 } from "@/lib/engine/combatant";
 import { applyXp, battleXpGain, xpToNextLevel, MAX_LEVEL } from "@/lib/engine/xp";
+import { applyEvolution } from "@/lib/engine/evolution";
 import { BALL_LABEL, captureChance, rollCapture, type BallKey } from "@/lib/engine/capture";
 import { badRequest, forbidden, notFound } from "@/lib/api";
 import { ensureDefaultMapsSeeded } from "@/lib/seed-maps";
@@ -427,6 +428,23 @@ async function resolveFaint(
     for (const moveName of learned) {
       log = pushLog(log, `${state.player.displayName} aprendeu ${moveName}!`);
     }
+
+    // ── Fase 6.3: evolução por nível ──────────────────────────────────────
+    // Avaliada aqui, no servidor, dentro do level up — nunca por chamada do
+    // cliente. Stats recalculados pela nova espécie preservando o percentual
+    // de HP; apelido mantido; tipos trocam já nesta batalha; golpes são
+    // rederivados do learnset da forma nova.
+    const evolution = applyEvolution(state.player);
+    if (evolution) {
+      log = pushLog(
+        log,
+        `★ O quê?! ${evolution.fromName} está evoluindo!… evoluiu para ${evolution.toName}!`
+      );
+      const aprendidosNaEvolucao = refreshMovesForLevel(state.player, state.player.level);
+      for (const moveName of aprendidosNaEvolucao) {
+        log = pushLog(log, `${state.player.displayName} aprendeu ${moveName}!`);
+      }
+    }
   }
 
   // ── Ginásio: próximo do time ───────────────────────────────────────────
@@ -682,6 +700,11 @@ async function persistTurn(
       await tx
         .update(userPokemon)
         .set({
+          // Fase 6.3: a evolução troca a espécie — precisa persistir junto com
+          // os status recalculados, senão o Pokémon "desvoluiria" no próximo
+          // login. Sem evolução os valores são iguais aos atuais (no-op).
+          pokedexId: state.player.pokedexId,
+          name: state.player.name,
           hp: state.player.hp,
           level: state.player.level,
           xp: state.player.xp,
@@ -692,7 +715,8 @@ async function persistTurn(
           spAttack: state.player.spAttack,
           spDefense: state.player.spDefense,
           speed: state.player.speed,
-          // Golpes aprendidos no level up (Fase 6.1) precisam persistir.
+          // Golpes aprendidos no level up (Fase 6.1) e na evolução (6.3)
+          // precisam persistir.
           ...moveNamesForDb(state.player),
         })
         .where(

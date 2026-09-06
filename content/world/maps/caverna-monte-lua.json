@@ -1,0 +1,149 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "caverna-monte-lua",
+  "name": "Mapa 4: Caverna do Monte Lua",
+  "description": "Túneis úmidos de pedra (nv 18–28). Zubat e Clefairy por todo lado; Chansey é raríssima. Centro Pokémon disponível.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Zubat",
+      "weight": 24,
+      "maxLevel": 25,
+      "minLevel": 18,
+      "pokedexId": 41,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Golbat",
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 22,
+      "pokedexId": 42,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Clefairy",
+      "weight": 10,
+      "maxLevel": 27,
+      "minLevel": 20,
+      "pokedexId": 35,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Abra",
+      "weight": 10,
+      "maxLevel": 27,
+      "minLevel": 20,
+      "pokedexId": 63,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ekans",
+      "weight": 16,
+      "maxLevel": 25,
+      "minLevel": 18,
+      "pokedexId": 23,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Jigglypuff",
+      "weight": 10,
+      "maxLevel": 27,
+      "minLevel": 20,
+      "pokedexId": 39,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Exeggcute",
+      "weight": 10,
+      "maxLevel": 27,
+      "minLevel": 20,
+      "pokedexId": 102,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Chansey",
+      "weight": 2,
+      "maxLevel": 28,
+      "minLevel": 24,
+      "pokedexId": 113,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lickitung",
+      "weight": 10,
+      "maxLevel": 27,
+      "minLevel": 20,
+      "pokedexId": 108,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p4-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "pico-celeste",
+      "targetMapName": "Pico Celeste",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Pico Celeste"
+    },
+    {
+      "id": "p4-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "pico-celeste",
+      "targetMapName": "Pico Celeste",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Pico Celeste"
+    },
+    {
+      "id": "p4-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "litoral-vermilion",
+      "targetMapName": "Litoral de Vermilion",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Litoral de Vermilion"
+    },
+    {
+      "id": "p4-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "litoral-vermilion",
+      "targetMapName": "Litoral de Vermilion",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Litoral de Vermilion"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "stone", "center", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

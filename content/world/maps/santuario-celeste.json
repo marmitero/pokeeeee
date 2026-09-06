@@ -1,0 +1,97 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "santuario-celeste",
+  "name": "Mapa 20: Santuário Celeste",
+  "description": "O topo da jornada (nv 82–95). Dratini completa a linha: Dragonair e Dragonite reinam; Rayquaza, Zapdos e Mew aparecem para muito poucos. Centro Pokémon no templo.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Dragonite",
+      "weight": 30,
+      "maxLevel": 92,
+      "minLevel": 82,
+      "pokedexId": 149,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dragonair",
+      "weight": 34,
+      "maxLevel": 92,
+      "minLevel": 82,
+      "pokedexId": 148,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rayquaza",
+      "weight": 16,
+      "maxLevel": 95,
+      "minLevel": 87,
+      "pokedexId": 384,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Zapdos",
+      "weight": 12,
+      "maxLevel": 95,
+      "minLevel": 87,
+      "pokedexId": 145,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mew",
+      "weight": 8,
+      "maxLevel": 95,
+      "minLevel": 87,
+      "pokedexId": 151,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p20-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "caverna-suprema",
+      "targetMapName": "Caverna Suprema",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Caverna Suprema"
+    },
+    {
+      "id": "p20-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "caverna-suprema",
+      "targetMapName": "Caverna Suprema",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Caverna Suprema"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "grass", "grass", "grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "tall_grass", "stone", "center", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

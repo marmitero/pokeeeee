@@ -1,0 +1,133 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "vale-das-fadas",
+  "name": "Mapa 14: Vale das Fadas",
+  "description": "Campinas cor-de-rosa (nv 58–68). Clefable e Wigglytuff fazem festa; Gardevoir guarda o vale; Venusaur descansa à sombra.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Clefable",
+      "weight": 18,
+      "maxLevel": 65,
+      "minLevel": 58,
+      "pokedexId": 36,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Wigglytuff",
+      "weight": 18,
+      "maxLevel": 65,
+      "minLevel": 58,
+      "pokedexId": 40,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gardevoir",
+      "weight": 16,
+      "maxLevel": 65,
+      "minLevel": 58,
+      "pokedexId": 282,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Vileplume",
+      "weight": 14,
+      "maxLevel": 65,
+      "minLevel": 58,
+      "pokedexId": 45,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Weepinbell",
+      "weight": 12,
+      "maxLevel": 67,
+      "minLevel": 60,
+      "pokedexId": 70,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Exeggutor",
+      "weight": 12,
+      "maxLevel": 67,
+      "minLevel": 60,
+      "pokedexId": 103,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Venusaur",
+      "weight": 10,
+      "maxLevel": 67,
+      "minLevel": 60,
+      "pokedexId": 3,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p14-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "cidade-sombria",
+      "targetMapName": "Cidade Sombria",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Cidade Sombria"
+    },
+    {
+      "id": "p14-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "cidade-sombria",
+      "targetMapName": "Cidade Sombria",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Cidade Sombria"
+    },
+    {
+      "id": "p14-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "fossa-abissal",
+      "targetMapName": "Fossa Abissal",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Fossa Abissal"
+    },
+    {
+      "id": "p14-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "fossa-abissal",
+      "targetMapName": "Fossa Abissal",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Fossa Abissal"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

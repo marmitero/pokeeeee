@@ -35,6 +35,9 @@
 > | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
 > | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
 | 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
+| 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C |
+| 10 | **Evolução (6.3)**: subir um Charmander até 16 (ou usar um save acima do limiar) e ver o log `★ … evoluiu para Charmeleon!` e o nome novo no PC Box | Login → batalhar até cruzar nível 16 | Fase 6.3 |
+| 11 | **Vitrine de sprites (6.3-A)**: abrir o Pacote de Sprites e conferir que lista 156 espécies × 6 variantes (936 sprites) sem quebrados — em especial Drowzee/Hypno/Krabby/Kingler shiny | Botão de sprites no HUD | Fase 6.3-A |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -97,7 +100,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a06d75-pokeeeee`
+**Branch da sessão atual:** `arena/01a07639-pokeeeee`
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -136,7 +139,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-21 espécies (com learnset por nível) · 41 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -147,6 +150,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Batalha selvagem | ✅ **Servidor** — dano, tipos, XP, captura e HP persistidos |
 | Captura | ✅ **Servidor** — `catchRate` + HP + bola; pode falhar |
 | XP / Nível up | ✅ **Servidor** — XP acumula, nível sobe e o Pokémon **aprende golpes** (6.1) |
+| Evolução | ✅ **Servidor** (6.3) — por nível, no fluxo de vitória; stats recalculados, % de HP e apelido preservados, tipos trocam na hora, sem endpoint chamável |
 | PC Box / time / itens | ✅ Funciona |
 | Ginásio | ✅ **Servidor** — luta turno a turno, insígnia só vencendo de verdade |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
@@ -155,7 +159,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
-| Pacote de Sprites | ✅ Funciona (vitrine) — 21 espécies × 6 variantes |
+| Pacote de Sprites | ✅ Funciona (vitrine) — 156 espécies × 6 variantes |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -276,7 +280,11 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.2-A — Camadas de mapa (colisão + área de caça) no servidor** ✅ 2026-08-31
 - [x] **FASE 6.2-B — Pintar as camadas no Editor de Mundos** ✅ 2026-08-31
 - [x] **FASE 6.2-D — Mundo como código (export/import de mapas, ginásios e lojas)** ✅ 2026-09-02
-- [ ] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`** ⬅️ próxima
+- [x] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`, Brock 12/14 e Misty 18/21** ✅ 2026-09-06
+- [x] **FASE 6.3 — Evolução no servidor (por nível, dirigida por dados, sem endpoint chamável)** ✅ 2026-09-06
+- [x] **FASE 6.3-A — Catálogo Kanto completo: 25 → 156 espécies, +11 golpes (Poison/Bug/Fairy), linhas fechadas** ✅ 2026-09-06
+- [x] **FASE 6.3-B — Golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies reescritos por tipo e raça** ✅ 2026-09-06
+- [x] **FASE 6.4-A — Mundo até o mapa 20: 17 mapas temáticos novos + 156 espécies redistribuídas (bandas 8–16 → 82–95)** ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -330,6 +338,235 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Fase 6.4-A — Mundo até o mapa 20, com regiões temáticas (2026-09-06)
+
+Pedido do mantenedor: validar as últimas implementações (6.3-B ✔ — auditoria
+re-executada verde) e **gerar mapas até o 20** seguindo o conceito dos
+primeiros, com temas/regiões para os encontros fazerem sentido por tipo, e as
+**156 espécies distribuídas de forma balanceada e separada** (evoluídos/
+raros/nível alto nos mapas avançados; o oposto nos iniciais). Mesma branch do
+PR #6 (acumula 6.2-C + 6.3 + 6.3-A + 6.3-B + 6.4-A).
+
+**O que existe agora:**
+
+1. **20 mapas temáticos** em cadeia de portais 3↔20: Caverna do Monte Lua,
+   Litoral de Vermilion, Pântano Venenoso, Usina de Volt, Deserto das Ruínas,
+   Planícies Douradas, Ilhas Glaciais, Torre dos Espíritos, Vulcão de
+   Cinnabar, Cidade Sombria, Vale das Fadas, Fossa Abissal, Cânion dos
+   Fósseis, Selva Profunda, Rota do Céu, Caverna Suprema e Santuário
+   Celeste. Centro Pokémon só nos mapas 4/8/13/16/20 (dificuldade de
+   propósito). Tabela completa com faixas e destaques em `docs/FASE-6.md` §6.4-A.
+2. **Escada de nível +4/mapa** com sobreposição: 8–16 (M2) → 14–24 (M3) →
+   … → 78–90 (M19) → 82–95 (M20). Peso define a altura na faixa (comum na
+   base; raro/lendário no topo: Chansey 2%, Articuno 2%, Moltres 4%,
+   Mewtwo 10%, Rayquaza 16%, Zapdos 12%, Mew 8%).
+3. **Distribuição 156/156 sem duplicata** — cada espécie em exatamente um
+   mapa; evolução NUNCA em mapa anterior ao da forma prévia (Caterpie M2 →
+   Butterfree M17; Geodude M3 → Graveler M8 → Golem M16; Gastly M6 → Gengar
+   M19). Ases de ginásio protegidos (Dragonite só no 20).
+4. **Mapa 1 intocado** (contrato 6.2-C). Mapas 2–3 trocaram de elenco (o
+   antigo tinha Gengar/Rayquaza commons — herança das 25 espécies); ginásios,
+   lojas, grades e portais originais preservados; mapa 3 ganhou saída norte.
+5. **Estrutura**: `src/lib/default-world.ts` (novo, puro — os 20 mapas como
+   dados); `seed-maps.ts` reescrito sobre ele (semeia 20 em banco vazio);
+   `scripts/world-seed.mts` + `npm run world:seed` (idempotente por slug em
+   banco existente, preserva camadas do Editor); `content/world/maps/` com os
+   20 JSONs versionados.
+6. **Guardas novos no CI** (`world-expansion.test.ts`, 9 testes sobre
+   `content/world/`): 20 mapas/slug/numeração, mapa 1 pinado, 156 exatamente
+   uma vez, pesos = 100, entradas dentro da faixa, escada crescente,
+   evolução sem regressão, lendários ≥ M10 com peso ≤ 20, ases de ginásio,
+   cadeia de portais 3↔20.
+
+Validação completa (comandos e saídas) na §4.19.
+
+### ✅ Fase 6.3-B — Golpes com identidade, da era GBA (2026-09-06)
+
+Pedido do mantenedor: pesquisar os movimentos de cada Pokémon nos jogos de
+geração antiga (**principalmente GBA** — Ruby/Sapphire/Emerald/FireRed/
+LeafGreen, sem excluir Gen 1/2), listar golpes para acabar com os "ataques
+genéricos", implementar com balanceamento consistente entre fontes e
+**atribuir técnicas a todos os 156 Pokémon conforme tipo e raça**. Mesma
+branch do PR #6 (agora acumula 6.2-C + 6.3 + 6.3-A + 6.3-B).
+
+**O que existe agora:**
+
+1. **Catálogo de golpes 52 → 133 (+81)**, com pesquisa em
+   `pokemondb.net/pokedex/<espécie>/moves/3` (learnsets Gen 3 completos:
+   nível/TM/tutor/HM) e Bulbapedia (assinaturas por linha). Todos os 18 tipos
+   com ≥ 4 golpes de dano (antes: Ghost/Dragon/Steel com 2–3, tipos inteiros
+   dependendo de golpes de outro elemento). Destaques: Hiper Raio (115/85,
+   teto Normal), Superaquecimento (115/90), Nevasca, os três socos elementais
+   do Hitmonchan, os 10 golpes de Lutador (Rasteira → Soco Dinâmico 100/50),
+   assinaturas (Agulha Dupla, Ossomerangue, Martelo Pinça, Chute de Salto
+   Alto, Gancho do Céu, Cabeçada Ossuda, Hiperpresa, Dança das Pétalas,
+   Dia de Pagamento, Velocidade Extrema, Chupavidas, Poder Antigo…).
+2. **Rúbrio de conversão** (documentado no código, bloco 6.3-B de
+   `pokedex.ts`): valores GBA quando divergem (Premonição 80/90, Fúria 90);
+   multigolpe = soma com desconto; efeito não modelado (recuo/dreno/carga) =
+   −5 de poder ou precisão; "nunca erra" = precisão 100; teto 115 / piso de
+   precisão 50; golpes de status fora (motor os trataria como "nada
+   aconteceu").
+3. **Learnsets das 156 espécies reescritos** (1102 entradas, ~7 por espécie;
+   antes ~4,7): cada linha por tipo E raça — Pikachu termina em Soco
+   Trovejante/Carga Selvagem; Gyarados em Cachoeira/Salto/Hiper Raio;
+   Alakazam ganha Premonição; Charizard fecha com Fúria; Hitmonchan carrega
+   os três socos elementais; Nidoran♂ bica e Nidoran♀ morde; larvas
+   (Caterpie/Metapod/Weedle/Kakuna), Magikarp e Ditto seguem fracos por
+   desenho (canon).
+4. **NADA de gameplay/motor mudou**: fórmula de dano, tabelas de
+   encontro/ginásio/loja, evoluções e XP intactos. Pokémon capturados em
+   produção mantêm os golpes salvos; `refreshMovesForLevel` atualiza ao subir
+   de nível, como sempre.
+5. **Guardas novos no CI** (5 testes em `pokedex-gen1.test.ts`, agora 18):
+   ≥ 4 golpes de dano por tipo; nenhum golpe órfão; teto 115 / precisão
+   50–100; golpes até o nível 7 ≤ 50 de poder; STAB de cada tipo até o
+   nível 40; formas finais com golpe ≥ 70 do tipo primário nos 4 últimos
+   slots; assinaturas clássicas com seus donos.
+
+Validação completa (comandos e diff contra baseline) na §4.18.
+
+### ✅ Fase 6.3-A — Catálogo Kanto completo (2026-09-06)
+
+Pedido do mantenedor, **antes do merge e antes da 6.4**: "implemente mais
+variações de pokemon base e suas evoluções… base para criar nossa própria
+estética, que não fique nada de fora". Na mesma branch `arena/01a07639-pokeeeee`
+(PR #6 agora acumula 6.2-C + 6.3 + 6.3-A).
+
+**O que existe agora:**
+
+1. **Pokédex 25 → 156 espécies**: as **151 de Kanto completas** + Steelix (208,
+   fecha a linha do Onix) + as 5 não-Kanto pré-existentes (Umbreon, Gardevoir,
+   Rayquaza, Lucario — e o Steelix conta como a 6ª de fora). Novo módulo
+   `src/lib/pokedex-gen1.ts` com 131 espécies em dados compactos; sem ciclo de
+   módulos (recebe `ALL_MOVES`; só importa tipos).
+2. **+11 golpes** (41 → 52), fechando tipos sem NENHUM golpe: Poison (Ferrão,
+   Lodo, Bomba de Lodo), Bug (Corte Fúria, Insetada, Tesoura X), Fairy (Vento
+   de Fada, Luta Fofa, Força Lunar) + Surf e Trovoada.
+3. **Fonte das sprites auditada** (PokeAPI/sprites, Gen V animado
+   front/back/shiny): cobertura dos ids 1–151 e 208 confirmada pela árvore Git
+   do repositório. **Armadilha documentada**: a API de contents pagina em 1000
+   entradas e parecia faltar o shiny de 96–99 — pela árvore existem (1005
+   arquivos). Animações vão só até o id 649: **Gen 6+ precisa de outra fonte**.
+4. **Tipagem/status canônicos modernos** (Fairy em Clefairy/Jigglypuff/Mr.
+   Mime; Magnemite Electric/Steel) — a tabela 18×18 da Fase 2 já cobria.
+5. **Evoluções**: 42 linhas de nível canônicas + 17 provisórias (pedra/troca →
+   nível, marcadas no código) + Pikachu→Raichu, Geodude→Graveler→Golem,
+   Onix→Steelix, Gastly→Haunter→**Gengar existente**, Magikarp→Gyarados,
+   Dratini→Dragonair→Dragonite. **Vaporeon/Jolteon/Flareon existem como
+   espécie mas não estão ligadas** — escolha entre 3 destinos exige mecânica
+   futura (pedras); Eevee segue para Umbreon.
+6. **Nada de gameplay mudou**: tabelas de encontro, ginásios e lojas intactos
+   (isso é conteúdo da 6.4). Learnsets novos seguem a filosofia 6.2-C; todos
+   os testes de balanceamento existentes passam para as 156 espécies.
+
+**Testes:** `src/lib/pokedex-gen1.test.ts` (13: roster exato, sprites no padrão
+do CDN, tipos conhecidos, linhas canônicas/provisórias, lendários sem linha) +
+ajustes em `evolution.test.ts` (Pikachu agora evolui) e no teste de integração
+(o "sem evolução" virou Ditto). Unitários: 14/203 → **15/215**. Integração
+permaneceu **6/73**.
+
+### ✅ Fase 6.3 — Evolução no servidor (2026-09-06)
+
+Na mesma branch `arena/01a07639-pokeeeee` (empilhada sobre a 6.2-C — merge
+deixado para depois a pedido do mantenedor; o PR #6 acumula as duas fases).
+Plano em `docs/FASE-6.md` §6.3, seguido sem reabertura.
+
+**O que existe agora:**
+
+1. **Regras dirigidas por dados** — `PokemonSpecies.evolvesTo`:
+   `{ speciesId, trigger: "level"|"item"|"special", level?, itemId? }[]`.
+   Só `"level"` é implementado; o teste de sanidade **proíbe** item/special
+   antes de existirem (regra morta não entra no catálogo).
+2. **+4 espécies** (o buraco das linhas dos iniciais): Ivysaur(2),
+   Venusaur(3), Charmeleon(5), Wartortle(8) — bases canônicas, sprites CDN,
+   learnset herdado da linha. Pokédex: 21 → **25**.
+3. **Motor** `src/lib/engine/evolution.ts`: `evolutionAtLevel(id, nível)`
+   segue a cadeia enquanto `nível ≥ limiar` (salto 15→37 atravessa dois
+   estágios numa batalha; guarda contra ciclos) e `applyEvolution(side)`
+   transforma o combatente no lugar.
+4. **Gatilho no fluxo de vitória** (`battle-service.ts`), junto do `applyXp`
+   — não existe endpoint de evoluir; cliente nenhum pode pedir evolução.
+   Ao evoluir: stats recalculados (variante real), **% de HP preservado**,
+   **apelido mantido**, **tipos trocam na mesma batalha**, golpes rederivados
+   do learnset novo, log `★ … evoluiu para …!`.
+5. **Persistência**: `pokedexId` + `name` entram no `UPDATE user_pokemon` da
+   vitória (no-op quando não evolui).
+6. **Catch-up automático**: gatilho é `nível ≥ limiar`, não "acabou de
+   cruzar" — Pokémon de produção que já passaram de 16 antes da 6.3
+   evolucionam no próximo level up, direto pro estágio certo do nível. Sem
+   backfill.
+
+**Linhas:** iniciais 16/32 e 16/36 (cânon) · Dragonair 55 → Dragonite (cânon)
+· Staryu 30 → Starmie e Eevee 30 → Umbreon (**provisórios**: pedra d'água e
+felicidade não existem como sistema; viraram nível até a 6.4/6.5 trazerem
+itens). Pikachu/Geodude/Onix/Gengar/Lapras etc. não evoluem nesta fase — os
+alvos não estão na Pokédex (conteúdo da 6.4).
+
+**Testes:** `src/lib/engine/evolution.test.ts` (16: integridade de dados,
+gatilhos, salto duplo, % HP, apelido, variante, tipos, time/PC agnóstico) +
+`tests/integration/evolution.integration.test.ts` (3: cruzar 16 numa vitória
+evolui e persiste; fora do gatilho não evolui; catch-up).
+Unitários: 13/187 → **14/203**. Integração: 5/70 → **6/73**.
+
+### ✅ Fase 6.2-C — Golpes fracos 15–35, teto aposentado, curva original e ginásios restaurados (2026-09-06)
+
+Sessão `arena/01a07639-pokeeeee`, partindo de `main` `863b36d` (handoff já
+mesclado — PRs #4 e #5 fechados). As decisões vieram do mantenedor via
+`docs/FASE-6.2-PLANO.md` e **não foram reabertas**: faixa útil 15–35, aposentar
+o teto, `nível³ × 0,8`, Brock 12/14, Misty 18/21, Lance 38/45 intacto, fórmula
+de dano intocada, uma zona de encontro por mapa.
+
+**O que mudou:**
+
+1. **Golpes** (`src/lib/pokedex.ts`) — o começo do jogo passou a ter duas
+   tier: neutra 20–25 (Arranhão 20, Investida 25) e tipada 25 (Brasa, Bolha,
+   Chicote de Cipó, Choque, Rajada), com upgrade 35 no nível ~7 (Ataque Rápido,
+   Estilhaço de Gelo, Folha Navalha 55→35, Garra de Metal 50→35). Lambida (30)
+   e Bofetada de Lama (35) já estavam na faixa. Os valores 25/35 foram medidos
+   contra o pior caso (Bolha com STAB ×2 + crítico contra HP 19 do Charmander
+   nível 5 — a 30 já seria nocaute em um golpe).
+2. **Teto de dano aposentado** (`src/lib/engine/damage.ts`) — removidos
+   `maxHitFraction`, `capDamage` e `DAMAGE_CAP_*`. Dano = 100% fórmula clássica
+   em todo nível. Proteção do início = conteúdo (golpes 15–35 + mapa 1 com
+   criaturas 2–7 sem vantagem de elemento), não motor.
+3. **Curva de XP** (`src/lib/engine/xp.ts`) — `xpFloor` volta a
+   `floor(nível³ × 0,8)`; piso de 20 XP/nível mantido (só afeta níveis 1–2).
+4. **Ginásios** (`src/lib/gym-teams.ts`) — Brock 12/14 e Misty 18/21
+   restaurados; Lance 38/45 intocado. Novo `src/lib/gym-teams.test.ts` trava
+   os três times.
+5. **Testes** — `balance.test.ts`: testes do teto removidos, novo teste da
+   faixa 15–35 (escopo: espécies do mapa 1), duelo mínimo 3→2 turnos (sem o
+   teto, vantagem de tipo decide em ~2 — era isso que o teto apagava), teste
+   de selvagem reescrito para a faixa 2–7 do mapa 1 futuro com contrato
+   STAB+super delegado ao conteúdo; `xp.test.ts` recalculado (264/822).
+   Unitários: 12/186 → **13/187** (−3 do teto, +1 faixa, +3 ginásios).
+6. **Relatório** (`scripts/balance-report.mts`) — seção do teto substituída
+   pela varredura "poder × dano neutro no nível 5"; seção da Misty adicionada.
+7. **`content/world/` re-exportado** — `db:rebalance` aplicado no banco local +
+   `world:export`; o diff versionado são só os 4 níveis de ginásio (sem isso,
+   um `world:import` futuro reverteria a mudança). `world:import --dry-run`
+   depois: tudo "igual(is)".
+8. `backfill-balance.ts` **não precisou mudar** — ele lê de `GYM_TEAMS` e
+   `movesAtLevel`, então acompanhou as fontes. Em produção:
+   `npm run db:rebalance` (movesets de Pokémon já capturados continuam válidos
+   porque os golpes mudaram de **poder**, não de nome).
+
+**Números medidos (antes → depois), semente fixa:**
+
+- Duelo inicial nv 5 com vantagem: 6,0 → **10,5** dmg (4,0 → **2,1** turnos);
+  sem vantagem: 6,6–7,6 turnos. **0% OHKO, críticos incluídos** (travado em
+  teste).
+- Poder × dano neutro nv 5 sem teto: 5→2,0 · 10→2,1 · 15→2,1 · 20→2,7 ·
+  25→3,1 · 35→3,6 · 40→4,1 · 55→4,9 (o poder volta a diferenciar).
+- Curva (batalhas/nível): 5→2,7 · 10→4,8 · 15→6,9 · 20→9,1 · 25→11,2; de 5 a
+  15 = 47 batalhas (eram 38).
+- Brock 12/14: Bulbasaur/Squirtle lvl 10–12 ganham; Charmander perde as duas
+  (decisão de design da 6.1, mantida). Misty 18/21: no lvl 18 só Bulbasaur
+  vence a Staryu; ninguém vence a Starmie sozinho — parede de propósito.
+
+Detalhes e tabela completa de golpes em `docs/FASE-6.md` (seção 6.2-C).
 
 ### 📸 Handoff de sessão — consolidação das branchs (2026-09-04)
 
@@ -1045,6 +1282,225 @@ gh pr view 4 · gh run list --branch arena/01a061a1-pokeeeee
 **Não validado aqui:** o merge em si (decisão do mantenedor) e o CI deste
 branch — o PR de handoff dispara o CI; mergear apenas com ele verde.
 
+### 4.15 Validação da Fase 6.2-C (2026-09-06)
+
+Ambiente recriado do zero (§ RECUPERAÇÃO): `npm install` → `.env` →
+`npm run db:local` → `drizzle-kit migrate` → `next dev` → seeds via
+`curl /api/maps`, `/api/gym?mapId=1`, `/api/shop?shopId=1`.
+
+```
+DATABASE_URL=<app_db> npm run balance:report        # capturado ANTES (teto ativo, 6,0 dmg)
+# … edições 6.2-C …
+DATABASE_URL=<app_db> npm run balance:report        # DEPOIS: 0% OHKO, 10,5/10,9 dmg com vantagem
+                                                     # curva 2,7/4,8/6,9/9,1/11,2 · Brock 12/14 · Misty 18/21
+DATABASE_URL=<app_db> npx vitest run src/lib/engine/{balance,xp,damage}.test.ts src/lib/gym-teams.test.ts
+→ 4 arquivos · 50 testes · todos verdes
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · Test Files 13 passed · Tests 187 passed · build ok
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 5 passed · Tests 70 passed
+
+DATABASE_URL=<app_db> npm run db:rebalance -- --dry-run
+→ Brock [10,12]→[12,14] · Misty [16,19]→[18,21] · 0 Pokémon afetado(s)
+DATABASE_URL=<app_db> npm run db:rebalance           # aplicado
+DATABASE_URL=<app_db> npm run world:export           # 2 mapas atualizados (níveis de ginásio)
+git diff content/world/ → exatamente 4 linhas (level 12/14 e 18/21)
+DATABASE_URL=<app_db> npm run world:import -- --dry-run
+→ mapas 3 igual(is) · ginásios 3 igual(is) · itens 11 igual(is) · ROLLBACK
+```
+
+Smoke no servidor real (não só unitários): registro `smoke6c` →
+`POST /api/battle start_wild` no matinho (2,8) do vale-pallet → resposta traz
+jogador e selvagem com `Arranhão (20)` / `Brasa (25)`; `GET /api/gym?mapId=1`
+→ Brock `[12,14]`; `mapId=2` → Misty `[18,21]`.
+
+**Não validado aqui:** produção (o `db:rebalance` lá é passo pós-deploy do
+mantenedor) e a sensação de jogo no navegador (pendência #9 abaixo).
+
+### 4.16 Validação da Fase 6.3 + persistência de mapas (2026-09-06)
+
+**Persistência de mapas (pergunta do mantenedor: "mapas 4 em diante somem a
+cada atualização de versão?"). Resposta: NÃO — provado por execução:**
+
+1. Conta `admin` promovida com `npm run db:set-role` → `POST /api/maps`
+   (admin-only) criou o **mapa 4** (`rota-teste-persistencia`, 16×16 com
+   matinho e tabela de encontro) → `GET /api/maps` = 4 mapas.
+2. `PUT /api/maps/4` editou a descrição → dev server **reiniciado**
+   (simulando deploy de nova versão) → `GET /api/maps` = 4 mapas, edição
+   intacta, seed não rodou de novo (guard `if (existingCount > 0) return;`
+   em `ensureDefaultMapsSeeded`; greps confirmaram que **nenhum** código
+   apaga `game_maps`/`gym_leaders`).
+3. `npm run world:export` versionou o mapa 4 em `content/world/maps/`.
+4. Pior cenário: banco **novo do zero** (`app_db2`) → migrate →
+   `npm run world:import` → **4 mapas restaurados** do código (ids até
+   mudaram — as referências são por slug/chave natural, então nada quebra).
+5. Artefatos da demo removidos em seguida (mapa de teste apagado do banco
+   local, `world:export` pruned o JSON, `app_db2` dropada).
+
+Conclusão registrada para o mantenedor: mapas criados no Editor vivem no
+banco de produção e **sobrevivem a deploys**; `content/world/` é o backup
+versionado — fluxo recomendado após mexer no Editor: `world:export` + commit.
+
+**Fase 6.3 (evolução):**
+
+```
+DATABASE_URL=<app_db> npx vitest run src/lib/engine/evolution.test.ts
+→ 16 passed (integridade de dados + transformação)
+
+DATABASE_URL=<app_db> npx vitest run --config vitest.integration.config.mts tests/integration/evolution.integration.test.ts
+→ 3 passed (cruzar 16 numa vitória → Charmeleon persistido;
+   fora do gatilho não evolui; catch-up do acima do limiar)
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · Test Files 14 passed · Tests 203 passed · build ok
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+```
+
+Smoke no servidor dev (rotas reais): vitória cruzando o nível 16 devolve log
+com `★ O quê?! Charmander está evoluindo!… evoluiu para Charmeleon!` e a
+linha do banco fica `pokedexId=5`, `name=Charmeleon`, HP ≤ maxHp.
+
+**Não validado aqui:** produção (evolução pega Pokémon antigos via catch-up
+no próximo level up, sem backfill) e o navegador (pendência #10).
+
+### 4.17 Validação da Fase 6.3-A — catálogo Kanto (2026-09-06)
+
+Auditoria da fonte de sprites (gh api no repositório PokeAPI/sprites):
+
+```
+gh api repos/PokeAPI/sprites/contents/.../animated          → 997 entradas (1 página)
+gh api repos/PokeAPI/sprites/git/trees/<sha-do-shiny>       → 1005 entradas, truncated:false
+→ ids 96–99 (Drowzee/Hypno/Krabby/Kingler) EXISTEM em shiny animado;
+  a API de contents corta em 1000 por página e os "escondeu"
+→ escopo 1–151 + 208: faltando NADA (front/back/shiny)
+→ range animado do repo: id 1–649 (Gen 6+ precisará de outra fonte)
+```
+
+Testes (números novos):
+
+```
+npx tsc --noEmit
+→ limpo
+
+DATABASE_URL=<app_db> npx vitest run
+→ Test Files 15 passed · Tests 215 passed
+  (novo pokedex-gen1.test.ts: 13 testes; os testes de balanceamento e
+   evolução escalam sozinhos para as 156 espécies — inclusive "nenhuma
+   começa com golpe forte" e "toda espécie tem golpe no nível 1")
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · 15 arquivos/215 testes · build ok
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+  (o caso "sem evolução" do teste de integração foi trocado de Pikachu
+   para Ditto — Pikachu agora evolui; foi o próprio teste que avisou)
+
+DATABASE_URL=<app_db> npm run balance:report
+→ "✓ todas as espécies ok" na sanidade do learnset
+```
+
+Encontros amarrados ao velho comportamento: `GET /api/maps` e uma batalha
+selvagem continuam servindo a tabela atual do mapa 1 (espécies novas não
+aparecem — de propósito, é conteúdo da 6.4).
+
+### 4.18 Validação da Fase 6.3-B — golpes com identidade (2026-09-06)
+
+Auditoria estrutural (script descartável, regras depois viraram os 5 testes
+novos de `pokedex-gen1.test.ts`):
+
+```
+npx tsx /tmp/audit-learnsets.mts
+→ espécies: 156 · golpes: 133
+→ ✓ todas as regras ok
+  (chaves válidas, níveis crescentes sem duplicata, ≤7 ⇒ poder ≤ 50,
+   nível 1 ≤ 60, STAB de cada tipo até 40, formas finais com golpe primário
+   ≥ 70 nos 4 últimos, sem órfãos, ≥ 4 golpes por tipo, teto 115/precisão 50)
+```
+
+Testes e suítes:
+
+```
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · build ok · 15 arquivos/222 testes
+  (pokedex-gen1.test.ts: 13 → 18 testes)
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+
+npx tsx scripts/balance-report.mts
+→ "✓ todas as espécies ok"
+```
+
+**Diff do balance-report contra o baseline 6.3-A** (via `git worktree` no
+commit `68c1879`, antes/depois salvos e comparados):
+
+- todas as **✓/✗ dos ginásios idênticas** (Brock: Bulbasaur/Squirtle ✓,
+  Charmander ✗; Misty: só Bulbasaur ✓) — nenhum resultado regrediu;
+- números moveram para o lado canônico: Charmander@10 leva 6,5 turnos para
+  derrubar o Geodude (antes 3,9) porque Garra de Metal voltou ao nível canônico
+  13 (FRLG) em vez de 7; Staryu@18 da Misty ficou mais fraco contra Bulbasaur
+  (perdeu Confusão/Water Pulse precoces — agora Swift/Pistola d'Água);
+- meio de jogo: Bulbasaur→Squirtle@30 passou de Folha Navalha 35 para Mega
+  Dreno 40 (3,1 → 2,2 turnos); Dragonite→Mewtwo@50 usa Fúria 90 STAB.
+
+Encontros, lojas e ginásios **inalterados** (nenhuma tabela mudou — só
+catálogo e learnsets).
+
+### 4.19 Validação da Fase 6.4-A — mundo até o mapa 20 (2026-09-06)
+
+Validação da 6.3-B re-executada antes de começar (auditoria estrutural verde:
+156 espécies · 133 golpes · todas as regras ok). Depois, da expansão:
+
+```
+npx tsx /tmp/check-world.mts            # auditoria offline do builder
+→ ✓ builder ok: 20 mapas, 156/156 espécies, cadeia 3↔20 íntegra
+
+DATABASE_URL=<app_db> npm run world:seed
+→ 17 criado(s), 3 atualizado(s), 20 mapa(s) no total
+
+DATABASE_URL=<app_db> npm run world:export
+→ 20 mapa(s), 3 ginásios, 11 itens → content/world versionado
+
+DATABASE_URL=<app_db> npm run world:import -- --dry-run
+→ mapas: 0 criado(s), 0 atualizado(s), 20 igual(is)   ← round-trip idempotente
+
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · build ok · 16 arquivos/231 testes
+  (novo world-expansion.test.ts: 9 guardas)
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+
+npx tsx scripts/balance-report.mts
+→ "✓ todas as espécies ok"
+```
+
+Smoke do pipeline real de encontro (DB → encounterPoolAt → pickWeighted →
+rollEncounterLevel → espécie → learnset), 2.000 sorteios por mapa:
+
+- Mapa 4: Zubat 23% nv 18–25 … Chansey 2% nv 24–28;
+- Mapa 12: Charmeleon 23% nv 50–57 … Moltres 4% nv 52–60;
+- Mapa 20: Dragonair 35%/Dragonite 29% nv 82–92, Rayquaza 15%/Zapdos 12%/
+  Mew 8% nv 87–95 — pesos e faixas batendo com o desenho.
+
+Smoke da API real (dev server :3100, hot-reload): `GET /api/health` →
+`{"ok":true}`; `GET /api/maps` → **20 mapas** com nome/portais/elenco.
+
+**Idempotência/segurança**: world:seed preserva `encounterGrid`/
+`collisionGrid` (camadas do Editor) e nunca apaga mapas; world:import
+dry-run confirma 20 iguais. Obs. cosmética: no banco de dev os ids têm um
+salto (1,2,3,5…21) por causa da sequência do serial (mapa de teste antigo
+criado/deletado) — ids são opacos, portais resolvem por slug, sem impacto.
+
+
+**Não validado aqui:** a vitrine de sprites no navegador com 156 espécies
+(pendência #11) e produção (só entra depois do merge).
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -1074,7 +1530,7 @@ dois confrontos 1 contra 1 com o Brock**, porque Pedra causa dano dobrado em
 Fogo. O jogo dá as saídas (time de até 3, Squirtle e Bulbasaur na grama do mapa
 1, poções). Se isso for indesejado, muda-se o conteúdo — não o número.
 
-#### 6.2 — Editor de Mundos, camadas e golpes fracos (em andamento)
+#### 6.2 — Editor de Mundos, camadas e golpes fracos — ✅ **concluída (2026-09-06)**
 
 Entrou na frente da evolução a pedido do mantenedor: sem editor de camadas não
 há como montar o mapa 1 fácil que valida o balanceamento da 6.1. Plano completo
@@ -1085,23 +1541,50 @@ em `docs/FASE-6.2-PLANO.md`.
   4.10). Falta a passada no navegador, registrada nas pendências manuais.
 - **6.2-D — mundo como código** ✅ concluída em 2026-09-02 (seções 3 e 4.12).
   Entrou antes da 6.2-C para o mapa 1 montado à mão poder ser versionado.
-  **Neste branch** (ancestral direto) — acompanha o merge de handoff.
-- **Handoff (2026-09-04) — antes de qualquer código:** o mantenedor mescla este
-  branch (`arena/01a06d75-pokeeeee`) em `main`, fecha o PR #4 e apaga as
-  branchs antigas (detalhes na seção 3 e §4.14). Depois disso `main` é a única
-  fonte e a nova conversa parte dela.
-- **6.2-C — próximo passo imediato (depois do merge do handoff):** golpes fracos na faixa útil **15–35**, aposentar o teto de dano da
-  6.1, voltar a curva original `nível³ × 0,8` e subir os ginásios (Brock 12/14,
-  Misty 18/21; Lance segue 38/45). O jogo deve continuar difícil de evoluir.
-  Não mexer na fórmula de dano. `npm run db:rebalance` em produção espera a 6.2-C.
-- **Depois da 6.2-C:** o mantenedor monta o mapa 1 à mão (nível 2–7, espécies
-  comuns, sem vantagem de elemento contra os iniciais), roda
-  `npm run world:export` e versiona `content/world/`.
+  Mesclada em `main` via PR #4/#5 (handoff 2026-09-04, §4.14).
+- **6.2-C — golpes 15–35, teto aposentado, curva `nível³ × 0,8`, ginásios
+  12/14 e 18/21** ✅ concluída em 2026-09-06 (seções 3 e 4.15), na branch
+  `arena/01a07639-pokeeeee`.
+- **Pós-6.2-C imediato (mantenedor, depois do deploy):**
+  1. rodar `npm run db:rebalance` em produção (segurado de propósito até aqui —
+     corrige níveis de ginásio já semeados; movesets por nome não mudaram);
+  2. montar o mapa 1 à mão no Editor (nível 2–7, espécies comuns, sem vantagem
+     de elemento contra os iniciais), `npm run world:export`, versionar
+     `content/world/` num PR.
 
-Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status →
-6.6 ranked → 6.7 NPCs**.
+Depois da 6.2 a ordem segue: **6.3 evolução ✅ (2026-09-06)** → **6.4 Pokédex
+(→ próxima)** → 6.5 status → 6.6 ranked → 6.7 NPCs.
 
-**Antes de começar:** reler este arquivo (regra do protocolo).
+### PRÓXIMA ETAPA: PÓS-MERGE — passos de produção e decisão de rumo
+
+> **O merge do PR #6 foi feito em 2026-09-06** (merge commit, estilo do repo).
+> A partir daqui o código já está no `main` e o deploy é automático. O
+> documento de partida da nova conversa é **`docs/RELATORIO-POS-MERGE.md`** —
+> ele resume tudo que entrou no merge e os passos abaixo.
+
+**Passos do mantenedor em produção** (mapas vivem no banco — merge só sobe
+código):
+
+1. conferir o deploy (catchbound.vercel.app — sempre produção, nunca preview);
+2. **`DATABASE_URL=<produção> npm run world:seed`** — leva os 20 mapas ao
+   banco (idempotente por slug; preserva camadas do Editor; nunca apaga);
+3. **`npm run db:rebalance`** em produção;
+4. testar no navegador (checklist §2, itens #10 evolução e #11 vitrine de
+   sprites 156×6; novo: caminhar do mapa 3 ao norte até o 20);
+5. **`DATABASE_URL=<produção> npm run world:export`** + commit (versionar o
+   estado real de produção);
+6. (Opcional) mapa 1 à mão no Editor.
+
+**Decisão de rumo para a próxima fase** (com o mantenedor):
+
+- **6.4 restante**: espécies de **Johto e além** (sprites animados até o id
+  649) e **pedras de evolução na loja** (trocariam os gatilhos `// pedra`
+  provisórios de nível por `item`);
+- ou pular para **6.5 status** (paralisia/queimadura/veneno) → 6.6 PvP →
+  6.7 NPCs (6.8 premium bloqueado até rebranding).
+
+**Antes de começar:** reler este arquivo (regra do protocolo) e o
+`docs/RELATORIO-POS-MERGE.md`.
 
 ---
 
@@ -1136,8 +1619,14 @@ Depois da 6.2 a ordem segue: **6.3 evolução → 6.4 Pokédex → 6.5 status �
 | 2026-08-31 | **Deploy 6.2 em produção** — PR #3 mesclado, migration `0005` aplicada | ✅ Concluída e validada | merge `92936e9` · `/api/maps` com as 3 colunas · §4.13 |
 | 2026-09-02 | **Fase 6.2-D** — mundo como código (export/import de mapas, ginásios e lojas) | ✅ Concluída e validada | `content/world/` · `docs/MUNDO-COMO-CODIGO.md` · 19 testes |
 | 2026-09-04 | **Handoff de sessão** — consolidação das branchs no AI_State | ✅ Concluída e validada | branch `arena/01a06d75` = 6.2-D + AI_State · §4.14 |
-| — | **Fase 6.2-C** — golpes fracos 15–35 e volta da curva original | ⬜ Próxima | `docs/FASE-6.2-PLANO.md` |
-| — | **Fase 6.3** — Evolução no servidor | ⬜ Planejada | `docs/FASE-6.md` |
+| 2026-09-06 | **Fase 6.2-C** — golpes 15–35, teto aposentado, curva `nível³×0,8`, Brock 12/14 e Misty 18/21 | ✅ Concluída e validada | 13 arquivos/187 testes · `content/world` re-exportado · §4.15 |
+| 2026-09-06 | **Verificação de persistência de mapas** — mapa 4 criado, restart, export, banco novo + import | ✅ Provado por execução | §4.16 (pergunta do mantenedor) |
+| 2026-09-06 | **Fase 6.3** — evolução no servidor por nível (+Ivysaur/Venusaur/Charmeleon/Wartortle) | ✅ Concluída e validada | 14 arquivos/203 unit · 6/73 integração · §4.16 |
+| 2026-09-06 | **Fase 6.3-A** — catálogo Kanto completo: 25 → 156 espécies, +11 golpes, linhas fechadas | ✅ Concluída e validada | 15/215 unit · 6/73 integração · §4.17 |
+| 2026-09-06 | **Fase 6.3-B** — golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies por tipo e raça | ✅ Concluída e validada | 15/222 unit · 6/73 integração · §4.18 |
+| 2026-09-06 | **Fase 6.4-A** — mundo até o mapa 20: 17 mapas temáticos, 156 espécies redistribuídas em bandas 8–95 | ✅ Concluída e validada | 16/231 unit · 6/73 integração · §4.19 |
+| 2026-09-06 | **Merge do PR #6** (6.2-C + 6.3 + fix + 6.3-A + 6.3-B + 6.4-A) — ✅ feito; passos de produção pendentes | ⬜ `world:seed` + `db:rebalance` + testes no navegador + `world:export` | `docs/RELATORIO-POS-MERGE.md` |
+| — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

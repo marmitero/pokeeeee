@@ -1,0 +1,157 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "cidade-sombria",
+  "name": "Mapa 13: Cidade Sombria",
+  "description": "Becos de neon e um dojo de portas abertas (nv 54–64). Umbreon, Lucario e os Hitmon-irmãos; Centro Pokémon na praça.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Umbreon",
+      "weight": 11,
+      "maxLevel": 63,
+      "minLevel": 56,
+      "pokedexId": 197,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Persian",
+      "weight": 12,
+      "maxLevel": 63,
+      "minLevel": 56,
+      "pokedexId": 53,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Meowth",
+      "weight": 8,
+      "maxLevel": 64,
+      "minLevel": 58,
+      "pokedexId": 52,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Raticate",
+      "weight": 14,
+      "maxLevel": 61,
+      "minLevel": 54,
+      "pokedexId": 20,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Primeape",
+      "weight": 14,
+      "maxLevel": 61,
+      "minLevel": 54,
+      "pokedexId": 57,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Hitmonlee",
+      "weight": 8,
+      "maxLevel": 64,
+      "minLevel": 58,
+      "pokedexId": 106,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Hitmonchan",
+      "weight": 8,
+      "maxLevel": 64,
+      "minLevel": 58,
+      "pokedexId": 107,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lucario",
+      "weight": 11,
+      "maxLevel": 63,
+      "minLevel": 56,
+      "pokedexId": 448,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Machoke",
+      "weight": 6,
+      "maxLevel": 64,
+      "minLevel": 58,
+      "pokedexId": 67,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Machamp",
+      "weight": 8,
+      "maxLevel": 64,
+      "minLevel": 58,
+      "pokedexId": 68,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p13-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "vulcao-cinnabar",
+      "targetMapName": "Vulcão de Cinnabar",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Vulcão de Cinnabar"
+    },
+    {
+      "id": "p13-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "vulcao-cinnabar",
+      "targetMapName": "Vulcão de Cinnabar",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Vulcão de Cinnabar"
+    },
+    {
+      "id": "p13-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "vale-das-fadas",
+      "targetMapName": "Vale das Fadas",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Vale das Fadas"
+    },
+    {
+      "id": "p13-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "vale-das-fadas",
+      "targetMapName": "Vale das Fadas",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Vale das Fadas"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "flower", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "stone", "center", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}
