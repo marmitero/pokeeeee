@@ -1938,10 +1938,12 @@ O passo 5 é feito pelo próprio workflow (export + diff do espelho; artefato
    USER/PASS/FROM` (Gmail dedicado, app password) — sem SMTP o cadastro em
    produção responderia 503 (de propósito: melhor bloquear que criar conta
    sem a trava).
-→ **Pós-merge imediato (mantenedor):** registrar uma conta com e-mail real
-em `catchbound.vercel.app` e conferir a chegada do e-mail estilizado
-(inclusive spam, remetente novo) — o remetente visível é "Catchbound"
-(display name da `SMTP_FROM`).
+→ **Pós-merge imediato (mantenedor) — PR #8 mergido em 2026-09-06
+(commit `71c40f1`, CI 100% verde, deploy automático da Vercel):** registrar
+uma conta com e-mail real em `catchbound.vercel.app` e conferir a chegada
+do e-mail estilizado (inclusive spam, remetente novo) — o remetente visível
+é "Catchbound" (display name da `SMTP_FROM`). Handoff da próxima conversa:
+`docs/PROMPT-NOVA-CONVERSA.md`.
 
 **Para a passada no navegador (itens #9–#11 + cadeia 3→20):** o painel
 `/admin` tem a seção **FERRAMENTAS GM** (admin-only, §4.24) — logar como
@@ -2016,6 +2018,7 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Rebrand leve** — "DELUGE RPG" → "CATCHBOUND" nas strings visíveis do jogo + texto da escolha do inicial ("Escolha seu parceiro inicial!" / "Escolha com sabedoria") | ✅ Concluída e validada | 17/242 unit · §4.25 · merge em standby |
 | 2026-09-06 | **Confirmação de e-mail no cadastro** (e-mail real do jogador + código de 6 dígitos, e-mail HTML estilizado, reenvio/cooldown) + rebrand final (título, description sem Deluge, `catchbound_session`/`catchbound_token`) | ✅ Concluída e validada | 18/250 unit · 8/97 integração · migration 0006 · ⚠️ produção: aplicar migration + envs SMTP ANTES do merge · §4.26 |
 | 2026-09-06 | **Ativação do mundo em PRODUÇÃO** — workflow `World activation`: 4 ajustes (`Invalid URL`/GITHUB_ENV → TLS self-signed → fix verify-full+CA `dca8645` → no-op ✅) e `APLICAR-production` ✅ — 20 mapas + rebalance no banco de produção | ✅ Ativado e conferido | run `34043394359` · `SELECT count(*) FROM game_maps` = 20 · `docs/RELATORIO-POS-ATIVACAO.md` · §4.21–4.23 |
+| 2026-09-06 | **Merge do PR #8** — rebrand CATCHBOUND + confirmação de e-mail + sync de docs de ativação/handoff → `main` (commit `71c40f1`, CI 100% verde) | ✅ Mergido · ⬜ validação pós-deploy pelo mantenedor (e-mail real + passada no navegador) | `docs/PROMPT-NOVA-CONVERSA.md` (handoff da próxima conversa) |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
