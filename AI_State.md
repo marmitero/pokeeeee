@@ -37,10 +37,11 @@
 | 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
 | 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C |
 | 10 | **Evolução (6.3)**: subir um Charmander até 16 (ou usar um save acima do limiar) e ver o log `★ … evoluiu para Charmeleon!` e o nome novo no PC Box | Login → batalhar até cruzar nível 16 | Fase 6.3 |
-| 11 | **Vitrine de sprites (6.3-A + 6.4-B)**: abrir o Pacote de Sprites e conferir que lista as 254 espécies × 6 variantes (1524 sprites) sem quebrados — em especial Drowzee/Hypno/Krabby/Kingler shiny e os Johto novos | Botão de sprites no HUD | Fase 6.3-A/6.4-B |
+| 11 | **Vitrine de sprites (6.3-A + 6.4-B + 6.4-C)**: abrir o Pacote de Sprites e conferir que lista as 387 espécies × 6 variantes (2322 sprites) sem quebrados — em especial os Hoenn novos (Treecko/Torchic/Mudkip, Metagross, Deoxys) | Botão de sprites no HUD | Fase 6.3-A/6.4-B/6.4-C |
 | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
 >
 | 12 | **Cadastro com e-mail real em produção (pós-incidente 2026-09-06)**: após colar `docs/supabase-production-0006-runtime.sql`, `/api/health` → `emailVerification:"ok"`, criar conta → tela de código → e-mail chega → entrar | catchbound.vercel.app | Incidente §4.27 |
+| 14 | **Hoenn em produção (6.4-C)**: após o merge, abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!`. Encontros de Hoenn **ainda não existem no mundo** (por decisão do mantenedor) — use as Ferramentas GM para obter as espécies | catchbound.vercel.app | Fase 6.4-C/§4.29 |
 | 13 | **Pedras de evolução em produção (6.4-B)**: após colar `docs/supabase-production-0007-runtime.sql`, abrir as lojas 1–3 e ver os 15 itens, comprar uma Pedra de Trovão, usar no Pikachu no Pokémon Box e ver `★ … evoluiu para Raichu!` | catchbound.vercel.app | Fase 6.4-B/§4.28 |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -107,9 +108,8 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a0782e-pokeeeee` (esta é a branch de
-handoff/pós-merge; o `main` já está em `6c18858` — fix do incidente de
-cadastro, PR #9)
+**Branch da sessão atual:** `arena/01a07870-pokeeeee` (Fase 6.4-C — catálogo
+Hoenn; o `main` está em `8e820d8` — merge do PR #10, Fase 6.4-B)
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -138,7 +138,7 @@ src/
 │   └── api/                  # 10 rotas: auth, maps, maps/[id], pokemon/{catch,heal,manage}, gym, shop, pvp, health
 ├── components/               # AuthModal, BattleArenaModal, GymModal, PokemonBox, ShopModal, SpritePackModal, WorldMapEditor
 ├── db/                       # schema.ts (11 tabelas) + index.ts (Pool global)
-└── lib/                      # pokedex, tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D), gm (comandos GM do painel)
+└── lib/                      # pokedex (+ pokedex-gen1/-johto/-hoenn), tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D), gm (comandos GM do painel)
 content/world/                # mundo versionado: maps/<slug>.json (com ginásios) + shops/<shopId>.json (6.2-D)
 scripts/world-export.mts      # banco → content/world/     (npm run world:export)
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
@@ -148,7 +148,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06)
 
 ### Conteúdo seedado
-254 espécies (1–151 Kanto + 152–251 Johto + Gardevoir/Rayquaza/Lucario, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 26 itens de loja (11 base + 15 de evolução) · 10 tipos de tile
+387 espécies (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + Lucario, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 26 itens de loja (11 base + 15 de evolução) · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -168,7 +168,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
-| Pacote de Sprites | ✅ Funciona (vitrine) — 254 espécies × 6 variantes |
+| Pacote de Sprites | ✅ Funciona (vitrine) — 387 espécies × 6 variantes (2322 sprites) |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -294,6 +294,8 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.3-A — Catálogo Kanto completo: 25 → 156 espécies, +11 golpes (Poison/Bug/Fairy), linhas fechadas** ✅ 2026-09-06
 - [x] **FASE 6.3-B — Golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies reescritos por tipo e raça** ✅ 2026-09-06
 - [x] **FASE 6.4-A — Mundo até o mapa 20: 17 mapas temáticos novos + 156 espécies redistribuídas (bandas 8–16 → 82–95)** ✅ 2026-09-06
+- [x] **FASE 6.4-B — Johto (152–251) + pedras de evolução por item** ✅ 2026-09-06 (PR #10, produção validada)
+- [x] **FASE 6.4-C — Catálogo Hoenn (252–386): 254 → 387 espécies (só catálogo, sem redistribuir no mundo)** ✅ 2026-09-06
 - [x] **Ferramentas GM no painel admin** — agilizar a validação manual (subir nível, dar Pokémon/item/dinheiro, curar, teleportar, dar insígnia) ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
@@ -348,6 +350,60 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 6.4-C — Catálogo Hoenn (252–386): Pokédex 254 → 387 (2026-09-06)
+
+**Decisão do mantenedor nesta rodada:** *"vamos focar nos pokémons primeiro.
+não precisa redistribuir eles nos mapas ainda, apenas adicione-os no jogo. pois
+depois iremos construir mais mapas, aí sim adicionaremos os encounters
+corretamente."* — e Hoenn **inteiro** de uma vez (não fatiado).
+
+Portanto esta fase é **só catálogo**: as espécies entram na Pokédex, na vitrine
+de sprites, no motor de evolução e nas Ferramentas GM, mas **não** entram nas
+tabelas de encontro dos 20 mapas. Nenhum arquivo de `content/world/` foi tocado
+e o contrato do mapa 1 (6.2-C) segue intacto.
+
+**O que entrou**
+
+| Item | Detalhe |
+|---|---|
+| `src/lib/pokedex-hoenn.ts` (novo) | `hoennRest(ALL_MOVES)` — **133 espécies novas** (252–386 exceto 282 Gardevoir e 384 Rayquaza, que já existiam). Mesmo formato do `pokedex-johto.ts` da 6.4-B |
+| `src/lib/pokedex.ts` | `...hoennRest(ALL_MOVES)` no `POKEDEX_DATA`; **Pokédex 254 → 387** |
+| `src/lib/pokedex-hoenn.test.ts` (novo) | 9 testes de contrato da fase |
+| `src/lib/pokedex-gen1.test.ts` | lista esperada e contagem atualizadas (387) |
+| `src/lib/world-expansion.test.ts` | o mundo cobre **254 das 387** espécies — o teste passou a travar isso explicitamente, com o porquê no comentário |
+
+**Fonte dos dados:** `PokeAPI/pokeapi` `data/v2/csv` (clonado com
+`--filter=blob:none --sparse` — `raw.githubusercontent.com` é bloqueado pelo
+egress do sandbox, mas `github.com` passa). Tipos, status-base e catchRate são
+os canônicos; learnsets são **derivados** do catálogo de 133 golpes já
+existente (mesma receita da 6.4-B: STAB de cada tipo cedo, curva de poder
+crescente, golpe forte do tipo primário nos 4 últimos slots, nada acima de
+poder 50 nos níveis 1 e 7 — a regra da 6.2-C).
+
+**Evolução dirigida por dados (sem motor novo)**
+
+- 66 gatilhos `trigger:"level"` nos níveis canônicos (iniciais em 16/36,
+  Bagon 30/50, Beldum 20/45, Ralts 20/30…);
+- gatilhos `trigger:"item"` reaproveitando as **pedras que já existem na loja**
+  desde a 6.4-B — nenhum item novo, nenhuma coluna nova, **nenhuma migration**:
+  - Lombre → Ludicolo (Pedra d'Água), Nuzleaf → Shiftry (Pedra de Folha),
+    Skitty → Delcatty (Pedra da Lua), Roselia (Pedra do Sol),
+    Clamperl → Huntail (Escama de Dragão) / Gorebyss (Pedra d'Água);
+  - **proxies declarados**: Feebas → Milotic usava *beleza* e virou Pedra
+    Brilhante; linhas de *felicidade* viram Pedra da Lua — mesma convenção que
+    a 6.4-B adotou para Togepi/Espeon/Umbreon, até a 6.5 trazer esses estados.
+- **Shedinja (292)** existe como espécie **sem** gatilho: o cânone exige slot
+  vazio no time + Pokébola sobrando, mecânica que o jogo não tem. Nincada
+  evolui normalmente para Ninjask.
+
+**O que NÃO mudou (de propósito):** `content/world/maps/*`, `default-world.ts`,
+o motor (`engine/evolution.ts`), o schema, a loja e os itens. Esta fase é
+aditiva no conteúdo e neutra na infraestrutura.
+
+---
+
+### (rodadas anteriores)
 
 ### 🚑 Incidente pós-merge — cadastro em produção respondia "Falha na autenticação" (2026-09-06)
 
@@ -2036,148 +2092,111 @@ Notas:
   rota e as lojas estão cobertas por integração; a passada visual é do
   mantenedor).
 
+### 4.29 Fase 6.4-C — catálogo Hoenn (2026-09-06)
+
+Ambiente do sandbox tinha resetado (`node_modules` ausente) — recuperado com
+`npm install` antes de qualquer teste.
+
+```bash
+# 1. dados canônicos (raw.githubusercontent.com é bloqueado; github.com passa)
+git clone --depth 1 --filter=blob:none --sparse https://github.com/PokeAPI/pokeapi.git /tmp/pokeapi
+cd /tmp/pokeapi && git sparse-checkout set data/v2/csv
+→ pokemon_species.csv · pokemon_stats.csv · pokemon_types.csv · pokemon_evolution.csv · types.csv
+
+# 2. geração do catálogo (script descartável, saída versionada)
+python3 /tmp/gen_hoenn.py
+→ espécies: 133   (src/lib/pokedex-hoenn.ts, 533 linhas)
+
+# 3. unit
+npx vitest run src/lib/pokedex-hoenn.test.ts
+→ Test Files 1 passed · Tests 9 passed
+
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npm run check
+→ lint ok · typecheck ok · Test Files 19 passed · Tests 266 passed · build 15 rotas (exit 0)
+
+# 4. integração (banco local via `npm run db:local` + drizzle-kit migrate)
+DATABASE_URL="..." npm run test:integration
+→ Test Files 8 passed · Tests 100 passed
+```
+
+Três falhas reais apareceram no caminho e foram corrigidas **no gerador**, não
+no teste (o contrato do repo pegou o que era para pegar):
+
+1. `capture` estava lendo a coluna errada do CSV (`r[8]` → `r[9]`): todo Hoenn
+   nascia com `catchRate: 1`. Corrigido — Treecko voltou a 45, Poochyena 255.
+2. Poochyena/Spoink aprendiam golpe de poder 60/65 no nível 7, violando a curva
+   da 6.2-C. O gerador passou a inserir um filler barato (Investida/Arranhão)
+   nos dois primeiros aprendizados de tipos pobres em golpes fracos — como o
+   catálogo Kanto/Johto já fazia.
+3. Tipos sem golpe fraco disponível (Ghost) estouravam o índice ao garantir
+   STAB cedo; a rotina passou a rebaixar um golpe do tipo em vez de falhar.
+
+Números observados:
+- `POKEDEX.length` = **387** (151 Kanto + 100 Johto + 135 Hoenn + Lucario);
+- vitrine de sprites: 387 × 6 = **2322** sprites;
+- mundo: continua cobrindo **254** espécies em 20 mapas (Hoenn fora dos
+  encontros por decisão do mantenedor) — mapa 1 byte-a-byte intocado;
+- **sem migration nova**: nenhuma coluna/tabela criada, logo **nada de SQL em
+  produção** neste merge. Migrations seguem em 0000–0007.
+
+Não validado aqui (é do mantenedor, em produção, nunca em preview): a vitrine
+de sprites com os Hoenn carregando de fato do CDN, e uma evolução Hoenn ao vivo
+(GM → dar Treecko → subir para 16).
+
 ## 5. Qual a próxima etapa a ser aplicada
 
-### ✅ Fase 5.1 encerrada — a próxima etapa é a FASE 6
+> As seções 5 das rodadas anteriores (Fases 5.1 → 6.4-B, ativação do mundo,
+> incidente do cadastro) estão preservadas no histórico abaixo e em §3/§4.
 
-Produção controlada online (`https://catchbound.vercel.app/`), Supabase de
-produção validado, runtime mínimo `catchbound_runtime`, `/api/health` ok,
-`/api/maintenance` protegido e validado com `CRON_SECRET`, backup criptografado
-de produção **ativo com restore testado** (run `33378414585`, artifact
-`production-db-33378414585`).
+### Estado de produção nesta rodada (conferido em 2026-09-06)
 
-### FASE 6 — Conteúdo e mundo (plano detalhado em `docs/FASE-6.md`)
+```
+GET https://catchbound.vercel.app/api/health → {"ok":true,"emailVerification":"ok"}
+GET https://catchbound.vercel.app/api/maps   → mundo 1–20 respondendo (mapa 1 = Vale Pallet, Brock + loja)
+```
+Migrations **0006 e 0007 já aplicadas** em produção pelo mantenedor; PRs #9 e
+#10 mergeados e validados. **Nada bloqueando.**
 
-Ordem: **6.1 balanceamento → 6.2 editor/camadas de mapa → 6.3 evolução →
-6.4 Pokédex → 6.5 status → 6.6 PvP ranqueado → 6.7 NPCs**. Premium (6.8) segue
-bloqueado até haver IP própria, termos, privacidade, pagamento e antifraude.
+### ⚠️ Este merge NÃO tem passo de banco
 
-#### 6.1 — Balanceamento do início do jogo — ✅ concluída em 2026-08-31
+A 6.4-C é puramente de conteúdo: nenhuma coluna, tabela ou item novo. Depois do
+merge, a Vercel sobe sozinha e as 387 espécies aparecem. **Não** há SQL para
+colar no Supabase, e **não** é preciso rodar `world:seed` (as tabelas de
+encontro não mudaram).
 
-Causa achada e corrigida: não existia learnset. Resultado medido: **0% de OHKO**
-no nível 5 (era 100% com vantagem de tipo), 4 turnos com vantagem e ~5 sem ela.
-Detalhes e números em `docs/FASE-6.md`.
+### Passos do mantenedor após o merge
 
-Fica registrada uma decisão de design, não um bug: **o inicial de Fogo perde os
-dois confrontos 1 contra 1 com o Brock**, porque Pedra causa dano dobrado em
-Fogo. O jogo dá as saídas (time de até 3, Squirtle e Bulbasaur na grama do mapa
-1, poções). Se isso for indesejado, muda-se o conteúdo — não o número.
+1. abrir `catchbound.vercel.app` (produção, nunca preview) e a **vitrine de
+   sprites**: deve mostrar 387 espécies × 6 variantes, com os Hoenn no fim da
+   lista carregando do CDN Gen V;
+2. `/admin` → **Ferramentas GM** → "dar Pokémon" um Treecko → "subir nível" 16
+   → conferir `★ … evoluiu para Grovyle!` (Hoenn ainda não aparece na grama —
+   é assim de propósito nesta fase);
+3. (opcional) comprar uma Pedra d'Água e usar num Lombre/Clamperl.
 
-#### 6.2 — Editor de Mundos, camadas e golpes fracos — ✅ **concluída (2026-09-06)**
+### Próxima etapa a decidir com o mantenedor
 
-Entrou na frente da evolução a pedido do mantenedor: sem editor de camadas não
-há como montar o mapa 1 fácil que valida o balanceamento da 6.1. Plano completo
-em `docs/FASE-6.2-PLANO.md`.
+O plano declarado é **construir mais mapas e só então distribuir os encontros**.
+Duas frentes possíveis, na ordem que o mantenedor preferir:
 
-- **6.2-A — camadas no servidor** ✅ concluída em 2026-08-31 (seções 3 e 4.9).
-- **6.2-B — editor pinta as camadas** ✅ concluída em 2026-08-31 (seções 3 e
-  4.10). Falta a passada no navegador, registrada nas pendências manuais.
-- **6.2-D — mundo como código** ✅ concluída em 2026-09-02 (seções 3 e 4.12).
-  Entrou antes da 6.2-C para o mapa 1 montado à mão poder ser versionado.
-  Mesclada em `main` via PR #4/#5 (handoff 2026-09-04, §4.14).
-- **6.2-C — golpes 15–35, teto aposentado, curva `nível³ × 0,8`, ginásios
-  12/14 e 18/21** ✅ concluída em 2026-09-06 (seções 3 e 4.15), na branch
-  `arena/01a07639-pokeeeee`.
-- **Pós-6.2-C imediato (mantenedor, depois do deploy):**
-  1. rodar `npm run db:rebalance` em produção (segurado de propósito até aqui —
-     corrige níveis de ginásio já semeados; movesets por nome não mudaram);
-  2. montar o mapa 1 à mão no Editor (nível 2–7, espécies comuns, sem vantagem
-     de elemento contra os iniciais), `npm run world:export`, versionar
-     `content/world/` num PR.
+1. **6.4-D — mundo 21–35 + redistribuição**: mapas temáticos novos para as
+   faixas de nível altas e as 133 espécies de Hoenn entrando nos encontros
+   (regra de sempre: linhas completas, bandas de nível crescentes, mapa 1
+   intocado, `world:export` + PR + workflow *World activation* para aplicar em
+   produção);
+2. **6.5 status** (veneno/queimadura/paralisia; coluna `status`/`statusTurns`
+   em `user_pokemon` → **migration 0008**, que vira pré-requisito de merge;
+   Antídoto volta à loja) → 6.6 PvP ranqueado → 6.7 NPCs.
 
-Depois da 6.2 a ordem segue: **6.3 evolução ✅ (2026-09-06)** → **6.4 Pokédex
-(→ próxima)** → 6.5 status → 6.6 ranked → 6.7 NPCs.
+**Rebranding completo** continua pendente **antes** de divulgação/monetização
+(6.8 premium segue bloqueado): identificadores internos (`computeDelugeStats`,
+`DelugeRPGPage`, `DelugeVariant`…), `package.json` (`name: "deluge-rpg"` —
+aparece até no log do `npm run db:local`), README/docs, e a decisão legal sobre
+nomes/sprites Pokémon. Upgrade opcional do remetente: domínio próprio + SPF/DKIM
+para o `SMTP_FROM` sair do Gmail.
 
-### PRÓXIMA ETAPA: PÓS-MERGE — passos de produção e decisão de rumo
-
-> **O merge do PR #6 foi feito em 2026-09-06** (merge commit, estilo do repo).
-> A partir daqui o código já está no `main` e o deploy é automático. O
-> documento de partida da nova conversa é **`docs/RELATORIO-POS-MERGE.md`** —
-> ele resume tudo que entrou no merge e os passos abaixo.
-
-**Passos do mantenedor em produção** (mapas vivem no banco — merge só sobe
-código):
-
-1. conferir o deploy (catchbound.vercel.app — sempre produção, nunca preview);
-2. **`DATABASE_URL=<produção> npm run world:seed`** — leva os 20 mapas ao
-   banco (idempotente por slug; preserva camadas do Editor; nunca apaga);
-3. **`npm run db:rebalance`** em produção;
-4. testar no navegador (checklist §2, itens #10 evolução e #11 vitrine de
-   sprites 156×6; novo: caminhar do mapa 3 ao norte até o 20);
-5. **`DATABASE_URL=<produção> npm run world:export`** + commit (versionar o
-   estado real de produção);
-6. (Opcional) mapa 1 à mão no Editor.
-
-**Sem arquivos na máquina do mantenedor (opção preferida, 2026-09-06):** os
-passos 2, 3 e 5 rodam pelo workflow **World activation** no GitHub Actions —
-`docs/world-activation.yml` (copiar para `.github/workflows/` pela interface
-web) + `docs/supabase-production-maint-role.sql` (colar no SQL Editor do
-Supabase) + 4 secrets `*_MAINT_DB_USER/PASSWORD` no GitHub. Sequência no
-Actions UI: `target=staging apply=false` → `target=production apply=false` →
-`target=production apply=true` (confirmar digitando `APLICAR-production`).
-O passo 5 é feito pelo próprio workflow (export + diff do espelho; artefato
-`world-diff-*` só se produção divergir do git — aï o agente versiona).
-**✅ EXECUTADO em 2026-09-06** (runs em §4.21–4.23; relatório em
-`docs/RELATORIO-POS-ATIVACAO.md`). Sobraram para o humano: conferir deploy
-(1), navegador (4) e mapa 1 à mão (6).
-
-**✅ PRÉ-REQUISITOS DE PRODUÇÃO DO MERGE DE E-MAIL (2026-09-06) — FEITOS PELO MANTENEDOR:**
-1. ✅ **Migration 0006 aplicada no banco de produção** (SQL Editor do
-   Supabase) — coluna `email_verified` + tabela `email_verification_codes`;
-2. ✅ **Envs de e-mail cadastradas na Vercel**: `SMTP_HOST/PORT/SECURE/
-   USER/PASS/FROM` (Gmail dedicado, app password) — sem SMTP o cadastro em
-   produção responderia 503 (de propósito: melhor bloquear que criar conta
-   sem a trava).
-→ **Pós-merge imediato (mantenedor) — PR #8 mergido em 2026-09-06
-(commit `71c40f1`, CI 100% verde, deploy automático da Vercel):** registrar
-uma conta com e-mail real em `catchbound.vercel.app` e conferir a chegada
-do e-mail estilizado (inclusive spam, remetente novo) — o remetente visível
-é "Catchbound" (display name da `SMTP_FROM`). Handoff da próxima conversa:
-`docs/PROMPT-NOVA-CONVERSA.md`.
-
-**🚑 PRIMEIRO (bloqueia o cadastro em produção, 2026-09-06 — §3/§4.27).**
-O código do fix já está em `main` (**PR #9 mergeado**, commit `6c18858`; só
-falta o passo de banco e a validação de produção):
-1. SQL Editor do Supabase (produção): colar e executar
-   `docs/supabase-production-0006-runtime.sql` → última linha deve mostrar
-   `rls_on=true · runtime_privs=4 · runtime_policy=1 · migrations=7`;
-2. Após o deploy da Vercel (automático, acompanha `main`):
-   `https://catchbound.vercel.app/api/health`
-   → `{"ok":true,"emailVerification":"ok"}`;
-3. Criar conta de novo (pode ser o mesmo usuário/e-mail/senha de hoje) →
-   tela "CONFIRME SEU E-MAIL" → código chega (checar spam) → entrar.
-   Se ainda falhar: log da função na Vercel (`[auth]` mostra a query/causa).
-
-**Para a passada no navegador (itens #9–#11 + cadeia 3→20):** o painel
-`/admin` tem a seção **FERRAMENTAS GM** (admin-only, §4.24) — logar como
-admin e usar "subir nível" (16/36 p/ evolução), "dar Pokémon" (time forte
-p/ ginásio), "dar dinheiro/item", "curar" e "teleportar" (pulando para o
-mapa da vez) corta o grind da validação em uns 15 min.
-
-**Decisão de rumo para a próxima fase** (com o mantenedor):
-
-- **6.4-B (Johto + pedras)** implementada no branch
-  `arena/01a0782e-pokeeeee`, commit `2e2c1dc`, **PR #10 aberto** e validada
-  no sandbox (§3/§4.28) — falta só o SQL 0007 em produção e a passada
-  visual.
-- **6.4 além**: sprites animados existem até o id 649 — dar continuidade com
-  Hoenn (252–386) seria o próximo lote;
-- ou pular para **6.5 status** (paralisia/queimadura/veneno) → 6.6 PvP →
-  6.7 NPCs (6.8 premium bloqueado até rebranding).
-
-**Rebranding:** a parte visível do jogo já passou a ser **CATCHBOUND**
-(2026-09-06, §4.25) e o resto do rebrand pendente foi feito na rodada de
-confirmação de e-mail (§4.26): título da aba sem "& Editor de Mundos",
-description **sem** a menção ao Pokémon Deluge ("deixaremos isso oculto"),
-cookies/tokens `catchbound_session`/`catchbound_token` e e-mail placeholder
-`@delugerpg.net` morto (o cadastro agora usa o e-mail real do jogador).
-Restam para o rebranding completo antes de divulgação/monetização:
-identificadores internos (`computeDelugeStats` etc.), `package.json`
-(`deluge-rpg`), README/docs e os sprites/names Pokémon (decisão vigente da
-`§5` do `RELATORIO-POS-MERGE`).
-
-**Antes de começar:** reler este arquivo (regra do protocolo) e o
-`docs/RELATORIO-POS-MERGE.md`.
+**Antes de começar a próxima rodada:** reler este arquivo inteiro (regra do
+protocolo) e `docs/RELATORIO-POS-ATIVACAO.md`.
 
 ---
 
@@ -2228,7 +2247,8 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Incidente pós-merge** — cadastro em produção → "Falha na autenticação" (RLS sem policy na tabela `email_verification_codes`; conta presa; erro mascarado). Fix: SQL companheiro `docs/supabase-production-0006-runtime.sql` + cadastro atômico + reenvio para conta pendente + `/api/health.emailVerification` + mensagem de erro honesta | ✅ Reproduzido e corrigido no sandbox · ⬜ SQL em produção pelo mantenedor | 18/250 unit · 8/98 integração · §4.27 |
 | 2026-09-06 | **Merge do PR #9** — fix do incidente do cadastro em produção (`arena/01a077fb-pokeeeee` → `main`, commit `6c18858`) | ✅ Mergeado · CI do run `34053895267` verde · ⬜ validação de produção pelo mantenedor (SQL + e-mail real) | `gh pr show 9` · §3/§4.27 |
 | 2026-09-06 | **Fase 6.4-B** — catálogo Johto (98 espécies novas; Pokédex 156 → 254) + pedras/evolução por item (14 itens, schema 0007, lojas 1–3, `/api/pokemon/manage`) + redistribuição das 98 no mundo | ✅ Concluída e validada no sandbox · commit `2e2c1dc` · **PR #10** · ⬜ SQL `0007` em produção + passada visual | 18/257 unit · 8/100 integração · `docs/supabase-production-0007-runtime.sql` · §3/§4.28 |
-| — | **Fase 6.4 (próximo lote)** — Hoenn e além (sprites animados existem até id 649) + decisão entre 6.5 status | ⬜ Planejada | `docs/FASE-6.md` |
+| 2026-09-06 | **Fase 6.4-C** — catálogo Hoenn 252–386: 133 espécies novas (Pokédex 254 → **387**), evolução por nível/pedra dirigida por dados, **sem** redistribuição no mundo (decisão do mantenedor: mapas primeiro) | ✅ Concluída e validada no sandbox · ⬜ passada visual em produção | 19/266 unit · 8/100 integração · `src/lib/pokedex-hoenn.ts` · **sem migration** · §3/§4.29 |
+| — | **Fase 6.4-D / 6.5** — mapas 21+ com os encontros de Hoenn, ou pular para status (migration 0008) | ⬜ A decidir com o mantenedor | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

@@ -88,8 +88,18 @@ aplica os parâmetros da URL por cima do objeto `ssl`), CA gravada com `umask
   **Status no repo:** o fix já foi mergeado em `main` via PR #9
   (commit `6c18858`, CI verde); falta a validação de produção pelo
   mantenedor (SQL + `/api/health` + e-mail real).
-- Reexecução futura (ex.: depois de editar mapas no Editor): mesma sequência
-  do §2 — é idempotente; `apply=false` primeiro.
+- ✅ **2026-09-06 (Fase 6.4-B):** migration `0007` + SQL companheiro aplicados
+  em produção pelo mantenedor, PR #10 mergeado e validado no navegador
+  (sprites novos + evolução por pedra).
+- ✅ **2026-09-06 (Fase 6.4-C — catálogo Hoenn):** Pokédex 254 → **387**
+  espécies. **Não** exige nada do banco: nenhuma coluna/tabela/item novo e
+  **nenhuma mudança nas tabelas de encontro** — por decisão do mantenedor,
+  Hoenn entra só no catálogo e os encontros vêm junto com o próximo lote de
+  mapas. Portanto **não** rode `world:seed` por causa dela; o deploy da Vercel
+  basta. Detalhes em `AI_State.md` §3/§4.29.
+- Reexecução futura (ex.: depois de editar mapas no Editor, ou quando o lote
+  21+ chegar com os encontros de Hoenn): mesma sequência do §2 — é idempotente;
+  `apply=false` primeiro.
 
 ## 6. Onde as coisas vivem
 
