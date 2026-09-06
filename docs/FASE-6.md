@@ -435,11 +435,54 @@ isso é conteúdo da 6.4, que completa as linhas em lotes.
 - Testes: Charmander lvl 16 → Charmeleon → lvl 36 Charizard; stats recalculados;
   Pokémon no time e no PC evoluem igual; falha silenciosa impossível. ✅
 
+### 6.3-A — Catálogo Kanto completo (2026-09-06, a pedido do mantenedor)
+
+> Decisão do mantenedor: encher o catálogo de espécies e evoluções **antes** do
+> merge e antes da 6.4, como base para a estética própria do futuro — "que não
+> fique nada de fora". Não é a 6.4: nenhuma tabela de encontro/loja/mapa mudou.
+
+**Escopo: Pokédex 25 → 156 espécies** — as 151 de Kanto completas + Steelix
+(208, fecha a linha do Onix) + as 5 não-Kanto que já existiam (Umbreon,
+Gardevoir, Rayquaza, Lucario — mantidas).
+
+- **Verificação da fonte de sprites** (PokeAPI/sprites, CDN GitHub, padrão Gen V
+  animado front/back/shiny): cobertura confirmada por listagem da árvore Git do
+  repositório — todos os ids 1–151 e 208 têm as três variações. Detalhe que
+  quase enganou: a API de contents pagina em 1000 entradas e "escondeu" 4
+  arquivos (96–99); a árvore Git mostra os 1005. Animações existem só até o id
+  649 — **Gen 6+ exigirá outra fonte** (registrado para o futuro).
+- **Novo módulo `src/lib/pokedex-gen1.ts`**: 131 espécies em dados compactos
+  (construtor gera as 3 URLs de sprite do id). Sem ciclo de módulos: recebe
+  `ALL_MOVES` de `pokedex.ts` e só importa tipos de lá.
+- **+11 golpes** em `ALL_MOVES` (41 → 52): Poison (Ferrão/Lodo/Bomba de Lodo),
+  Bug (Corte Fúria/Insetada/Tesoura X), Fairy (Vento de Fada/Luta Fofa/Força
+  Lunar) — tipos que não tinham NENHUM golpe — e Surf/Trovoada para variedade.
+- **Tipagem/status canônicos modernos** (Clefairy/Jigglypuff/Mr. Mime são Fairy;
+  Magnemite é Electric/Steel) — a tabela 18×18 já cobria tudo desde a Fase 2.
+- **Evoluções**: linhas de nível canônicas onde existem; pedra/troca viram
+  gatilho de nível **provisório** (mesma decisão da 6.3), marcados no código.
+  Vaporeon/Jolteon/Flareon existem como espécie mas **não estão ligadas** à
+  Eevee — escolher entre três destinos exige mecânica de pedras/escolha futura.
+- Pikachu→Raichu, Geodude→Graveler→Golem e Onix→Steelix ligados; Gastly/Haunter
+  agora chegam ao Gengar; Magikarp→Gyarados e Dratini→Dragonair entraram.
+- **Learnsets** seguem a filosofia 6.2-C (fraco 20–40 no nível 1; médio 50–65 no
+  12–20; forte 80+ do 28 em diante) — os testes de balanceamento existentes
+  passam para as 156 espécies automaticamente.
+- **NADA de gameplay mudou**: tabelas de encontro, ginásios e lojas intactos
+  (isso é conteúdo da 6.4). As espécies novas só aparecem no jogo quando
+  entrarem nas tabelas dos mapas.
+
+**Validação**: `src/lib/pokedex-gen1.test.ts` (13 testes: roster exato 1–151+5,
+sprites no padrão do CDN, tipos conhecidos, golpes reais, linhas canônicas e
+provisórias, lendários sem evolução, eeveelutions sem gatilho). Unitários
+15 arquivos/215; integração 6/73; `balance:report` limpo para todas as espécies.
+
 ## 6.4 — Pokédex 21 → 50+
 
 - Acrescentar espécies em lotes de ~10, cada lote com as linhas evolutivas
-  completas (o buraco das linhas dos iniciais foi fechado na 6.3; faltam
-  Raichu, Graveler/Golem, Steelix, linha do Gastly, Ralts/Kirlia, Riolu etc.).
+  completas. (Kanto inteira já entrou na 6.3-A — o que resta desta fase é
+  **Johto e além** e, principalmente, colocar as 156 espécies para aparecer:
+  novas tabelas de encontro por mapa usando o catálogo que agora existe.)
 - Cada espécie precisa de: tipos, 6 bases, `catchRate`, learnset, sprites CDN e
   descrição em pt-BR.
 - Ampliar `ALL_MOVES` com golpes fracos/médios e cobrir tipos hoje ausentes.

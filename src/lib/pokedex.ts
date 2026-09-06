@@ -1,3 +1,5 @@
+import { gen1Rest } from "./pokedex-gen1";
+
 export type DelugeVariant =
   | "Normal"
   | "Shiny"
@@ -559,9 +561,118 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     description: "Rola uma pedra pesada por cima do alvo.",
     sfx: "slash",
   },
+
+  // ── Fase 6.3-A — catálogo Kanto completo ─────────────────────────────────
+  //
+  // Tipos que ainda não tinham NENHUM golpe no catálogo (Poison, Bug, Fairy)
+  // e variedade de fim de jogo para Water/Electric. Sem isto, espécies
+  // desses tipos lutariam com golpes nebulosos — a tabela de efetividade 18×18
+  // já existia desde a Fase 2, faltava o conteúdo.
+  Surf: {
+    name: "Surf",
+    type: "Water",
+    power: 90,
+    accuracy: 100,
+    category: "Special",
+    description: "Uma onda enorme arremessa o alvo para cima e para baixo.",
+    sfx: "water",
+  },
+  Thunder: {
+    name: "Trovoada",
+    type: "Electric",
+    power: 110,
+    accuracy: 70,
+    category: "Special",
+    description: "Um raio brutal cai do céu; pode fazer o alvo hesitar.",
+    sfx: "thunder",
+  },
+  PoisonSting: {
+    name: "Ferrão",
+    type: "Poison",
+    power: 25,
+    accuracy: 100,
+    category: "Physical",
+    description: "Perfura o alvo com um ferrão venenoso.",
+    sfx: "slash",
+  },
+  Sludge: {
+    name: "Lodo",
+    type: "Poison",
+    power: 65,
+    accuracy: 100,
+    category: "Special",
+    description: "Arremessa lama suja no alvo.",
+    sfx: "water",
+  },
+  SludgeBomb: {
+    name: "Bomba de Lodo",
+    type: "Poison",
+    power: 90,
+    accuracy: 100,
+    category: "Special",
+    description: "Explode lodo tóxico que pode envenenar o alvo.",
+    sfx: "beam",
+  },
+  FuryCutter: {
+    name: "Corte Fúria",
+    type: "Bug",
+    power: 40,
+    accuracy: 95,
+    category: "Physical",
+    description: "Cortes sucessivos que afiam a cada golpe.",
+    sfx: "slash",
+  },
+  BugBite: {
+    name: "Insetada",
+    type: "Bug",
+    power: 60,
+    accuracy: 100,
+    category: "Physical",
+    description: "Morde o alvo com mandíbulas de inseto.",
+    sfx: "slash",
+  },
+  XScissor: {
+    name: "Tesoura X",
+    type: "Bug",
+    power: 80,
+    accuracy: 100,
+    category: "Physical",
+    description: "Cruza garras como tesouras e rasga o alvo.",
+    sfx: "slash",
+  },
+  FairyWind: {
+    name: "Vento de Fada",
+    type: "Fairy",
+    power: 25,
+    accuracy: 100,
+    category: "Special",
+    description: "Uma brisa encantada que arrasta o alvo.",
+    sfx: "beam",
+  },
+  PlayRough: {
+    name: "Luta Fofa",
+    type: "Fairy",
+    power: 90,
+    accuracy: 90,
+    category: "Physical",
+    description: "Brinca com o alvo até machucar de verdade.",
+    sfx: "slash",
+  },
+  Moonblast: {
+    name: "Força Lunar",
+    type: "Fairy",
+    power: 95,
+    accuracy: 100,
+    category: "Special",
+    description: "Canaliza o poder da lua num golpe ofuscante.",
+    sfx: "beam",
+  },
 };
 
-const POKEDEX_DATA: PokemonSpeciesData[] = [
+/** Tipo do catálogo de golpes — usado por `pokedex-gen1.ts` sem ciclo de módulos. */
+export type AllMoves = typeof ALL_MOVES;
+
+const POKEDEX_BASE: PokemonSpeciesData[] = [
   {
     id: 1,
     name: "Bulbasaur",
@@ -844,6 +955,7 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 40, move: ALL_MOVES.ShadowBall },
       { level: 48, move: ALL_MOVES.Thunderbolt },
     ],
+    evolvesTo: [{ speciesId: 26, trigger: "level", level: 30 }], // pedra (Trovão), provisório
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/25.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/25.gif",
@@ -871,6 +983,7 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 42, move: ALL_MOVES.IronTail },
       { level: 50, move: ALL_MOVES.Earthquake },
     ],
+    evolvesTo: [{ speciesId: 75, trigger: "level", level: 25 }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/74.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/74.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/74.gif",
@@ -898,6 +1011,7 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
       { level: 42, move: ALL_MOVES.IronTail },
       { level: 50, move: ALL_MOVES.Earthquake },
     ],
+    evolvesTo: [{ speciesId: 208, trigger: "level", level: 36 }], // troca + Casaco de Metal, provisório
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/95.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/95.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/95.gif",
@@ -1270,6 +1384,13 @@ const POKEDEX_DATA: PokemonSpeciesData[] = [
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/448.gif",
     description: "Lê a aura de seres vivos a mais de um quilômetro.",
   },
+];
+
+// Fase 6.3-A: o restante do catálogo Kanto vive em `pokedex-gen1.ts` (mesmos
+// tipos, sprites do mesmo CDN) e entra aqui, em ordem de id.
+const POKEDEX_DATA: PokemonSpeciesData[] = [
+  ...POKEDEX_BASE,
+  ...gen1Rest(ALL_MOVES),
 ];
 
 /** Golpe padrão usado quando o nome gravado no banco não existe mais no catálogo. */

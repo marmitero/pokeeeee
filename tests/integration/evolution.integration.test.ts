@@ -208,17 +208,18 @@ describe("evolução na vitória (6.3)", () => {
     const username = "evo-ash-2";
     const c = await register(username);
 
-    // Pikachu lvl 30 não tem para onde evoluir (Raichu não existe ainda) e,
-    // 22 níveis acima do selvagem mais forte do mapa 1, não perde a batalha.
-    await setStarter(username, 25, 30, xpToNextLevel(30) - 5);
+    // Ditto lvl 30 não tem para onde evoluir e, 22 níveis acima do selvagem
+    // mais forte do mapa 1, não perde a batalha. (Pikachu não serve mais
+    // para este caso: desde a 6.3-A ele evolui para Raichu no nível 30.)
+    await setStarter(username, 132, 30, xpToNextLevel(30) - 5);
 
     const final = await winOneWildBattle(c);
     const log = final.battle.state.log.join(" ");
 
     expect(log).not.toContain("evoluiu para");
     const depois = await starterRow(username);
-    expect(depois.pokedexId).toBe(25);
-    expect(depois.name).toBe("Pikachu");
+    expect(depois.pokedexId).toBe(132);
+    expect(depois.name).toBe("Ditto");
     expect(depois.level).toBe(31);
   });
 

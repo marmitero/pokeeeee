@@ -97,7 +97,15 @@ describe("evolutionAtLevel", () => {
     expect(evolutionAtLevel(6, 100)).toBeNull();
     expect(evolutionAtLevel(9, 100)).toBeNull();
     expect(evolutionAtLevel(149, 100)).toBeNull();
-    expect(evolutionAtLevel(25, 100)).toBeNull(); // Pikachu: Raichu não existe (ainda)
+    expect(evolutionAtLevel(150, 100)).toBeNull(); // Mewtwo: lendário sem linha
+    expect(evolutionAtLevel(132, 100)).toBeNull(); // Ditto
+  });
+
+  it("Pikachu e Onix agora têm para onde evoluir (6.3-A)", () => {
+    expect(evolutionAtLevel(25, 30)).toBe(26); // Raichu (pedra → nível, provisório)
+    expect(evolutionAtLevel(74, 25)).toBe(75); // Graveler
+    expect(evolutionAtLevel(95, 36)).toBe(208); // Steelix (troca → nível, provisório)
+    expect(evolutionAtLevel(129, 20)).toBe(130); // Magikarp → Gyarados
   });
 
   it("linhas provisórias de pedra/felicidade viram nível 30", () => {
