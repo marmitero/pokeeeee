@@ -3,7 +3,7 @@ import {
   buildVerificationEmailHtml,
   generateVerificationCode,
   hashVerificationCode,
-} from "./email-verification";
+} from "./verification-email";
 
 /**
  * Testes unitários do ciclo do código de confirmação e do e-mail estilizado.
