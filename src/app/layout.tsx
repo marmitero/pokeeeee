@@ -4,9 +4,9 @@ import "./globals.css";
 import { DebugPanel } from "@/components/DebugPanel";
 
 export const metadata: Metadata = {
-  title: "Pokémon Deluge RPG • MMORPG Retro Pixel Online & Editor de Mundos",
+  title: "Catchbound • MMORPG Retro Pixel Online",
   description:
-    "MMORPG 16-Bit inspirado no Pokémon Deluge com variantes Shiny, Metallic, Mystic, Dark e Ghostly, Editor de Mundos interligados e Arena PvP Online.",
+    "MMORPG 16-Bit com variantes Shiny, Metallic, Mystic, Dark e Ghostly, Editor de Mundos interligados e Arena PvP Online.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

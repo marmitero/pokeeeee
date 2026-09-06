@@ -29,7 +29,7 @@ export function SpritePackModal({ onClose }: SpritePackModalProps) {
             <Sparkles className="h-6 w-6 text-amber-400" />
             <div>
               <h2 className="font-['Press_Start_2P'] text-sm tracking-wider text-amber-400 uppercase">
-                PACOTE DE SPRITES & CLASSES DELUGERPG
+                PACOTE DE SPRITES & CLASSES CATCHBOUND
               </h2>
               <p className="font-['VT323'] text-lg text-slate-300">
                 16-Bit Pixel Sprites • Shaders Gen 4/5 • Filtros Dinâmicos de Classe
@@ -161,7 +161,7 @@ export function SpritePackModal({ onClose }: SpritePackModalProps) {
         <div className="flex items-center justify-between border-t-4 border-slate-700 bg-slate-950 px-5 py-3 font-['VT323'] text-lg text-slate-400">
           <span>Clique em qualquer sprite para ouvir seu efeito sonoro 8-bit.</span>
           <span className="text-amber-400">
-            Total de Pokémon: {POKEDEX.length} × 6 Variantes Deluge ={" "}
+            Total de Pokémon: {POKEDEX.length} × 6 Variantes Especiais ={" "}
             {POKEDEX.length * 6} sprites
           </span>
         </div>

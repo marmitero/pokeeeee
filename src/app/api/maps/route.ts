@@ -81,7 +81,7 @@ export async function POST(req: Request) {
         name: input.name,
         slug: safeSlug,
         description:
-          input.description || "Novo mapa criado no Editor de Mundos DelugeRPG.",
+          input.description || "Novo mapa criado no Editor de Mundos Catchbound.",
         width: input.width,
         height: input.height,
         tileGrid: input.tileGrid,

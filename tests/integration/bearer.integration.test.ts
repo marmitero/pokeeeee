@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { resetRateLimits } from "@/lib/rate-limit";
 import { client } from "./client";
+import { registerVerified } from "./helpers";
 
 /**
  * Autenticação por Bearer token.
@@ -16,11 +17,9 @@ beforeEach(async () => {
 });
 
 async function login(username: string) {
-  const c = client();
-  const r = await c.call("/api/auth", {
-    body: { action: "register", username, password: "senhaSegura123", starterId: 4 },
-  });
-  expect(r.status).toBe(200);
+  // Cadastro completo (e-mail + código de confirmação via devCode); o token
+  // vem da resposta do verify_email, que é o login da conta.
+  const { r } = await registerVerified(username);
   const body = r.body as { token?: string; party: Array<{ id: number }> };
   return { token: body.token, pokemonId: body.party[0].id, username };
 }
@@ -88,12 +87,7 @@ describe("Bearer token", () => {
 
   it("o cookie continua funcionando (deploy normal não regressa)", async () => {
     // client() guarda o Set-Cookie no jar e o reenvia — sem usar Bearer.
-    const c = client();
-    const username = `bc${Date.now()}`;
-    const reg = await c.call("/api/auth", {
-      body: { action: "register", username, password: "senhaSegura123", starterId: 4 },
-    });
-    expect(reg.status).toBe(200);
+    const { c } = await registerVerified(`bc${Date.now()}`);
 
     const me = await c.call("/api/auth");
     expect(me.status).toBe(200);

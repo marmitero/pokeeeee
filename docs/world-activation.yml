@@ -100,24 +100,24 @@ jobs:
       - name: Install dependencies
         run: npm ci --no-audit --no-fund
 
-      - name: Assemble connection (scripts leem DATABASE_URL; world:* usa CA p/ verify-full)
+      - name: Assemble connection (TLS verify-full com a CA do projeto)
         run: |
           set -euo pipefail
-          DATABASE_URL="$(node -e '
-            const { DB_USER, DB_PASSWORD, DB_HOST } = process.env;
+          # O pg aplica os parâmetros da URL POR CIMA do objeto `ssl` que os
+          # scripts montam (pg/lib/connection-parameters.js). Então a política
+          # TLS inteira mora na URL: sslmode=verify-full + sslrootcert=<CA do
+          # projeto> — mesma verificação do pg_dump do backup. `export` importa:
+          # $GITHUB_ENV só vale para os próximos steps (bug do 1º run, 2026-09-06).
+          umask 077
+          printf '%s\n' "$DB_CA_CERT" > "$RUNNER_TEMP/supabase-ca.crt"
+          export DATABASE_URL="$(node -e '
+            const { DB_USER, DB_PASSWORD, DB_HOST, RUNNER_TEMP } = process.env;
             const enc = encodeURIComponent;
             process.stdout.write(
-              `postgresql://${enc(DB_USER)}:${enc(DB_PASSWORD)}@${DB_HOST}:5432/postgres?sslmode=require`
+              `postgresql://${enc(DB_USER)}:${enc(DB_PASSWORD)}@${DB_HOST}:5432/postgres?sslmode=verify-full&sslrootcert=${RUNNER_TEMP}/supabase-ca.crt`
             );
           ')"
           printf 'DATABASE_URL=%s\n' "$DATABASE_URL" >> "$GITHUB_ENV"
-          echo "DATABASE_SSL=true" >> "$GITHUB_ENV"
-          echo "DATABASE_SSL_REJECT_UNAUTHORIZED=true" >> "$GITHUB_ENV"
-          {
-            echo "DATABASE_CA_CERT<<PEM"
-            printf '%s\n' "$DB_CA_CERT"
-            echo "PEM"
-          } >> "$GITHUB_ENV"
           node -e 'const u=new URL(process.env.DATABASE_URL); console.log("destino:", u.hostname+u.pathname)'
 
       - name: Check — world:import --dry-run (content/world do git vs banco atual)

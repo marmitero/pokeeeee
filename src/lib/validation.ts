@@ -78,7 +78,7 @@ export const idSchema = z.coerce
 
 // ─── /api/auth ────────────────────────────────────────────────────────────
 
-const usernameSchema = z
+export const usernameSchema = z
   .string({ message: "Nome de treinador obrigatório" })
   .trim()
   .min(3, "Nome de treinador precisa de ao menos 3 caracteres")
@@ -93,9 +93,21 @@ const passwordSchema = z
   .min(8, "Senha precisa de ao menos 8 caracteres")
   .max(128, "Senha muito longa");
 
+/**
+ * E-mail real do jogador (2026-09-06): a conta fica vinculada a ele e só
+ * loga após confirmar o código enviado para o próprio e-mail. Antes o
+ * e-mail era um placeholder derivado do username (`@delugerpg.net`).
+ */
+const emailSchema = z
+  .email("E-mail inválido")
+  .trim()
+  .toLowerCase()
+  .max(254);
+
 export const authRegisterSchema = z.object({
   action: z.literal("register"),
   username: usernameSchema,
+  email: emailSchema,
   password: passwordSchema,
   starterId: z.coerce.number().int().optional(),
   avatarSprite: z.string().trim().min(1).max(32).optional(),
@@ -107,9 +119,27 @@ export const authLoginSchema = z.object({
   password: z.string().min(1, "Senha obrigatória").max(128),
 });
 
+/**
+ * Confirmação de e-mail do cadastro (2026-09-06). As respostas da rota são
+ * genéricas de propósito: "código enviado" para qualquer e-mail, sem vazar
+ * se a conta existe.
+ */
+export const authVerifyEmailSchema = z.object({
+  action: z.literal("verify_email"),
+  email: emailSchema,
+  code: z.string().trim().regex(/^\d{6}$/, "Código deve ter 6 dígitos"),
+});
+
+export const authResendCodeSchema = z.object({
+  action: z.literal("resend_code"),
+  email: emailSchema,
+});
+
 export const authSchema = z.discriminatedUnion("action", [
   authRegisterSchema,
   authLoginSchema,
+  authVerifyEmailSchema,
+  authResendCodeSchema,
 ]);
 
 // ─── /api/pokemon/heal ────────────────────────────────────────────────────
@@ -373,4 +403,56 @@ export const adminActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("list_staff") }),
   z.object({ action: z.literal("list_chat"), limit: z.coerce.number().int().min(1).max(100).default(50) }),
   z.object({ action: z.literal("delete_chat"), messageId: idSchema }),
+
+  // ── Ferramentas GM (só admin) — agilizam a validação manual de gameplay ──
+
+  z.object({ action: z.literal("gm_list"), username: usernameSchema }),
+  z.object({
+    action: z.literal("gm_set_level"),
+    username: usernameSchema,
+    level: levelSchema,
+    /** Omitido = todos os Pokémon do treinador (time + PC Box). */
+    pokemonId: idSchema.optional(),
+  }),
+  z.object({
+    action: z.literal("gm_give_pokemon"),
+    username: usernameSchema,
+    pokedexId: idSchema,
+    level: levelSchema.default(5),
+    variant: variantSchema.default("Normal"),
+    nickname: z.string().trim().min(1, "Apelido muito curto").max(20, "Apelido muito longo").optional(),
+  }),
+  z.object({
+    action: z.literal("gm_give_item"),
+    username: usernameSchema,
+    item: z.enum(INVENTORY_KEYS),
+    quantity: z.coerce
+      .number()
+      .int("Quantidade deve ser inteira")
+      .min(1, "Quantidade mínima é 1")
+      .max(999, "Quantidade máxima é 999"),
+  }),
+  z.object({
+    action: z.literal("gm_give_money"),
+    username: usernameSchema,
+    amount: z.coerce
+      .number()
+      .int("Valor deve ser inteiro")
+      .min(1, "Valor mínimo é 1")
+      .max(10_000_000, "Valor máximo é 10.000.000"),
+  }),
+  z.object({ action: z.literal("gm_heal"), username: usernameSchema }),
+  z.object({
+    action: z.literal("gm_teleport"),
+    username: usernameSchema,
+    mapId: idSchema,
+    /** Omitidos = centro do mapa. */
+    x: coordinateSchema.optional(),
+    y: coordinateSchema.optional(),
+  }),
+  z.object({
+    action: z.literal("gm_give_badge"),
+    username: usernameSchema,
+    gymLeaderId: idSchema,
+  }),
 ]);

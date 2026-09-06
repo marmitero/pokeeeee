@@ -43,6 +43,13 @@
       "when": 1788175424088,
       "tag": "0005_mysterious_bloodstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788714017836,
+      "tag": "0006_melodic_maginty",
+      "breakpoints": true
     }
   ]
 }

@@ -22,7 +22,7 @@ import { assertSameOrigin } from "./csrf";
  *  - `userId` agora é sempre derivado da sessão, nunca aceito do corpo.
  */
 
-export const SESSION_COOKIE = "deluge_session";
+export const SESSION_COOKIE = "catchbound_session";
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 dias
 const MAX_AGE_S = Math.floor(TTL_MS / 1000);
 

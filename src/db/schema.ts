@@ -91,7 +91,11 @@ export function toRole(value: unknown): Role {
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  email: text("email").notNull(),
+  // E-mail real do jogador (2026-09-06): preenchido no cadastro e
+  // confirmado por código enviado ao e-mail (emailVerified). Antes era um
+  // placeholder derivado do username (`@delugerpg.net`).
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").notNull().default(false),
   passwordHash: text("password_hash").notNull(),
   avatarSprite: text("avatar_sprite").notNull().default("red"),
   // autorização: "player" | "moderator" | "admin" — ver ROLES acima
@@ -269,6 +273,35 @@ export const gymLeaders = pgTable("gym_leaders", {
 }, (table) => [
   index("gym_leaders_map_id_idx").on(table.mapId),
   check("gym_leaders_rewards_check", sql`${table.requiredBadges} >= 0 AND ${table.rewardMoney} >= 0`),
+]);
+
+// ─── VERIFICAÇÃO DE E-MAIL (código de confirmação do cadastro) ──────────
+
+/**
+ * Código de confirmação do e-mail do cadastro (2026-09-06).
+ *
+ * Uma linha por e-mail: reenvio substitui o código anterior. O código é
+ * gravado apenas como **SHA-256** (mesma convenção de `sessions`): um
+ * vazamento do banco não entrega códigos utilizáveis.
+ *
+ * Throttling: 60 s entre envios (`lastSentAt`) + 5 tentativas de verificação
+ * (`attempts`) + expiração de 10 min (`expiresAt`), por cima do rate limit
+ * por IP da rota de auth.
+ */
+export const emailVerificationCodes = pgTable("email_verification_codes", {
+  id: serial("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  codeHash: text("code_hash").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  lastSentAt: timestamp("last_sent_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("email_verification_codes_user_id_idx").on(table.userId),
+  check("email_verification_codes_attempts_check", sql`${table.attempts} >= 0`),
 ]);
 
 // ─── USER BADGES (gym progress) ───────────────────────────────────────────

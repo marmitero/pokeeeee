@@ -147,7 +147,7 @@ export default function DelugeRPGPage() {
   const [playerY, setPlayerY] = useState(12);
   const [playerDir, setPlayerDir] = useState<"up" | "down" | "left" | "right">("down");
   const [portalFade, setPortalFade] = useState(false);
-  const [banner, setBanner] = useState<string>("Bem-vindo ao DelugeRPG! Use WASD para explorar.");
+  const [banner, setBanner] = useState<string>("Bem-vindo ao Catchbound! Use WASD para explorar.");
   const bannerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Auth state ─────────────────────────────────────────────────────────
@@ -475,7 +475,7 @@ export default function DelugeRPGPage() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-['Press_Start_2P'] text-[10px] text-amber-400">DELUGE RPG</span>
+                <span className="font-['Press_Start_2P'] text-[10px] text-amber-400">CATCHBOUND</span>
                 <span className="border border-cyan-500 bg-cyan-950/70 px-1 py-0.5 font-['Press_Start_2P'] text-[7px] text-cyan-300">
                   MAPA {currentMapId}/{maps.length}
                 </span>

@@ -1,6 +1,7 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { and, eq } from "drizzle-orm";
 import { client } from "./client";
+import { registerVerified } from "./helpers";
 import { db } from "@/db";
 import { pvpBattles, sessions, users } from "@/db/schema";
 
@@ -16,11 +17,7 @@ describe("manutenção agendada", () => {
 
   it("remove sessão expirada e abandona sala antiga sem tocar no usuário", async () => {
     const username = `mt${Date.now()}`;
-    const c = client();
-    const registered = await c.call("/api/auth", {
-      body: { action: "register", username, password: "senhaSegura123", starterId: 4 },
-    });
-    expect(registered.status).toBe(200);
+    const { c, r: registered } = await registerVerified(username);
 
     const body = registered.body as { user: { id: number }; party: Array<{ id: number }> };
     const userId = body.user.id;

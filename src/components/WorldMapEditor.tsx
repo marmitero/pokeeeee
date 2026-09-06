@@ -401,7 +401,7 @@ export function WorldMapEditor({
             <Brush className="h-6 w-6 text-amber-400" />
             <div>
               <h2 className="font-['Press_Start_2P'] text-xs text-amber-400">
-                EDITOR DE MUNDOS FUNCIONAL • DELUGERPG
+                EDITOR DE MUNDOS FUNCIONAL • CATCHBOUND
               </h2>
               <p className="font-['VT323'] text-lg text-slate-300">
                 Crie do 2º mapa em diante, pinte matinhos com Shiny/Metallic e ligue portais entre mapas
