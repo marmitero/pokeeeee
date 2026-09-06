@@ -1555,26 +1555,36 @@ em `docs/FASE-6.2-PLANO.md`.
 Depois da 6.2 a ordem segue: **6.3 evolução ✅ (2026-09-06)** → **6.4 Pokédex
 (→ próxima)** → 6.5 status → 6.6 ranked → 6.7 NPCs.
 
-### PRÓXIMA ETAPA: aguardar o mantenedor → merge do PR #6 → deploy → passos de produção
+### PRÓXIMA ETAPA: PÓS-MERGE — passos de produção e decisão de rumo
 
-O PR #6 (`arena/01a07639-pokeeeee`) acumula **6.2-C + 6.3 + 6.3-A + 6.3-B +
-6.4-A** (catálogo 156 espécies · 133 golpes · mundo com 20 mapas temáticos).
-O merge segue adiado a pedido do mantenedor. Quando vier o ok:
+> **O merge do PR #6 foi feito em 2026-09-06** (merge commit, estilo do repo).
+> A partir daqui o código já está no `main` e o deploy é automático. O
+> documento de partida da nova conversa é **`docs/RELATORIO-POS-MERGE.md`** —
+> ele resume tudo que entrou no merge e os passos abaixo.
 
-1. mesclar o PR #6 (CI verde nos dois workflows), deploy automático;
+**Passos do mantenedor em produção** (mapas vivem no banco — merge só sobe
+código):
+
+1. conferir o deploy (catchbound.vercel.app — sempre produção, nunca preview);
 2. **`DATABASE_URL=<produção> npm run world:seed`** — leva os 20 mapas ao
-   banco de produção (idempotente; preserva camadas do Editor; num banco
-   novo o seed da aplicação já cria);
-3. `npm run db:rebalance` em produção;
-4. mapa 1 à mão (opcional — o seed já o mantém como hoje);
-5. `world:export` para conferir/versionar o estado real de produção.
+   banco (idempotente por slug; preserva camadas do Editor; nunca apaga);
+3. **`npm run db:rebalance`** em produção;
+4. testar no navegador (checklist §2, itens #10 evolução e #11 vitrine de
+   sprites 156×6; novo: caminhar do mapa 3 ao norte até o 20);
+5. **`DATABASE_URL=<produção> npm run world:export`** + commit (versionar o
+   estado real de produção);
+6. (Opcional) mapa 1 à mão no Editor.
 
-**O que sobrou da 6.4** (só com pedido do mantenedor): espécies de **Johto e
-além** (sprites animados existem até o id 649) e **pedras de evolução na
-loja** (viram os gatilhos `// pedra` provisórios em nível). 6.5 status →
-6.6 PvP → 6.7 NPCs (6.8 premium bloqueado até rebranding).
+**Decisão de rumo para a próxima fase** (com o mantenedor):
 
-**Antes de começar:** reler este arquivo (regra do protocolo).
+- **6.4 restante**: espécies de **Johto e além** (sprites animados até o id
+  649) e **pedras de evolução na loja** (trocariam os gatilhos `// pedra`
+  provisórios de nível por `item`);
+- ou pular para **6.5 status** (paralisia/queimadura/veneno) → 6.6 PvP →
+  6.7 NPCs (6.8 premium bloqueado até rebranding).
+
+**Antes de começar:** reler este arquivo (regra do protocolo) e o
+`docs/RELATORIO-POS-MERGE.md`.
 
 ---
 
@@ -1615,7 +1625,7 @@ loja** (viram os gatilhos `// pedra` provisórios em nível). 6.5 status →
 | 2026-09-06 | **Fase 6.3-A** — catálogo Kanto completo: 25 → 156 espécies, +11 golpes, linhas fechadas | ✅ Concluída e validada | 15/215 unit · 6/73 integração · §4.17 |
 | 2026-09-06 | **Fase 6.3-B** — golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies por tipo e raça | ✅ Concluída e validada | 15/222 unit · 6/73 integração · §4.18 |
 | 2026-09-06 | **Fase 6.4-A** — mundo até o mapa 20: 17 mapas temáticos, 156 espécies redistribuídas em bandas 8–95 | ✅ Concluída e validada | 16/231 unit · 6/73 integração · §4.19 |
-| — | **Deploy (merge do PR #6) + `db:rebalance` em produção + mapa 1 à mão** | ⬜ Próxima (mantenedor; merge adiado a pedido) | §5 · `docs/FASE-6.md` |
+| 2026-09-06 | **Merge do PR #6** (6.2-C + 6.3 + fix + 6.3-A + 6.3-B + 6.4-A) — ✅ feito; passos de produção pendentes | ⬜ `world:seed` + `db:rebalance` + testes no navegador + `world:export` | `docs/RELATORIO-POS-MERGE.md` |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
