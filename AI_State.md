@@ -400,6 +400,20 @@ formal).
 Depois disso, o merge (GM + rebrand + e-mail + sync de docs) deploya sozinho.
 Merge segue em **STANDBY** a pedido do mantenedor. Validação em **§4.26**.
 
+### ✅ MUNDO ATIVADO EM PRODUÇÃO — 20 mapas + rebalance via GitHub Actions (2026-09-06)
+
+O mundo da 6.4-A está **no banco de produção** desde 2026-09-06, aplicado
+pelo workflow `World activation` (sem máquina local do mantenedor).
+Sequência: 4 runs de falha/ajuste (`Invalid URL` no 1º — bug do
+`$GITHUB_ENV`; TLS self-signed nos seguintes — fix `verify-full` + CA do
+projeto, commit `dca8645`), no-op `apply=false` verde (38 s) e
+**`APLICAR-production` verde** (run `34043394359`, 1 m 02 s). Conferência:
+`SELECT count(*) FROM game_maps` = **20** em produção, `/api/maps` público
+com 20, espelho git sem divergência. Detalhe e reprodução em
+**`docs/RELATORIO-POS-ATIVACAO.md`** e validação em **§4.20–4.23**.
+Sobram para o mantenedor: passada no navegador (evolução ao vivo, vitrine
+156×6, caminhar do mapa 3 → 20) e, opcional, mapa 1 à mão no Editor.
+
 ### ✅ Rebrand leve — "DELUGE RPG" → "CATCHBOUND" na estética do jogo (2026-09-06)
 
 Pedido do mantenedor: substituir o branding "DELUGE RPG" por **CATCHBOUND**
@@ -1674,6 +1688,44 @@ a commitar". **Não coberto (próprio do destino):** TLS do Session Pooler,
 dados reais de produção e o clique no navegador — ficam para a execução
 real, que é exatamente o que o workflow automatiza.
 
+### 4.21 Ativação real — tentativa 1: `Invalid URL` (2026-09-06, run `34038129035`)
+
+O workflow rodou pela primeira vez contra o Supabase e morreu em 12 s:
+`Invalid URL`. Causa: o step montava o `DATABASE_URL` com `echo >> $GITHUB_ENV`
+e o **mesmo step** já o consumia — `$GITHUB_ENV` só vale a partir do **próximo**
+step. Corrigido exportando a variável no próprio step.
+
+### 4.22 Ativação real — tentativas 2/3: TLS self-signed (runs `34038223626`, `34038675259`)
+
+Com a URL montada, o `pg` rejeitou o certificado self-signed do Session
+Pooler (`sslmode=require` não valida a cadeia). O fix (commit `dca8645` no
+`main` + espelho em `docs/`) mudou a política inteira de TLS para a URL — o
+`pg` aplica os parâmetros da URL por cima do objeto `ssl`:
+
+```
+sslmode=verify-full&sslrootcert=$RUNNER_TEMP/supabase-ca.crt
+  + CA gravada com umask 077 + export (não GITHUB_ENV) + DATABASE_SSL* removidos
+```
+
+### 4.23 Ativação real — no-op e `APLICAR-production` (runs `34042183890`❌, `34042233626`✅, `34043394359`✅)
+
+- `34042183890` (12 s, ❌): 1ª execução pós-fix — causa não verificável na
+  hora (logs da API já não eram baixáveis);
+- `34042233626` (38 s, ✅): **no-op** — `apply=false`, só dry-runs, nada
+  escrito (confirma o caminho TLS + grants);
+- `34043394359` (1 m 02 s, ✅): **`APLICAR-production`** — `world:seed`
+  (20 mapas) + `db:rebalance` (movesets + níveis de ginásio) +
+  `world:export` + conferência da API pública. **MUNDO ATIVO EM PRODUÇÃO.**
+
+Conferência pós-run (reproduzível, detalhe em
+`docs/RELATORIO-POS-ATIVACAO.md`):
+```
+Summary do run 34043394359 → linha APPLY: + contagem
+SQL Editor (produção)      → SELECT count(*) FROM game_maps; → 20
+https://catchbound.vercel.app/api/maps → 20 mapas · /api/health → ok
+artefato world-diff-*      → ausente = espelho git igual ao banco
+```
+
 ### 4.24 Ferramentas GM no painel admin (2026-09-06, sandbox)
 
 Sandbox não tem navegador, então a validação foi: (a) suítes completas e
@@ -1874,17 +1926,22 @@ Supabase) + 4 secrets `*_MAINT_DB_USER/PASSWORD` no GitHub. Sequência no
 Actions UI: `target=staging apply=false` → `target=production apply=false` →
 `target=production apply=true` (confirmar digitando `APLICAR-production`).
 O passo 5 é feito pelo próprio workflow (export + diff do espelho; artefato
-`world-diff-*` só se produção divergir do git — aï o agente versiona). Sobram
-para o humano: conferir deploy (1), navegador (4) e mapa 1 à mão (6).
+`world-diff-*` só se produção divergir do git — aï o agente versiona).
+**✅ EXECUTADO em 2026-09-06** (runs em §4.21–4.23; relatório em
+`docs/RELATORIO-POS-ATIVACAO.md`). Sobraram para o humano: conferir deploy
+(1), navegador (4) e mapa 1 à mão (6).
 
-**⚠️ ANTES DO PRÓXIMO MERGE (2026-09-06) — ordem obrigatória:**
-1. **Migration 0006 no banco de produção** (colar
-   `drizzle/0006_melodic_maginty.sql` no SQL Editor do Supabase) — sem a
-   coluna `email_verified`, toda leitura de `users` quebra após o deploy;
-2. **Envs de e-mail na Vercel**: `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`,
-   `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` (+ `APP_URL`, opcional) — sem
-   SMTP, o cadastro em produção responde 503 (de propósito: melhor bloquear
-   do que criar conta sem a trava).
+**✅ PRÉ-REQUISITOS DE PRODUÇÃO DO MERGE DE E-MAIL (2026-09-06) — FEITOS PELO MANTENEDOR:**
+1. ✅ **Migration 0006 aplicada no banco de produção** (SQL Editor do
+   Supabase) — coluna `email_verified` + tabela `email_verification_codes`;
+2. ✅ **Envs de e-mail cadastradas na Vercel**: `SMTP_HOST/PORT/SECURE/
+   USER/PASS/FROM` (Gmail dedicado, app password) — sem SMTP o cadastro em
+   produção responderia 503 (de propósito: melhor bloquear que criar conta
+   sem a trava).
+→ **Pós-merge imediato (mantenedor):** registrar uma conta com e-mail real
+em `catchbound.vercel.app` e conferir a chegada do e-mail estilizado
+(inclusive spam, remetente novo) — o remetente visível é "Catchbound"
+(display name da `SMTP_FROM`).
 
 **Para a passada no navegador (itens #9–#11 + cadeia 3→20):** o painel
 `/admin` tem a seção **FERRAMENTAS GM** (admin-only, §4.24) — logar como
@@ -1958,6 +2015,7 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Ferramentas GM no painel admin** — `gm_list/set_level/give_pokemon/give_item/give_money/heal/teleport/give_badge` (admin-only; reusa o motor de stats/learnset/evolução; UI em `/admin`) | ✅ Concluída e validada | 17/242 unit · 7/88 integração · §4.24 |
 | 2026-09-06 | **Rebrand leve** — "DELUGE RPG" → "CATCHBOUND" nas strings visíveis do jogo + texto da escolha do inicial ("Escolha seu parceiro inicial!" / "Escolha com sabedoria") | ✅ Concluída e validada | 17/242 unit · §4.25 · merge em standby |
 | 2026-09-06 | **Confirmação de e-mail no cadastro** (e-mail real do jogador + código de 6 dígitos, e-mail HTML estilizado, reenvio/cooldown) + rebrand final (título, description sem Deluge, `catchbound_session`/`catchbound_token`) | ✅ Concluída e validada | 18/250 unit · 8/97 integração · migration 0006 · ⚠️ produção: aplicar migration + envs SMTP ANTES do merge · §4.26 |
+| 2026-09-06 | **Ativação do mundo em PRODUÇÃO** — workflow `World activation`: 4 ajustes (`Invalid URL`/GITHUB_ENV → TLS self-signed → fix verify-full+CA `dca8645` → no-op ✅) e `APLICAR-production` ✅ — 20 mapas + rebalance no banco de produção | ✅ Ativado e conferido | run `34043394359` · `SELECT count(*) FROM game_maps` = 20 · `docs/RELATORIO-POS-ATIVACAO.md` · §4.21–4.23 |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
