@@ -477,6 +477,71 @@ sprites no padrão do CDN, tipos conhecidos, golpes reais, linhas canônicas e
 provisórias, lendários sem evolução, eeveelutions sem gatilho). Unitários
 15 arquivos/215; integração 6/73; `balance:report` limpo para todas as espécies.
 
+### 6.3-B — Golpes com identidade, da era GBA (2026-09-06, a pedido do mantenedor)
+
+> Pedido do mantenedor: pesquisar os movimentos de cada Pokémon nos jogos de
+> geração antiga (**principalmente os de GBA** — Ruby/Sapphire/Emerald/
+> FireRed/LeafGreen — mas não só eles), listar golpes para o jogo deixar de
+> ter "ataques genéricos", implementar com balanceamento consistente mesmo
+> vindo de fontes diferentes e **atribuir técnicas a todos os 156 Pokémon,
+> conforme tipo e raça**.
+
+**Pesquisa.** Fontes: learnsets de nível/TM/tutor da Gen 3 em
+`pokemondb.net/pokedex/<espécie>/moves/3` e `bulbapedia.bulbagarden.net`
+(página de golpes assinatura), mais Gen 1/2 para golpes antigos. Dados da era
+GBA quando divergem dos modernos (Premonição 80/90, Fúria 90, Dança das
+Pétalas 70, Terremoto 100). Assinaturas por linha confirmadas na pesquisa:
+Cabeçada Ossuda (Squirtle), Hiperpresa (Rattata), Agulha Dupla (Beedrill),
+Dança das Pétalas (Oddish), Dia de Pagamento (Meowth), Arremesso Vital
+(Machop), Martelo Pinça (Krabby), Clava de Osso/Ossomerangue (Cubone),
+Chute de Salto Alto + Chute Rolante (Hitmonlee), Soco Sônico + Gancho do Céu
+(Hitmonchan), Cachoeira (Goldeen), Poder Antigo (fósseis + Tangela),
+Velocidade Extrema (Arcanine), Chupavidas (Zubat), Soco Dinâmico (Machamp).
+
+**Catálogo: 52 → 133 golpes (+81).** Cobertura por tipo após a fase:
+Normal 14 · Lutador 12 · Grama 9 · Fogo 8 · Água 8 · Elétrico 8 · Gelo 8 ·
+Voador 8 · Terrestre 7 · Inseto 7 · Sombrio 6 · Pedra 6 · Aço 6 · Veneno 6 ·
+Fada 6 · Dragão 5 · Psíquico 5 · Fantasma 4. (Antes: tipos inteiros com 2–3
+golpes e quase tudo concentrado em 80+ de poder.)
+
+**Rúbrio de conversão** (fontes diferentes → uma casa só; documentado também
+no código, bloco 6.3-B de `pokedex.ts`):
+
+- Valores da era GBA quando existem; senão, valores modernos.
+- Multigolpes → golpe único com a soma e ~10–15% de desconto (Agulha Dupla 45,
+  Ossomerangue 85).
+- Efeito secundário não modelado pelo motor (recuo, dreno, carga, troca) →
+  desconto de ~5 de poder ou precisão; golpes de status ficam de fora (o motor
+  os trataria como "nada aconteceu").
+- "Nunca erra" vira precisão 100 (o motor não modela redução de precisão);
+  a descrição preserva a identidade.
+- Teto da casa: poder ≤ 115, precisão ≥ 50. Hiper Raio 115/85 e
+  Superaquecimento 115/90 são os tetos; Jato d'Água (110/80) segue no topo da
+  água. Os três socos elementais do Hitmonchan entraram com 75.
+
+**Learnsets: 1102 entradas nas 156 espécies** (antes ~4,7 golpes/espécie em
+média, agora ~7), cada linha reescrita por tipo e raça: Pikachu termina em
+Soco Trovejante/Carga Selvagem; Gyarados desenha Tornado→Presa de Gelo→
+Mastigar→Cachoeira→Salto→Hiper Raio; Alakazam ganha Premonição; o
+Hitmonchan carrega os três socos elementais; Vulpix/Ninetales mantêm a curva
+de fogo com Presa de Fogo; Nidoran♂ bica (Bicada), Nidoran♀ morde. As
+restrições estruturais viraram teste: golpes até o nível 7 ≤ 50 de poder
+(mapa 1 continua 15–35 pelo teste 6.2-C), STAB de cada tipo até o nível 40,
+formas finais com golpe ≥ 70 do tipo primário nos 4 últimos slots, nenhum
+golpe órfão, ≥ 4 golpes de dano por tipo.
+
+**O que NÃO mudou**: motor de batalha, fórmula de dano, tabelas de
+encontro/ginásio/loja, evoluções, XP. Pokémon já capturados em produção
+continuam com seus golpes salvos; `refreshMovesForLevel` os atualiza ao subir
+de nível, como já acontecia.
+
+**Validação**: `npm run check` verde (unitários 15 arquivos/**222** — +5
+guardas novos em `pokedex-gen1.test.ts`); integração **6/73**; balance-report
+com **todas as ✓/✗ de ginásio idênticas ao baseline 6.3-A** (diff executado
+via `git worktree` do commit anterior — números moveram para o lado canônico:
+Charmander sofre mais com Brock porque Garra de Metal voltou ao nível canônico
+13; Bulbasaur de fato vence a Misty) e "✓ todas as espécies ok".
+
 ## 6.4 — Pokédex 21 → 50+
 
 - Acrescentar espécies em lotes de ~10, cada lote com as linhas evolutivas
@@ -485,7 +550,8 @@ provisórias, lendários sem evolução, eeveelutions sem gatilho). Unitários
   novas tabelas de encontro por mapa usando o catálogo que agora existe.)
 - Cada espécie precisa de: tipos, 6 bases, `catchRate`, learnset, sprites CDN e
   descrição em pt-BR.
-- Ampliar `ALL_MOVES` com golpes fracos/médios e cobrir tipos hoje ausentes.
+- ~~Ampliar `ALL_MOVES` com golpes fracos/médios e cobrir tipos hoje ausentes~~
+  — concluído na 6.3-B (133 golpes, todos os 18 tipos com ≥ 4 golpes de dano).
 - Validação: teste que garante que todo `move` citado num learnset existe em
   `ALL_MOVES`, que todo alvo de evolução existe na Pokédex e que os sprites
   seguem o padrão de URL.
@@ -531,7 +597,7 @@ privacidade, provedor de pagamento e antifraude.
 ## Ordem recomendada e por quê
 
 ```
-6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução ✅  →  6.4 pokédex
+6.1 balanceamento ✅  →  6.2 editor/mapas (A ✅, B ✅, C ✅, D ✅)  →  6.3 evolução ✅ (+ catálogo 6.3-A ✅ e golpes 6.3-B ✅)  →  6.4 pokédex
   →  6.5 status  →  6.6 ranked  →  6.7 NPCs
 ```
 

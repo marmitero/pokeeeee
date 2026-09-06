@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { POKEDEX, getPokemonSpecies, ALL_MOVES } from "./pokedex";
+import { POKEDEX, getPokemonSpecies, ALL_MOVES, movesAtLevel } from "./pokedex";
 import { gen1Rest } from "./pokedex-gen1";
 import { TYPE_NAMES, isKnownType } from "./engine/types";
 
@@ -198,6 +198,121 @@ describe("sanidade do módulo gen1Rest", () => {
     // As espécies novas entram em ordem de id.
     for (let i = 1; i < a.length; i++) {
       expect(a[i].id).toBeGreaterThan(a[i - 1].id);
+    }
+  });
+});
+
+/**
+ * Guardas da Fase 6.3-B — golpes com identidade (Gen 1–3, foco GBA).
+ *
+ * A fase reescreveu os learnsets das 156 espécies com golpes condizentes
+ * com tipo e raça e adicionou ~80 golpes canônicos ao catálogo. Estes testes
+ * fixam o contrato para que um refactor não devolva os "ataques genéricos":
+ * cobertura por tipo, nenhum golpe órfão, curva de poder preservada e STAB
+ * garantido para todo mundo.
+ */
+describe("catálogo de golpes (6.3-B)", () => {
+  it("os 18 tipos têm ao menos 4 golpes de dano", () => {
+    const porTipo: Record<string, number> = {};
+    for (const move of Object.values(ALL_MOVES)) {
+      if (move.category === "Status") continue;
+      porTipo[move.type] = (porTipo[move.type] ?? 0) + 1;
+    }
+
+    expect(TYPE_NAMES).toHaveLength(18);
+    for (const type of TYPE_NAMES) {
+      expect(porTipo[type] ?? 0, `tipo ${type} com poucos golpes`).toBeGreaterThanOrEqual(4);
+    }
+  });
+
+  it("nenhum golpe é órfão — todo golpe tem ao menos uma espécie que o aprende", () => {
+    const usados = new Set(POKEDEX.flatMap((s) => s.learnset.map((e) => e.move)));
+
+    for (const [key, move] of Object.entries(ALL_MOVES)) {
+      expect(usados.has(move), `golpe órfão: ${key}`).toBe(true);
+    }
+  });
+
+  it("poder ≤ 115 e precisão entre 50 e 100 (teto da casa)", () => {
+    for (const move of Object.values(ALL_MOVES)) {
+      expect(move.power, `${move.name} acima do teto`).toBeLessThanOrEqual(115);
+      expect(move.accuracy, `${move.name} precisão fora da faixa`).toBeGreaterThanOrEqual(50);
+      expect(move.accuracy).toBeLessThanOrEqual(100);
+    }
+  });
+});
+
+describe("learnsets com identidade (6.3-B)", () => {
+  it("golpes aprendidos até o nível 7 ficam abaixo de poder 50 (curva 6.2-C)", () => {
+    // Os do mapa 1 cumprem faixa mais estreita (15–35) no teste dedicado da
+    // 6.2-C; o resto do catálogo admite Confusão (50) de nível 1, padrão dos
+    // psíquicos, mas nada além disso.
+    for (const species of POKEDEX) {
+      for (const entry of species.learnset) {
+        if (entry.level > 7) continue;
+        expect(
+          entry.move.power,
+          `${species.name} lvl ${entry.level}: ${entry.move.name}`
+        ).toBeLessThanOrEqual(50);
+      }
+    }
+  });
+
+  it("toda espécie tem golpe de dano de cada um de seus tipos até o nível 40", () => {
+    for (const species of POKEDEX) {
+      const known = species.learnset
+        .filter((e) => e.level <= 40)
+        .map((e) => e.move);
+
+      for (const type of species.types) {
+        expect(
+          known.some((m) => m.type === type && m.category !== "Status"),
+          `${species.name} sem STAB de ${type} até o nível 40`
+        ).toBe(true);
+      }
+    }
+  });
+
+  it("formas finais carregam golpe forte (≥70) do tipo primário nos 4 últimos slots", () => {
+    // Larvas, Magikarp e Ditto são fracos por desenho (canon) e ficam de fora.
+    const excecoes = new Set([10, 11, 13, 14, 129, 132]);
+
+    for (const species of POKEDEX) {
+      if (species.evolvesTo?.length || excecoes.has(species.id)) continue;
+      const last4 = movesAtLevel(species, 100);
+
+      expect(
+        last4.some((m) => m.type === species.types[0] && m.power >= 70),
+        `${species.name} termina sem golpe primário forte: ${last4.map((m) => m.name).join(", ")}`
+      ).toBe(true);
+    }
+  });
+
+  it("assinaturas clássicas continuam com seus donos (GBA, Gen 1–3)", () => {
+    const casos: Array<[number, string]> = [
+      // [id, golpe assinatura]
+      [7, "SkullBash"], // linha Squirtle
+      [15, "Twineedle"], // Beedrill
+      [19, "HyperFang"], // linha Rattata
+      [43, "PetalDance"], // linha Oddish
+      [52, "PayDay"], // linha Meowth
+      [66, "VitalThrow"], // linha Machop
+      [98, "Crabhammer"], // linha Krabby
+      [104, "Bonemerang"], // linha Cubone
+      [106, "HighJumpKick"], // Hitmonlee
+      [107, "SkyUppercut"], // Hitmonchan
+      [118, "Waterfall"], // linha Goldeen
+      [114, "AncientPower"], // Tangela
+      [59, "ExtremeSpeed"], // Arcanine
+      [130, "Bounce"], // Gyarados
+    ];
+
+    for (const [id, moveKey] of casos) {
+      const species = getPokemonSpecies(id);
+      expect(
+        species.learnset.some((e) => e.move === ALL_MOVES[moveKey as keyof typeof ALL_MOVES]),
+        `${species.name} deveria aprender ${moveKey}`
+      ).toBe(true);
     }
   });
 });

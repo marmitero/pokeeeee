@@ -139,7 +139,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages`
 
 ### Conteúdo seedado
-156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 52 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
+156 espécies (Kanto completa + Steelix e 4 de outras gerações, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · 3 mapas · 3 líderes de ginásio · 11 itens de loja · 10 tipos de tile
 
 ### Estado funcional real
 | Feature | Estado |
@@ -283,6 +283,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.2-C — Golpes fracos 15–35, fim do teto de dano, curva `nível³ × 0,8`, Brock 12/14 e Misty 18/21** ✅ 2026-09-06
 - [x] **FASE 6.3 — Evolução no servidor (por nível, dirigida por dados, sem endpoint chamável)** ✅ 2026-09-06
 - [x] **FASE 6.3-A — Catálogo Kanto completo: 25 → 156 espécies, +11 golpes (Poison/Bug/Fairy), linhas fechadas** ✅ 2026-09-06
+- [x] **FASE 6.3-B — Golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies reescritos por tipo e raça** ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
 - [x] **FASE 1 — Blindagem (segurança)** ✅ 2026-08-25 (commit `f22672f`)
@@ -336,6 +337,52 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ Fase 6.3-B — Golpes com identidade, da era GBA (2026-09-06)
+
+Pedido do mantenedor: pesquisar os movimentos de cada Pokémon nos jogos de
+geração antiga (**principalmente GBA** — Ruby/Sapphire/Emerald/FireRed/
+LeafGreen, sem excluir Gen 1/2), listar golpes para acabar com os "ataques
+genéricos", implementar com balanceamento consistente entre fontes e
+**atribuir técnicas a todos os 156 Pokémon conforme tipo e raça**. Mesma
+branch do PR #6 (agora acumula 6.2-C + 6.3 + 6.3-A + 6.3-B).
+
+**O que existe agora:**
+
+1. **Catálogo de golpes 52 → 133 (+81)**, com pesquisa em
+   `pokemondb.net/pokedex/<espécie>/moves/3` (learnsets Gen 3 completos:
+   nível/TM/tutor/HM) e Bulbapedia (assinaturas por linha). Todos os 18 tipos
+   com ≥ 4 golpes de dano (antes: Ghost/Dragon/Steel com 2–3, tipos inteiros
+   dependendo de golpes de outro elemento). Destaques: Hiper Raio (115/85,
+   teto Normal), Superaquecimento (115/90), Nevasca, os três socos elementais
+   do Hitmonchan, os 10 golpes de Lutador (Rasteira → Soco Dinâmico 100/50),
+   assinaturas (Agulha Dupla, Ossomerangue, Martelo Pinça, Chute de Salto
+   Alto, Gancho do Céu, Cabeçada Ossuda, Hiperpresa, Dança das Pétalas,
+   Dia de Pagamento, Velocidade Extrema, Chupavidas, Poder Antigo…).
+2. **Rúbrio de conversão** (documentado no código, bloco 6.3-B de
+   `pokedex.ts`): valores GBA quando divergem (Premonição 80/90, Fúria 90);
+   multigolpe = soma com desconto; efeito não modelado (recuo/dreno/carga) =
+   −5 de poder ou precisão; "nunca erra" = precisão 100; teto 115 / piso de
+   precisão 50; golpes de status fora (motor os trataria como "nada
+   aconteceu").
+3. **Learnsets das 156 espécies reescritos** (1102 entradas, ~7 por espécie;
+   antes ~4,7): cada linha por tipo E raça — Pikachu termina em Soco
+   Trovejante/Carga Selvagem; Gyarados em Cachoeira/Salto/Hiper Raio;
+   Alakazam ganha Premonição; Charizard fecha com Fúria; Hitmonchan carrega
+   os três socos elementais; Nidoran♂ bica e Nidoran♀ morde; larvas
+   (Caterpie/Metapod/Weedle/Kakuna), Magikarp e Ditto seguem fracos por
+   desenho (canon).
+4. **NADA de gameplay/motor mudou**: fórmula de dano, tabelas de
+   encontro/ginásio/loja, evoluções e XP intactos. Pokémon capturados em
+   produção mantêm os golpes salvos; `refreshMovesForLevel` atualiza ao subir
+   de nível, como sempre.
+5. **Guardas novos no CI** (5 testes em `pokedex-gen1.test.ts`, agora 18):
+   ≥ 4 golpes de dano por tipo; nenhum golpe órfão; teto 115 / precisão
+   50–100; golpes até o nível 7 ≤ 50 de poder; STAB de cada tipo até o
+   nível 40; formas finais com golpe ≥ 70 do tipo primário nos 4 últimos
+   slots; assinaturas clássicas com seus donos.
+
+Validação completa (comandos e diff contra baseline) na §4.18.
 
 ### ✅ Fase 6.3-A — Catálogo Kanto completo (2026-09-06)
 
@@ -1318,6 +1365,50 @@ Encontros amarrados ao velho comportamento: `GET /api/maps` e uma batalha
 selvagem continuam servindo a tabela atual do mapa 1 (espécies novas não
 aparecem — de propósito, é conteúdo da 6.4).
 
+### 4.18 Validação da Fase 6.3-B — golpes com identidade (2026-09-06)
+
+Auditoria estrutural (script descartável, regras depois viraram os 5 testes
+novos de `pokedex-gen1.test.ts`):
+
+```
+npx tsx /tmp/audit-learnsets.mts
+→ espécies: 156 · golpes: 133
+→ ✓ todas as regras ok
+  (chaves válidas, níveis crescentes sem duplicata, ≤7 ⇒ poder ≤ 50,
+   nível 1 ≤ 60, STAB de cada tipo até 40, formas finais com golpe primário
+   ≥ 70 nos 4 últimos, sem órfãos, ≥ 4 golpes por tipo, teto 115/precisão 50)
+```
+
+Testes e suítes:
+
+```
+DATABASE_URL=<app_db> npm run check
+→ lint ok · typecheck ok · build ok · 15 arquivos/222 testes
+  (pokedex-gen1.test.ts: 13 → 18 testes)
+
+TEST_PG_URL=<postgres> DATABASE_URL=<app_db> npm run test:integration
+→ Test Files 6 passed · Tests 73 passed
+
+npx tsx scripts/balance-report.mts
+→ "✓ todas as espécies ok"
+```
+
+**Diff do balance-report contra o baseline 6.3-A** (via `git worktree` no
+commit `68c1879`, antes/depois salvos e comparados):
+
+- todas as **✓/✗ dos ginásios idênticas** (Brock: Bulbasaur/Squirtle ✓,
+  Charmander ✗; Misty: só Bulbasaur ✓) — nenhum resultado regrediu;
+- números moveram para o lado canônico: Charmander@10 leva 6,5 turnos para
+  derrubar o Geodude (antes 3,9) porque Garra de Metal voltou ao nível canônico
+  13 (FRLG) em vez de 7; Staryu@18 da Misty ficou mais fraco contra Bulbasaur
+  (perdeu Confusão/Water Pulse precoces — agora Swift/Pistola d'Água);
+- meio de jogo: Bulbasaur→Squirtle@30 passou de Folha Navalha 35 para Mega
+  Dreno 40 (3,1 → 2,2 turnos); Dragonite→Mewtwo@50 usa Fúria 90 STAB.
+
+Encontros, lojas e ginásios **inalterados** (nenhuma tabela mudou — só
+catálogo e learnsets).
+
+
 **Não validado aqui:** a vitrine de sprites no navegador com 156 espécies
 (pendência #11) e produção (só entra depois do merge).
 
@@ -1377,7 +1468,8 @@ Depois da 6.2 a ordem segue: **6.3 evolução ✅ (2026-09-06)** → **6.4 Poké
 
 ### PRÓXIMA ETAPA: aguardar o mantenedor → merge do PR #6 → deploy → 6.4
 
-O PR #6 (`arena/01a07639-pokeeeee`) acumula **6.2-C + 6.3 + 6.3-A**. O merge
+O PR #6 (`arena/01a07639-pokeeeee`) acumula **6.2-C + 6.3 + 6.3-A + 6.3-B**
+(catálogo 156 espécies + 133 golpes com learnsets por tipo e raça). O merge
 foi adiado a pedido do mantenedor ("recomeçamos a conversa a cada merge") e
 **a 6.4 NÃO foi começada** por instrução explícita. Quando vier o ok:
 
@@ -1430,6 +1522,7 @@ quando quiser mais catálogo (sprites animados existem até o id 649).
 | 2026-09-06 | **Verificação de persistência de mapas** — mapa 4 criado, restart, export, banco novo + import | ✅ Provado por execução | §4.16 (pergunta do mantenedor) |
 | 2026-09-06 | **Fase 6.3** — evolução no servidor por nível (+Ivysaur/Venusaur/Charmeleon/Wartortle) | ✅ Concluída e validada | 14 arquivos/203 unit · 6/73 integração · §4.16 |
 | 2026-09-06 | **Fase 6.3-A** — catálogo Kanto completo: 25 → 156 espécies, +11 golpes, linhas fechadas | ✅ Concluída e validada | 15/215 unit · 6/73 integração · §4.17 |
+| 2026-09-06 | **Fase 6.3-B** — golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies por tipo e raça | ✅ Concluída e validada | 15/222 unit · 6/73 integração · §4.18 |
 | — | **Deploy (merge do PR #6) + `db:rebalance` em produção + mapa 1 à mão** | ⬜ Próxima (mantenedor; merge adiado a pedido) | §5 · `docs/FASE-6.md` |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
