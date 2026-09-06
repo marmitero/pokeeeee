@@ -339,6 +339,29 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ## 3. Qual foi a última etapa aplicada
 
+### 🛠 Pós-merge — Ferramental de ativação dos mapas EM PRODUÇÃO via GitHub Actions (2026-09-06)
+
+Pedido do mantenedor: guiar a ativação dos 20 mapas no catchbound.vercel.app
+**sem arquivos na máquina dele** — tudo entre GitHub, Vercel e Supabase.
+Vercel não executa scripts avulsos e o SQL Editor do Supabase cobriria só os
+mapas (não o rebalance, que precisa da lógica de learnsets), então o caminho
+foi **GitHub Actions**, seguindo o mesmo padrão do backup (5.1-D): agente não
+tem permissão `workflows`, a referência nasce em `docs/`.
+
+Entregas: `docs/world-activation.yml` (workflow `workflow_dispatch` com
+`target=staging|production` e `apply=false|true` + confirmação digitada) e
+`docs/supabase-production-maint-role.sql` (papel mínimo `catchbound_maint`:
+DML só em `game_maps`/`gym_leaders`/`user_pokemon`/`shop_items` + policies
+RLS próprias; idempotente — recriar senha = rodar de novo). O workflow roda os
+scripts reais do repo (`world:import --dry-run` → `db:rebalance --dry-run` →
+`world:seed` → `db:rebalance` → `world:export` + verificação do espelho git ↔
+banco com artefato de patch se divergir → conferência pública
+`/api/health` + `/api/maps = 20`). Secrets novos no GitHub:
+`PRODUCTION_MAINT_DB_USER/PASSWORD` e `STAGING_MAINT_DB_USER/PASSWORD`
+(host/CA já existem do backup). Ensaio completo local com estado simulado de
+produção (3 mapas + ginásios antigos + movesets legados) na **§4.20** —
+verdes. Validador do fluxo (navegador) continua sendo o mantenedor.
+
 ### ✅ Fase 6.4-A — Mundo até o mapa 20, com regiões temáticas (2026-09-06)
 
 Pedido do mantenedor: validar as últimas implementações (6.3-B ✔ — auditoria
@@ -1501,6 +1524,35 @@ criado/deletado) — ids são opacos, portais resolvem por slug, sem impacto.
 **Não validado aqui:** a vitrine de sprites no navegador com 156 espécies
 (pendência #11) e produção (só entra depois do merge).
 
+### 4.20 Validação do ensaio de ativação em produção (2026-09-06, sandbox)
+
+Sandbox não alcança Supabase/Vercel (egress), então o fluxo do
+`world-activation.yml` foi ensaiado contra **Postgres local**
+(`npm run db:local` + `db:migrate`) num banco simulando a produção
+**pré-ativação**: 3 mapas sem portais, ginásios com níveis antigos (+6), 11
+itens de loja, 2 Pokémon com movesets legados. Tudo executado como
+`catchbound_maint`, com a saída esperada batendo com a do RELATORIO-POS-MERGE:
+
+```
+role SQL (docs/supabase-production-maint-role.sql) → policies_rls=4 · grants_tabelas=12 · rolsuper=false · rolbypassrls=false
+npm run world:import -- --dry-run  (antes) → mapas: 17 criado(s), 3 atualizado(s), 0 igual(is) · ginásios: 3 atualizado(s) · itens: 11 igual(is)
+npm run db:rebalance -- --dry-run          → Movesets: 2 de 2 mudariam · Brock [18,20]→[12,14] · Misty [24,27]→[18,21] · Lance [44,51]→[38,45]
+npm run world:seed (como maint)            → 17 criado(s), 3 atualizado(s), 20 mapa(s) no total
+npm run db:rebalance                       → Movesets atualizados · Ginásios: 3 atualizado(s)
+npm run world:export + git diff            → 23 igual(is), 0 criado/atualizado/removido — diff VAZIO (espelho intacto)
+npm run world:import -- --dry-run (depois) → mapas: 20 igual(is) · ginásios: 3 · itens: 11
+probes de privilégio mínimo                → SELECT users / SELECT chat_messages / CREATE TABLE → 42501 negados ✔
+estado no banco                            → Pikachu nv5: Investida/Choque; ginásios 12|18|38 ✔
+docs/world-activation.yml                  → parseia como YAML válido (13 steps)
+```
+
+**Coberto pelo ensaio:** grants/policies do papel para todos os scripts,
+ordem apply/dry-run do workflow, idempotência e o caso "espelho igual → nada
+a commitar". **Não coberto (próprio do destino):** TLS do Session Pooler,
+dados reais de produção e o clique no navegador — ficam para a execução
+real, que é exatamente o que o workflow automatiza.
+
+
 ---
 
 ## 5. Qual a próxima etapa a ser aplicada
@@ -1575,6 +1627,17 @@ código):
    estado real de produção);
 6. (Opcional) mapa 1 à mão no Editor.
 
+**Sem arquivos na máquina do mantenedor (opção preferida, 2026-09-06):** os
+passos 2, 3 e 5 rodam pelo workflow **World activation** no GitHub Actions —
+`docs/world-activation.yml` (copiar para `.github/workflows/` pela interface
+web) + `docs/supabase-production-maint-role.sql` (colar no SQL Editor do
+Supabase) + 4 secrets `*_MAINT_DB_USER/PASSWORD` no GitHub. Sequência no
+Actions UI: `target=staging apply=false` → `target=production apply=false` →
+`target=production apply=true` (confirmar digitando `APLICAR-production`).
+O passo 5 é feito pelo próprio workflow (export + diff do espelho; artefato
+`world-diff-*` só se produção divergir do git — aï o agente versiona). Sobram
+para o humano: conferir deploy (1), navegador (4) e mapa 1 à mão (6).
+
 **Decisão de rumo para a próxima fase** (com o mantenedor):
 
 - **6.4 restante**: espécies de **Johto e além** (sprites animados até o id
@@ -1626,6 +1689,7 @@ código):
 | 2026-09-06 | **Fase 6.3-B** — golpes com identidade da era GBA: 52 → 133 golpes, learnsets das 156 espécies por tipo e raça | ✅ Concluída e validada | 15/222 unit · 6/73 integração · §4.18 |
 | 2026-09-06 | **Fase 6.4-A** — mundo até o mapa 20: 17 mapas temáticos, 156 espécies redistribuídas em bandas 8–95 | ✅ Concluída e validada | 16/231 unit · 6/73 integração · §4.19 |
 | 2026-09-06 | **Merge do PR #6** (6.2-C + 6.3 + fix + 6.3-A + 6.3-B + 6.4-A) — ✅ feito; passos de produção pendentes | ⬜ `world:seed` + `db:rebalance` + testes no navegador + `world:export` | `docs/RELATORIO-POS-MERGE.md` |
+| 2026-09-06 | **Ferramental de ativação em produção** — workflow `World activation` (Actions) + papel mínimo `catchbound_maint`; roda seed/rebalance/export sem máquina local | ✅ Ensaio local verde (§4.20) · ⬜ execução real pelo mantenedor | `docs/world-activation.yml` · `docs/supabase-production-maint-role.sql` |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
