@@ -106,7 +106,9 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a077fb-pokeeeee`
+**Branch da sessão atual:** `arena/01a0782e-pokeeeee` (esta é a branch de
+handoff/pós-merge; o `main` já está em `6c18858` — fix do incidente de
+cadastro, PR #9)
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -386,6 +388,13 @@ não cobriram). Dois agravantes de código:
 SQL companheiro em `docs/` com RLS + grants + policies para
 `catchbound_runtime`/`catchbound_backup` — e ele é pré-requisito do merge
 junto com a própria migration. Validação em **§4.27**.
+
+**Status desta rodada (2026-09-06, pós-merge do PR #9):** o PR #9
+(`arena/01a077fb-pokeeeee`) foi **mergeado em `main`** no commit `6c18858` e
+o CI do merge (run `34053895267`) ficou **verde**. O código do fix já está
+deployável na Vercel; **ainda falta** o mantenedor colar
+`docs/supabase-production-0006-runtime.sql` no SQL Editor de produção e
+refazer o teste do cadastro/`/api/health`.
 
 ### ✅ Confirmação de e-mail no cadastro + rebrand final (título, description, cookies) (2026-09-06)
 
@@ -2034,11 +2043,14 @@ do e-mail estilizado (inclusive spam, remetente novo) — o remetente visível
 é "Catchbound" (display name da `SMTP_FROM`). Handoff da próxima conversa:
 `docs/PROMPT-NOVA-CONVERSA.md`.
 
-**🚑 PRIMEIRO (bloqueia o cadastro em produção, 2026-09-06 — §3/§4.27):**
+**🚑 PRIMEIRO (bloqueia o cadastro em produção, 2026-09-06 — §3/§4.27).**
+O código do fix já está em `main` (**PR #9 mergeado**, commit `6c18858`; só
+falta o passo de banco e a validação de produção):
 1. SQL Editor do Supabase (produção): colar e executar
    `docs/supabase-production-0006-runtime.sql` → última linha deve mostrar
    `rls_on=true · runtime_privs=4 · runtime_policy=1 · migrations=7`;
-2. Após o deploy deste branch: `https://catchbound.vercel.app/api/health`
+2. Após o deploy da Vercel (automático, acompanha `main`):
+   `https://catchbound.vercel.app/api/health`
    → `{"ok":true,"emailVerification":"ok"}`;
 3. Criar conta de novo (pode ser o mesmo usuário/e-mail/senha de hoje) →
    tela "CONFIRME SEU E-MAIL" → código chega (checar spam) → entrar.
@@ -2119,6 +2131,7 @@ identificadores internos (`computeDelugeStats` etc.), `package.json`
 | 2026-09-06 | **Ativação do mundo em PRODUÇÃO** — workflow `World activation`: 4 ajustes (`Invalid URL`/GITHUB_ENV → TLS self-signed → fix verify-full+CA `dca8645` → no-op ✅) e `APLICAR-production` ✅ — 20 mapas + rebalance no banco de produção | ✅ Ativado e conferido | run `34043394359` · `SELECT count(*) FROM game_maps` = 20 · `docs/RELATORIO-POS-ATIVACAO.md` · §4.21–4.23 |
 | 2026-09-06 | **Merge do PR #8** — rebrand CATCHBOUND + confirmação de e-mail + sync de docs de ativação/handoff → `main` (commit `71c40f1`, CI 100% verde) | ✅ Mergido · ⬜ validação pós-deploy pelo mantenedor (e-mail real + passada no navegador) | `docs/PROMPT-NOVA-CONVERSA.md` (handoff da próxima conversa) |
 | 2026-09-06 | **Incidente pós-merge** — cadastro em produção → "Falha na autenticação" (RLS sem policy na tabela `email_verification_codes`; conta presa; erro mascarado). Fix: SQL companheiro `docs/supabase-production-0006-runtime.sql` + cadastro atômico + reenvio para conta pendente + `/api/health.emailVerification` + mensagem de erro honesta | ✅ Reproduzido e corrigido no sandbox · ⬜ SQL em produção pelo mantenedor | 18/250 unit · 8/98 integração · §4.27 |
+| 2026-09-06 | **Merge do PR #9** — fix do incidente do cadastro em produção (`arena/01a077fb-pokeeeee` → `main`, commit `6c18858`) | ✅ Mergeado · CI do run `34053895267` verde · ⬜ validação de produção pelo mantenedor (SQL + e-mail real) | `gh pr show 9` · §3/§4.27 |
 | — | **Fase 6.4** — colocar as 156 espécies para aparecer (tabelas de encontro) + Johto | ⬜ Planejada | `docs/FASE-6.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

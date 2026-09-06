@@ -1,9 +1,10 @@
 # Prompt para a próxima conversa (copiar e colar como 1ª mensagem)
 
-> Este arquivo é o handoff de **2026-09-06 (noite)**, após o merge do PR #8
-> (GM + rebrand + confirmação de e-mail) e a rodada de **incidente do
-> cadastro em produção** (branch `arena/01a077fb-pokeeeee`). Atualize este arquivo ao final de
-> cada nova rodada (mesma função que o histórico do `AI_State.md`).
+> Este arquivo é o handoff de **2026-09-06 (noite, pós-merge do PR #9)**,
+> após o merge do PR #8 (GM + rebrand + confirmação de e-mail), a rodada do
+> **incidente do cadastro em produção** e o **merge do fix** em `main`
+> (commit `6c18858`, CI verde). Atualize este arquivo ao final de cada nova
+> rodada (mesma função que o histórico do `AI_State.md`).
 
 ```
 Você é a continuação do agente do projeto Catchbound (repo
@@ -11,7 +12,7 @@ marmitero/pokeeeee — Next.js + Drizzle/Postgres + Supabase; produção em
 https://catchbound.vercel.app). Comece LENDO AI_State.md por completo
 (regra do protocolo) e depois docs/RELATORIO-POS-ATIVACAO.md.
 
-ESTADO ATUAL (2026-09-06, noite — pós-incidente do cadastro):
+ESTADO ATUAL (2026-09-06, noite — pós-incidente do cadastro e pós-merge do PR #9):
 - 🚑 INCIDENTE: após o merge do PR #8, criar conta em produção devolvia
   "Falha na autenticação" e nenhum e-mail saía. Causa (reproduzida em
   sandbox, AI_State §4.27): a tabela nova email_verification_codes nasce
@@ -22,7 +23,10 @@ ESTADO ATUAL (2026-09-06, noite — pós-incidente do cadastro):
   (b) código: cadastro atômico em transação, cadastro repetido de conta
   pendente só reenvia o código, /api/health expõe emailVerification:
   ok|unavailable, erro inesperado não diz mais "Falha na autenticação".
-  Branch arena/01a077fb-pokeeeee (PR a abrir/mergear).
+  Branch arena/01a077fb-pokeeeee → **PR #9 MERGEADO** em `main`
+  (commit `6c18858`; CI do merge `34053895267` verde). O código do fix já
+  deve estar na Vercel; **falta apenas** colar o SQL companheiro no Supabase
+  de produção e validar o cadastro.
 - Produção ATIVA com o mundo 1–20 (20 mapas + rebalance) no banco do
   Supabase — aplicado via workflow "World activation" (run 34043394359).
 - Cadastro com CONFIRMAÇÃO DE E-MAIL: jogador informa seu e-mail real,
@@ -36,11 +40,12 @@ ESTADO ATUAL (2026-09-06, noite — pós-incidente do cadastro):
   Deluge + cookies catchbound_session/catchbound_token.
 
 O QUE CONFERIR PRIMEIRO (nesta ordem):
-0. O mantenedor colou docs/supabase-production-0006-runtime.sql no SQL
-   Editor de produção? (última linha: rls_on=true, runtime_privs=4,
-   runtime_policy=1, migrations=7). O PR do fix foi mergeado/deployado?
-   https://catchbound.vercel.app/api/health deve responder
+0. PR #9 já está mergeado/deployado, mas **confirmar que o mantenedor colou
+   docs/supabase-production-0006-runtime.sql no SQL Editor de produção**
+   (última linha: rls_on=true, runtime_privs=4, runtime_policy=1,
+   migrations=7). https://catchbound.vercel.app/api/health deve responder
    {"ok":true,"emailVerification":"ok"} — "unavailable" = SQL não aplicado.
+   (No sandbox não é possível ler a Vercel: egress bloqueado.)
 1. E-MAIL REAL em produção: criar conta de novo (mesmo usuário/e-mail/senha
    de antes já serve — o servidor reconhece a conta pendente e reenvia o
    código) → tela "CONFIRME SEU E-MAIL" → código chega (inclusive SPAM;
