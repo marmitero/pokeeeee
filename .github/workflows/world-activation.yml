@@ -103,7 +103,7 @@ jobs:
       - name: Assemble connection (scripts leem DATABASE_URL; world:* usa CA p/ verify-full)
         run: |
           set -euo pipefail
-          DATABASE_URL="$(node -e '
+          export DATABASE_URL="$(node -e '
             const { DB_USER, DB_PASSWORD, DB_HOST } = process.env;
             const enc = encodeURIComponent;
             process.stdout.write(
