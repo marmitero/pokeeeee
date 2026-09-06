@@ -1,0 +1,188 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ATIVAÇÃO DO MUNDO EM PRODUÇÃO — sem arquivos na máquina do mantenedor
+#
+# Como instalar (tudo pela interface web do GitHub, ~1 minuto):
+#   1. Abra este arquivo no GitHub (docs/world-activation.yml) e copie o trecho
+#      abaixo do marcador "---" (a partir dele é YAML puro).
+#   2. No repo: Add file → Create new file → nomeie `.github/workflows/world-activation.yml`
+#      → cole → commit direto no `main` (a integração do agente não tem
+#      permissão `workflows`, por isso isto vive em docs/ — mesmo padrão de
+#      `docs/backup-production.yml` na 5.1-D).
+#   3. Rode a ativação dos segredos e papéis (uma vez só), na ordem:
+#      - Supabase SQL Editor → `docs/supabase-production-maint-role.sql` (produção
+#        e, se quiser ensaiar, staging também);
+#      - GitHub Settings → Secrets and variables → Actions → adicionar:
+#        PRODUCTION_MAINT_DB_USER (= catchbound_maint.<PROJECT_REF>),
+#        PRODUCTION_MAINT_DB_PASSWORD,
+#        STAGING_MAINT_DB_USER, STAGING_MAINT_DB_PASSWORD.
+#        (PRODUCTION_DB_HOST / PRODUCTION_DB_CA_CERT / STAGING_* já existem do backup.)
+#   4. Actions → "World activation" → Run workflow: primeiro com target=staging
+#      e apply=false; depois production apply=false (só simulações); por fim
+#      production apply=true digitando APLICAR-production.
+#
+# O que cada modo faz (scripts reais do repo, os mesmos da validação §4.19):
+#   apply=false → `world:import --dry-run` + `db:rebalance --dry-run` — nada é escrito.
+#   apply=true  → `world:seed` (20 mapas, idempotente, preserva camadas do Editor),
+#                  `db:rebalance` (movesets legados + níveis de ginásio),
+#                  `world:export` + verificação do espelho git ↔ banco (artefaut
+#                  com patch se divergir), e conferência da API pública
+#                  (/api/health + /api/maps = 20 mapas).
+# ─────────────────────────────────────────────────────────────────────────────
+---
+name: World activation (maps 1-20 + rebalance)
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        type: choice
+        description: "Banco de destino (Session Pooler, porta 5432 — nunca 6543)"
+        options:
+          - staging
+          - production
+        default: staging
+      apply:
+        type: boolean
+        description: "false = só simulações (comece por aqui) · true = world:seed + db:rebalance"
+        default: false
+      confirm:
+        type: string
+        description: 'Se apply=true, digite APLICAR-<target> para destravar a escrita'
+        required: false
+        default: ""
+
+concurrency:
+  group: world-activation
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  activate:
+    name: ${{ inputs.apply && 'APPLY' || 'DRY-RUN' }} — ${{ inputs.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      DB_HOST: ${{ inputs.target == 'production' && secrets.PRODUCTION_DB_HOST || secrets.STAGING_DB_HOST }}
+      DB_USER: ${{ inputs.target == 'production' && secrets.PRODUCTION_MAINT_DB_USER || secrets.STAGING_MAINT_DB_USER }}
+      DB_PASSWORD: ${{ inputs.target == 'production' && secrets.PRODUCTION_MAINT_DB_PASSWORD || secrets.STAGING_MAINT_DB_PASSWORD }}
+      DB_CA_CERT: ${{ inputs.target == 'production' && secrets.PRODUCTION_DB_CA_CERT || secrets.STAGING_DB_CA_CERT }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate secrets and confirmation
+        env:
+          APPLY: ${{ inputs.apply }}
+          CONFIRM: ${{ inputs.confirm }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          set -euo pipefail
+          for name in DB_HOST DB_USER DB_PASSWORD DB_CA_CERT; do
+            if [ -z "${!name:-}" ]; then
+              echo "Secret required by $name is missing" >&2
+              exit 1
+            fi
+          done
+          if [ "$APPLY" = "true" ] && [ "$CONFIRM" != "APLICAR-$TARGET" ]; then
+            echo "apply=true exige confirm=\"APLICAR-$TARGET\" no formulário" >&2
+            exit 1
+          fi
+          echo "target=$TARGET apply=$APPLY (validado)"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Assemble connection (scripts leem DATABASE_URL; world:* usa CA p/ verify-full)
+        run: |
+          set -euo pipefail
+          DATABASE_URL="$(node -e '
+            const { DB_USER, DB_PASSWORD, DB_HOST } = process.env;
+            const enc = encodeURIComponent;
+            process.stdout.write(
+              `postgresql://${enc(DB_USER)}:${enc(DB_PASSWORD)}@${DB_HOST}:5432/postgres?sslmode=require`
+            );
+          ')"
+          printf 'DATABASE_URL=%s\n' "$DATABASE_URL" >> "$GITHUB_ENV"
+          echo "DATABASE_SSL=true" >> "$GITHUB_ENV"
+          echo "DATABASE_SSL_REJECT_UNAUTHORIZED=true" >> "$GITHUB_ENV"
+          {
+            echo "DATABASE_CA_CERT<<PEM"
+            printf '%s\n' "$DB_CA_CERT"
+            echo "PEM"
+          } >> "$GITHUB_ENV"
+          node -e 'const u=new URL(process.env.DATABASE_URL); console.log("destino:", u.hostname+u.pathname)'
+
+      - name: Check — world:import --dry-run (content/world do git vs banco atual)
+        run: npm run world:import -- --dry-run
+
+      - name: Check — db:rebalance --dry-run (movesets legados + níveis de ginásio)
+        run: npm run db:rebalance -- --dry-run
+
+      - name: Apply — world:seed (20 mapas temáticos; idempotente, nunca apaga)
+        if: inputs.apply
+        run: npm run world:seed
+
+      - name: Apply — db:rebalance
+        if: inputs.apply
+        run: npm run db:rebalance
+
+      - name: After apply — world:export e verificação do espelho git ↔ banco
+        if: inputs.apply
+        id: mirror
+        run: |
+          set -euo pipefail
+          npm run world:export
+          if git diff --quiet -- content/world; then
+            echo "Espelho OK: content/world do git é idêntico ao banco após a ativação — nada a commitar."
+            echo "has-patch=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "O banco divergiu do git (edições antigas do Editor?). Gerando patch para revisão."
+            git diff -- content/world > "$RUNNER_TEMP/world-diff.patch"
+            git diff --stat -- content/world
+            echo "has-patch=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload world-diff (only when the mirror diverged)
+        if: steps.mirror.outputs.has-patch == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-diff-${{ github.run_id }}
+          path: ${{ runner.temp }}/world-diff.patch
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Verify public API (production only)
+        if: inputs.apply && inputs.target == 'production'
+        run: |
+          set -euo pipefail
+          curl -fsS https://catchbound.vercel.app/api/health
+          echo
+          n="$(curl -fsS https://catchbound.vercel.app/api/maps \
+            | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>console.log(JSON.parse(d).maps.length))')"
+          echo "mapas servidos por /api/maps: $n"
+          if [ "$n" != "20" ]; then
+            echo "esperava 20 mapas, veio $n" >&2
+            exit 1
+          fi
+
+      - name: Summary
+        if: always()
+        env:
+          APPLY: ${{ inputs.apply }}
+          TARGET: ${{ inputs.target }}
+        run: |
+          {
+            echo "## World activation — \`$TARGET\` — modo: $([ "$APPLY" = "true" ] && echo "APPLY (escreveu)" || echo "DRY-RUN (nada foi escrito)")"
+            echo
+            echo "Se apply=true passou: os 20 mapas estão no banco e o \`db:rebalance\` foi aplicado."
+            echo "Próximo passo manual: navegador — mapa 3 → norte → cadeia até o 20; checklist §2 do AI_State (itens 9–11)."
+            echo "Se apareceu artefato world-diff-*: ele traz o export divergente; envie para o agente versionar em PR."
+          } >> "$GITHUB_STEP_SUMMARY"
