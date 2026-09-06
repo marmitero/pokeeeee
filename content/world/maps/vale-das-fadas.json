@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Clefable",
-      "weight": 18,
+      "weight": 17,
       "maxLevel": 65,
       "minLevel": 58,
       "pokedexId": 36,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Wigglytuff",
-      "weight": 18,
+      "weight": 17,
       "maxLevel": 65,
       "minLevel": 58,
       "pokedexId": 40,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Gardevoir",
-      "weight": 16,
+      "weight": 15,
       "maxLevel": 65,
       "minLevel": 58,
       "pokedexId": 282,
@@ -35,9 +35,9 @@
     },
     {
       "name": "Vileplume",
-      "weight": 14,
-      "maxLevel": 65,
-      "minLevel": 58,
+      "weight": 13,
+      "maxLevel": 67,
+      "minLevel": 60,
       "pokedexId": 45,
       "tileTypes": ["tall_grass"]
     },
@@ -63,6 +63,14 @@
       "maxLevel": 67,
       "minLevel": 60,
       "pokedexId": 3,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Togetic",
+      "weight": 4,
+      "maxLevel": 68,
+      "minLevel": 64,
+      "pokedexId": 176,
       "tileTypes": ["tall_grass"]
     }
   ],

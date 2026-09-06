@@ -43,6 +43,20 @@ interface UserState {
   superPotions: number;
   maxPotions: number;
   revives: number;
+  fireStone: number;
+  waterStone: number;
+  thunderStone: number;
+  leafStone: number;
+  moonStone: number;
+  sunStone: number;
+  shinyStone: number;
+  metalCoat: number;
+  kingsRock: number;
+  dragonScale: number;
+  upgrade: number;
+  duskStone: number;
+  dawnStone: number;
+  ovalStone: number;
   wins: number;
   losses: number;
   currentMapId: number;
@@ -96,6 +110,9 @@ const GUEST_USER: UserState = {
   id: 0, username: "Treinador", avatarSprite: "red",
   money: 3000, pokeballs: 10, greatballs: 5, ultraballs: 2, masterballs: 0,
   potions: 3, superPotions: 1, maxPotions: 0, revives: 1,
+  fireStone: 0, waterStone: 0, thunderStone: 0, leafStone: 0, moonStone: 0,
+  sunStone: 0, shinyStone: 0, metalCoat: 0, kingsRock: 0, dragonScale: 0,
+  upgrade: 0, duskStone: 0, dawnStone: 0, ovalStone: 0,
   wins: 0, losses: 0, currentMapId: 1, playerX: 8, playerY: 12,
   role: "player",
 };
@@ -831,7 +848,17 @@ export default function DelugeRPGPage() {
       {showBox && (
         <PokemonBox
           allPokemon={allPokemon}
-          userItems={{ potions: user.potions, superPotions: user.superPotions, maxPotions: user.maxPotions, revives: user.revives }}
+          userItems={{
+            potions: user.potions, superPotions: user.superPotions,
+            maxPotions: user.maxPotions, revives: user.revives,
+            fireStone: user.fireStone, waterStone: user.waterStone,
+            thunderStone: user.thunderStone, leafStone: user.leafStone,
+            moonStone: user.moonStone, sunStone: user.sunStone,
+            shinyStone: user.shinyStone, metalCoat: user.metalCoat,
+            kingsRock: user.kingsRock, dragonScale: user.dragonScale,
+            upgrade: user.upgrade, duskStone: user.duskStone,
+            dawnStone: user.dawnStone, ovalStone: user.ovalStone,
+          }}
           onUpdated={(updated, updatedUser) => {
             setAllPokemon(updated as BoxPokemon[]);
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));

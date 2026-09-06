@@ -11,23 +11,23 @@
   "encounterTable": [
     {
       "name": "Sandslash",
-      "weight": 14,
-      "maxLevel": 41,
-      "minLevel": 34,
+      "weight": 12,
+      "maxLevel": 43,
+      "minLevel": 36,
       "pokedexId": 28,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Dugtrio",
-      "weight": 14,
-      "maxLevel": 41,
-      "minLevel": 34,
+      "weight": 12,
+      "maxLevel": 43,
+      "minLevel": 36,
       "pokedexId": 51,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Marowak",
-      "weight": 10,
+      "weight": 9,
       "maxLevel": 43,
       "minLevel": 36,
       "pokedexId": 105,
@@ -35,7 +35,7 @@
     },
     {
       "name": "Arbok",
-      "weight": 10,
+      "weight": 9,
       "maxLevel": 43,
       "minLevel": 36,
       "pokedexId": 24,
@@ -43,7 +43,7 @@
     },
     {
       "name": "Graveler",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 41,
       "minLevel": 34,
       "pokedexId": 75,
@@ -51,7 +51,7 @@
     },
     {
       "name": "Kangaskhan",
-      "weight": 12,
+      "weight": 11,
       "maxLevel": 43,
       "minLevel": 36,
       "pokedexId": 115,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Tauros",
-      "weight": 12,
+      "weight": 11,
       "maxLevel": 43,
       "minLevel": 36,
       "pokedexId": 128,
@@ -67,10 +67,34 @@
     },
     {
       "name": "Pinsir",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 43,
       "minLevel": 36,
       "pokedexId": 127,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Noctowl",
+      "weight": 4,
+      "maxLevel": 44,
+      "minLevel": 40,
+      "pokedexId": 164,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Donphan",
+      "weight": 4,
+      "maxLevel": 44,
+      "minLevel": 40,
+      "pokedexId": 232,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Pupitar",
+      "weight": 4,
+      "maxLevel": 44,
+      "minLevel": 40,
+      "pokedexId": 247,
       "tileTypes": ["tall_grass"]
     }
   ],

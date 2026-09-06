@@ -85,6 +85,9 @@ aplica os parâmetros da URL por cima do objeto `ssl`), CA gravada com `umask
   `docs/supabase-production-0006-runtime.sql` no SQL Editor + deploy do fix
   de código (cadastro atômico, reenvio p/ conta pendente,
   `/api/health.emailVerification`). Detalhes em `AI_State.md` §3/§4.27.
+  **Status no repo:** o fix já foi mergeado em `main` via PR #9
+  (commit `6c18858`, CI verde); falta a validação de produção pelo
+  mantenedor (SQL + `/api/health` + e-mail real).
 - Reexecução futura (ex.: depois de editar mapas no Editor): mesma sequência
   do §2 — é idempotente; `apply=false` primeiro.
 

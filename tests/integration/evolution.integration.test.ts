@@ -208,7 +208,7 @@ describe("evolução na vitória (6.3)", () => {
 
     // Ditto lvl 30 não tem para onde evoluir e, 22 níveis acima do selvagem
     // mais forte do mapa 1, não perde a batalha. (Pikachu não serve mais
-    // para este caso: desde a 6.3-A ele evolui para Raichu no nível 30.)
+    // para este caso: desde a 6.4-B a pedra de Trovão é caminho próprio.)
     await setStarter(username, 132, 30, xpToNextLevel(30) - 5);
 
     const final = await winOneWildBattle(c);
@@ -238,5 +238,59 @@ describe("evolução na vitória (6.3)", () => {
     const depois = await starterRow(username);
     expect(depois.pokedexId).toBe(5);
     expect(depois.level).toBe(17);
+  });
+});
+
+describe("evolução por item (6.4-B)", () => {
+  it("Pikachu + Pedra de Trovão via /api/pokemon/manage consome e persiste", async () => {
+    const username = "evo-stone-1";
+    const { c } = await registerVerified(username);
+    await setStarter(username, 25, 5, 0); // Pikachu vem dos 3 iniciais do catálogo
+
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [poke] = await db.select().from(userPokemon).where(eq(userPokemon.userId, user.id));
+    await db.update(users).set({ thunderStone: 1 }).where(eq(users.id, user.id));
+
+    const r = await c.call("/api/pokemon/manage", {
+      body: { action: "use_item", pokemonId: poke.id, item: "thunderStone" },
+    });
+
+    expect(r.status).toBe(200);
+    const body = r.body as {
+      user: { thunderStone: number };
+      party: Array<{ id: number; pokedexId: number; name: string; move1: string }>;
+      message: string;
+    };
+    expect(body.user.thunderStone).toBe(0);
+    expect(body.message).toContain("evoluiu para Raichu");
+    expect(body.party.find((p) => p.id === poke.id)?.pokedexId).toBe(26);
+    expect(body.party.find((p) => p.id === poke.id)?.name).toBe("Raichu");
+    expect(body.party.find((p) => p.id === poke.id)?.move1.length).toBeGreaterThan(0);
+
+    const depois = await starterRow(username);
+    expect(depois.pokedexId).toBe(26);
+    expect(depois.name).toBe("Raichu");
+    expect(depois.level).toBe(5); // evolução fora de batalha não muda nível
+  });
+
+  it("item que não evolui a espécie devolve 400 e NÃO consome", async () => {
+    const username = "evo-stone-2";
+    const { c } = await registerVerified(username);
+    await setStarter(username, 25, 5, 0); // Pikachu
+
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [poke] = await db.select().from(userPokemon).where(eq(userPokemon.userId, user.id));
+    await db.update(users).set({ sunStone: 2 }).where(eq(users.id, user.id));
+
+    const mal = await c.call("/api/pokemon/manage", {
+      body: { action: "use_item", pokemonId: poke.id, item: "sunStone" },
+    });
+    expect(mal.status).toBe(400);
+    expect((mal.body as { error?: string }).error).toContain("não evolui");
+
+    const [depoisUser] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(depoisUser.sunStone).toBe(2); // não consumiu
+    const [depois] = await db.select().from(userPokemon).where(eq(userPokemon.id, poke.id));
+    expect(depois.pokedexId).toBe(25);
   });
 });

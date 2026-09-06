@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEvolution, evolutionAtLevel } from "./evolution";
+import { applyEvolution, applyItemEvolution, evolutionAtLevel, evolutionWithItem } from "./evolution";
 import { sideFromSpecies } from "./combatant";
 import { POKEDEX, getPokemonSpecies } from "../pokedex";
 
@@ -27,19 +27,19 @@ describe("integridade dos dados de evolução", () => {
     }
   });
 
-  it("gatilho de nível tem nível válido; item/special ainda são proibidos", () => {
+  it("gatilho de nível tem nível válido; item tem itemId; special é proibido", () => {
     for (const species of POKEDEX) {
       for (const rule of species.evolvesTo ?? []) {
         if (rule.trigger === "level") {
           expect(rule.level, `${species.name}: gatilho de nível sem nível`).toBeDefined();
           expect(rule.level!).toBeGreaterThanOrEqual(2);
           expect(rule.level!).toBeLessThanOrEqual(99);
+        } else if (rule.trigger === "item") {
+          expect(rule.itemId, `${species.name}: gatilho de item sem itemId`).toBeDefined();
+          expect(rule.itemId!).toBeGreaterThanOrEqual(1);
+          expect(rule.itemId!).toBeLessThanOrEqual(14);
         } else {
-          // Quando pedras de evolução existirem (6.4/6.5), este teste e o
-          // motor mudam juntos. Citá-las antes só criaria regra morta.
-          throw new Error(
-            `${species.name}: gatilho "${rule.trigger}" não implementado na 6.3`
-          );
+          throw new Error(`${species.name}: gatilho "special" não implementado`);
         }
       }
     }
@@ -55,14 +55,15 @@ describe("integridade dos dados de evolução", () => {
     }
   });
 
-  it("ao longo de uma cadeia o nível de gatilho só sobe (sem vai-e-vem)", () => {
+  it("ao longo de uma cadeia de nível o gatilho só sobe (sem vai-e-vem)", () => {
     for (const species of POKEDEX) {
       let current = species;
       let lastLevel = 0;
       const seen = new Set<number>();
       while ((current.evolvesTo ?? []).length > 0 && !seen.has(current.id)) {
         seen.add(current.id);
-        const rule = current.evolvesTo![0];
+        const rule = current.evolvesTo!.find((e) => e.trigger === "level");
+        if (!rule) break; // linha só por item/special termina aqui (Eevee etc.)
         expect(rule.level!, `${species.name}: gatilho desceu na cadeia`).toBeGreaterThan(lastLevel);
         lastLevel = rule.level!;
         current = getPokemonSpecies(rule.speciesId);
@@ -101,16 +102,13 @@ describe("evolutionAtLevel", () => {
     expect(evolutionAtLevel(132, 100)).toBeNull(); // Ditto
   });
 
-  it("Pikachu e Onix agora têm para onde evoluir (6.3-A)", () => {
-    expect(evolutionAtLevel(25, 30)).toBe(26); // Raichu (pedra → nível, provisório)
-    expect(evolutionAtLevel(74, 25)).toBe(75); // Graveler
-    expect(evolutionAtLevel(95, 36)).toBe(208); // Steelix (troca → nível, provisório)
+  it("pedras e trocas saíram do gatilho de nível (6.4-B)", () => {
+    expect(evolutionAtLevel(25, 30)).toBeNull(); // Pikachu: agora é pedra de Trovão
+    expect(evolutionAtLevel(74, 25)).toBe(75); // Graveler (troca provisional por nível)
+    expect(evolutionAtLevel(95, 36)).toBeNull(); // Onix: agora é Revestimento de Metal
     expect(evolutionAtLevel(129, 20)).toBe(130); // Magikarp → Gyarados
-  });
-
-  it("linhas provisórias de pedra/felicidade viram nível 30", () => {
-    expect(evolutionAtLevel(120, 30)).toBe(121); // Staryu → Starmie
-    expect(evolutionAtLevel(133, 30)).toBe(197); // Eevee → Umbreon
+    expect(evolutionAtLevel(120, 30)).toBeNull(); // Staryu: agora é Pedra d'Água
+    expect(evolutionAtLevel(133, 30)).toBeNull(); // Eevee: agora escolhe pedra
     expect(evolutionAtLevel(148, 55)).toBe(149); // Dragonair → Dragonite (cânon)
   });
 });
@@ -194,14 +192,100 @@ describe("applyEvolution", () => {
   });
 
   it("a evolução troca os tipos ainda na mesma batalha", () => {
-    // Eevee (Normal) → Umbreon (Dark): a desvantagem nova passa a valer já no
-    // turno seguinte, não só na próxima batalha.
-    const side = sideFromSpecies(133, 30, "Normal");
-    expect(side.types).toEqual(["Normal"]);
+    // Togepi (Fairy) → Togetic (Fairy/Flying): a desvantagem nova passa a
+    // valer já no turno seguinte, não só na próxima batalha.
+    const side = sideFromSpecies(175, 20, "Normal");
+    expect(side.types).toEqual(["Fairy"]);
 
     applyEvolution(side);
 
-    expect(side.pokedexId).toBe(197);
-    expect(side.types).toEqual(["Dark"]);
+    expect(side.pokedexId).toBe(176);
+    expect(side.types).toEqual(["Fairy", "Flying"]);
+  });
+});
+
+describe("evolução por item (6.4-B)", () => {
+  it("encontra a regra certa para a pedra da espécie e ignora as erradas", () => {
+    expect(evolutionWithItem(25, "thunderStone")?.speciesId).toBe(26);
+    expect(evolutionWithItem(25, "fireStone")).toBeNull();
+    expect(evolutionWithItem(25, "leafStone")).toBeNull();
+    expect(evolutionWithItem(133, "waterStone")?.speciesId).toBe(134);
+    expect(evolutionWithItem(133, "thunderStone")?.speciesId).toBe(135);
+    expect(evolutionWithItem(133, "fireStone")?.speciesId).toBe(136);
+    expect(evolutionWithItem(133, "sunStone")?.speciesId).toBe(196);
+    expect(evolutionWithItem(133, "moonStone")?.speciesId).toBe(197);
+    expect(evolutionWithItem(1, "thunderStone")).toBeNull();
+    expect(evolutionWithItem(25, "naoExiste")).toBeNull();
+  });
+
+  it("Pikachu + Pedra de Trovão vira Raichu com stats da nova espécie", () => {
+    const side = sideFromSpecies(25, 30, "Normal");
+    const antes = side.maxHp;
+
+    const outcome = applyItemEvolution(side, "thunderStone");
+
+    expect(outcome).not.toBeNull();
+    expect(outcome!.fromName).toBe("Pikachu");
+    expect(outcome!.toName).toBe("Raichu");
+    expect(side.pokedexId).toBe(26);
+    expect(side.name).toBe("Raichu");
+    expect(side.displayName).toBe("Raichu");
+    expect(side.types).toEqual(["Electric"]);
+
+    const esperado = sideFromSpecies(26, 30, "Normal");
+    expect(side.maxHp).toBe(esperado.maxHp);
+    expect(side.attack).toBe(esperado.attack);
+    expect(side.spAttack).toBe(esperado.spAttack);
+    expect(side.maxHp).toBeGreaterThan(antes);
+  });
+
+  it("preserva o percentual de HP e mantém apelido", () => {
+    const side = sideFromSpecies(25, 20, "Normal");
+    side.hp = Math.floor(side.maxHp * 0.4);
+    const fractionBefore = side.hp / side.maxHp;
+    side.displayName = "Ratão";
+
+    applyItemEvolution(side, "thunderStone");
+
+    expect(side.displayName).toBe("Ratão");
+    expect(side.name).toBe("Raichu");
+    const fractionAfter = side.hp / side.maxHp;
+    expect(Math.abs(fractionAfter - fractionBefore)).toBeLessThan(0.02);
+    expect(side.hp).toBeGreaterThan(0);
+    expect(side.hp).toBeLessThan(side.maxHp);
+  });
+
+  it("item que não evolui devolve null e não muta o combatente", () => {
+    const side = sideFromSpecies(25, 30, "Normal");
+    const before = { ...side };
+
+    expect(applyItemEvolution(side, "leafStone")).toBeNull();
+    expect(side.pokedexId).toBe(before.pokedexId);
+    expect(side.maxHp).toBe(before.maxHp);
+    expect(side.types).toEqual(before.types);
+  });
+
+  it("Eevee ramifica nas cinco pedras do catálogo", () => {
+    const casos: Array<[string, number]> = [
+      ["waterStone", 134],
+      ["thunderStone", 135],
+      ["fireStone", 136],
+      ["sunStone", 196],
+      ["moonStone", 197],
+    ];
+    for (const [item, target] of casos) {
+      const side = sideFromSpecies(133, 25, "Normal");
+      const rule = evolutionWithItem(133, item);
+      expect(rule?.speciesId).toBe(target);
+      expect(applyItemEvolution(side, item)?.toName).toBe(getPokemonSpecies(target).name);
+      expect(side.pokedexId).toBe(target);
+    }
+  });
+
+  it("Sunkern usa Pedra do Sol (linha que era `special`)", () => {
+    const side = sideFromSpecies(191, 20, "Normal");
+    expect(evolutionWithItem(191, "sunStone")?.speciesId).toBe(192);
+    expect(applyItemEvolution(side, "sunStone")?.toName).toBe("Sunflora");
+    expect(side.pokedexId).toBe(192);
   });
 });

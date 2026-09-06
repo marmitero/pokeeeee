@@ -2,8 +2,10 @@ import {
   computeDelugeStats,
   getPokemonSpecies,
   type DelugeVariant,
+  type EvolvesTo,
   type PokemonSpecies,
 } from "../pokedex";
+import { evolutionItemId } from "../evolution-items";
 import type { SideState } from "./combatant";
 
 /**
@@ -56,6 +58,59 @@ export interface EvolutionOutcome {
   toPokedexId: number;
   fromName: string;
   toName: string;
+}
+
+/**
+ * Evolução por item (Fase 6.4-B).
+ *
+ * O item é consumido na rota `/api/pokemon/manage`, **fora de batalha**. Aqui
+ * só existe a regra pura: um item de evolução casa com um gatilho `"item"` da
+ * espécie e transforma o combatente. Retorna `null` quando o item não evolui
+ * aquela espécie — a rota converte em 400 e **não consome** o item.
+ */
+export function evolutionWithItem(
+  pokedexId: number,
+  itemKey: string
+): EvolvesTo | null {
+  const itemId = evolutionItemId(itemKey);
+  if (itemId === null) return null;
+  const species = getPokemonSpecies(pokedexId);
+  return (species.evolvesTo ?? []).find(
+    (e) => e.trigger === "item" && e.itemId === itemId
+  ) ?? null;
+}
+
+/**
+ * Aplica evolução por item ao combatente, no mesmo espírito de `applyEvolution`:
+ * stats recalculados, % de HP preservado, apelido mantido, tipos atualizados.
+ * Não muda golpes — quem chama deve rodar `refreshMovesForLevel` em seguida.
+ */
+export function applyItemEvolution(
+  side: SideState,
+  itemKey: string
+): EvolutionOutcome | null {
+  const rule = evolutionWithItem(side.pokedexId, itemKey);
+  if (!rule) return null;
+
+  const from = getPokemonSpecies(side.pokedexId);
+  const to = getPokemonSpecies(rule.speciesId);
+  const hpFraction = side.maxHp > 0 ? side.hp / side.maxHp : 1;
+  const stats = computeDelugeStats(to, side.level, side.variant as DelugeVariant);
+  const hadNickname = side.displayName !== from.name;
+
+  side.pokedexId = to.id;
+  side.name = to.name;
+  side.types = [...to.types];
+  side.displayName = hadNickname ? side.displayName : to.name;
+  side.maxHp = stats.maxHp;
+  side.hp = Math.max(1, Math.floor(stats.maxHp * hpFraction));
+  side.attack = stats.attack;
+  side.defense = stats.defense;
+  side.spAttack = stats.spAttack;
+  side.spDefense = stats.spDefense;
+  side.speed = stats.speed;
+
+  return { fromPokedexId: from.id, toPokedexId: to.id, fromName: from.name, toName: to.name };
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { DELUGE_VARIANTS, getPokemonSpecies } from "@/lib/pokedex";
+import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES } from "@/lib/evolution-items";
 import { retroSfx } from "@/lib/sound";
 import { X, ArrowRightLeft, Trash2, DollarSign, Package, Zap } from "lucide-react";
 import { api } from "@/lib/api-client";
@@ -33,7 +34,13 @@ export interface BoxPokemon {
 
 interface PokemonBoxProps {
   allPokemon: BoxPokemon[];
-  userItems: { potions: number; superPotions: number; maxPotions: number; revives: number };
+  userItems: {
+    potions: number; superPotions: number; maxPotions: number; revives: number;
+    fireStone: number; waterStone: number; thunderStone: number; leafStone: number;
+    moonStone: number; sunStone: number; shinyStone: number; metalCoat: number;
+    kingsRock: number; dragonScale: number; upgrade: number; duskStone: number;
+    dawnStone: number; ovalStone: number;
+  };
   onUpdated: (updatedPokemon: BoxPokemon[], updatedUser?: unknown) => void;
   onClose: () => void;
 }
@@ -299,6 +306,17 @@ export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: Pokemo
                       className="flex items-center justify-center gap-1 border border-slate-600 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-200 hover:border-amber-500 disabled:opacity-40">
                       ⚡ Reviver ×{userItems.revives}
                     </button>
+                    {EVOLUTION_ITEM_VALUES.map((item) => {
+                      const count = userItems[item];
+                      if (count <= 0) return null;
+                      return (
+                        <button key={item} onClick={() => applyItem(item)} disabled={loading}
+                          title={`${EVOLUTION_ITEM_LABEL[item]} (evolução)`}
+                          className="flex items-center justify-center gap-1 border border-purple-500/70 bg-purple-950/60 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-purple-200 hover:border-purple-300 disabled:opacity-40">
+                          {EVOLUTION_ITEM_EMOJI[item]} {EVOLUTION_ITEM_LABEL[item]} ×{count}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 

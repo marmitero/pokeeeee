@@ -11,39 +11,39 @@
   "encounterTable": [
     {
       "name": "Tentacruel",
-      "weight": 14,
-      "maxLevel": 69,
-      "minLevel": 62,
+      "weight": 10,
+      "maxLevel": 71,
+      "minLevel": 64,
       "pokedexId": 73,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Kingler",
-      "weight": 14,
-      "maxLevel": 69,
-      "minLevel": 62,
+      "weight": 10,
+      "maxLevel": 71,
+      "minLevel": 64,
       "pokedexId": 99,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Seadra",
-      "weight": 14,
-      "maxLevel": 69,
-      "minLevel": 62,
+      "weight": 10,
+      "maxLevel": 71,
+      "minLevel": 64,
       "pokedexId": 117,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Seaking",
-      "weight": 14,
-      "maxLevel": 69,
-      "minLevel": 62,
+      "weight": 10,
+      "maxLevel": 71,
+      "minLevel": 64,
       "pokedexId": 119,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Starmie",
-      "weight": 12,
+      "weight": 9,
       "maxLevel": 71,
       "minLevel": 64,
       "pokedexId": 121,
@@ -51,7 +51,7 @@
     },
     {
       "name": "Vaporeon",
-      "weight": 12,
+      "weight": 9,
       "maxLevel": 71,
       "minLevel": 64,
       "pokedexId": 134,
@@ -59,7 +59,7 @@
     },
     {
       "name": "Poliwrath",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 72,
       "minLevel": 66,
       "pokedexId": 62,
@@ -67,10 +67,66 @@
     },
     {
       "name": "Blastoise",
-      "weight": 12,
-      "maxLevel": 71,
-      "minLevel": 64,
+      "weight": 8,
+      "maxLevel": 72,
+      "minLevel": 66,
       "pokedexId": 9,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Feraligatr",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 160,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lanturn",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 171,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Azumarill",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 184,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Politoed",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 186,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Slowking",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 199,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Octillery",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 224,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mantine",
+      "weight": 4,
+      "maxLevel": 72,
+      "minLevel": 68,
+      "pokedexId": 226,
       "tileTypes": ["tall_grass"]
     }
   ],

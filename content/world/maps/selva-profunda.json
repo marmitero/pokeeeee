@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Butterfree",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 77,
       "minLevel": 70,
       "pokedexId": 12,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Beedrill",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 77,
       "minLevel": 70,
       "pokedexId": 15,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Parasect",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 77,
       "minLevel": 70,
       "pokedexId": 47,
@@ -35,7 +35,7 @@
     },
     {
       "name": "Victreebel",
-      "weight": 16,
+      "weight": 14,
       "maxLevel": 77,
       "minLevel": 70,
       "pokedexId": 71,
@@ -43,7 +43,7 @@
     },
     {
       "name": "Scyther",
-      "weight": 18,
+      "weight": 16,
       "maxLevel": 77,
       "minLevel": 70,
       "pokedexId": 123,
@@ -51,10 +51,34 @@
     },
     {
       "name": "Dratini",
-      "weight": 18,
+      "weight": 16,
       "maxLevel": 77,
       "minLevel": 70,
       "pokedexId": 147,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Forretress",
+      "weight": 4,
+      "maxLevel": 80,
+      "minLevel": 76,
+      "pokedexId": 205,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Scizor",
+      "weight": 4,
+      "maxLevel": 80,
+      "minLevel": 76,
+      "pokedexId": 212,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Heracross",
+      "weight": 4,
+      "maxLevel": 80,
+      "minLevel": 76,
+      "pokedexId": 214,
       "tileTypes": ["tall_grass"]
     }
   ],

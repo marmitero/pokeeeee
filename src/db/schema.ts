@@ -112,6 +112,21 @@ export const users = pgTable("users", {
   superPotions: integer("super_potions").notNull().default(1),
   maxPotions: integer("max_potions").notNull().default(0),
   revives: integer("revives").notNull().default(1),
+  // inventory – evolution items (Fase 6.4-B: pedras e itens raros de evolução)
+  fireStone: integer("fire_stone").notNull().default(0),
+  waterStone: integer("water_stone").notNull().default(0),
+  thunderStone: integer("thunder_stone").notNull().default(0),
+  leafStone: integer("leaf_stone").notNull().default(0),
+  moonStone: integer("moon_stone").notNull().default(0),
+  sunStone: integer("sun_stone").notNull().default(0),
+  shinyStone: integer("shiny_stone").notNull().default(0),
+  metalCoat: integer("metal_coat").notNull().default(0),
+  kingsRock: integer("kings_rock").notNull().default(0),
+  dragonScale: integer("dragon_scale").notNull().default(0),
+  upgrade: integer("upgrade").notNull().default(0),
+  duskStone: integer("dusk_stone").notNull().default(0),
+  dawnStone: integer("dawn_stone").notNull().default(0),
+  ovalStone: integer("oval_stone").notNull().default(0),
   // progress
   currentMapId: integer("current_map_id").notNull().default(1),
   playerX: integer("player_x").notNull().default(8),
@@ -136,7 +151,7 @@ export const users = pgTable("users", {
 }, (table) => [
   check("users_role_check", sql`${table.role} IN ('player', 'moderator', 'admin')`),
   check("users_money_nonnegative", sql`${table.money} >= 0`),
-  check("users_inventory_nonnegative", sql`${table.pokeballs} >= 0 AND ${table.greatballs} >= 0 AND ${table.ultraballs} >= 0 AND ${table.masterballs} >= 0 AND ${table.potions} >= 0 AND ${table.superPotions} >= 0 AND ${table.maxPotions} >= 0 AND ${table.revives} >= 0`),
+  check("users_inventory_nonnegative", sql`${table.pokeballs} >= 0 AND ${table.greatballs} >= 0 AND ${table.ultraballs} >= 0 AND ${table.masterballs} >= 0 AND ${table.potions} >= 0 AND ${table.superPotions} >= 0 AND ${table.maxPotions} >= 0 AND ${table.revives} >= 0 AND ${table.fireStone} >= 0 AND ${table.waterStone} >= 0 AND ${table.thunderStone} >= 0 AND ${table.leafStone} >= 0 AND ${table.moonStone} >= 0 AND ${table.sunStone} >= 0 AND ${table.shinyStone} >= 0 AND ${table.metalCoat} >= 0 AND ${table.kingsRock} >= 0 AND ${table.dragonScale} >= 0 AND ${table.upgrade} >= 0 AND ${table.duskStone} >= 0 AND ${table.dawnStone} >= 0 AND ${table.ovalStone} >= 0`),
   check("users_progress_nonnegative", sql`${table.wins} >= 0 AND ${table.losses} >= 0 AND ${table.elo} >= 0`),
   check("users_position_check", sql`${table.playerX} BETWEEN 0 AND 63 AND ${table.playerY} BETWEEN 0 AND 63`),
 ]);

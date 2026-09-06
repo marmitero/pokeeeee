@@ -11,87 +11,87 @@
   "encounterTable": [
     {
       "name": "Geodude",
-      "weight": 17,
-      "maxLevel": 21,
-      "minLevel": 14,
+      "weight": 8,
+      "maxLevel": 24,
+      "minLevel": 18,
       "pokedexId": 74,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Diglett",
-      "weight": 12,
-      "maxLevel": 23,
-      "minLevel": 16,
+      "weight": 5,
+      "maxLevel": 24,
+      "minLevel": 18,
       "pokedexId": 50,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Sandshrew",
-      "weight": 10,
-      "maxLevel": 23,
-      "minLevel": 16,
+      "weight": 5,
+      "maxLevel": 24,
+      "minLevel": 18,
       "pokedexId": 27,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Machop",
-      "weight": 10,
-      "maxLevel": 23,
-      "minLevel": 16,
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
       "pokedexId": 66,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Mankey",
-      "weight": 10,
-      "maxLevel": 23,
-      "minLevel": 16,
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
       "pokedexId": 56,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Nidoran♀",
-      "weight": 9,
-      "maxLevel": 23,
-      "minLevel": 16,
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
       "pokedexId": 29,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Nidoran♂",
-      "weight": 9,
-      "maxLevel": 23,
-      "minLevel": 16,
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
       "pokedexId": 32,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Nidorina",
-      "weight": 5,
+      "weight": 2,
       "maxLevel": 24,
-      "minLevel": 18,
+      "minLevel": 20,
       "pokedexId": 30,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Nidorino",
-      "weight": 5,
+      "weight": 2,
       "maxLevel": 24,
-      "minLevel": 18,
+      "minLevel": 20,
       "pokedexId": 33,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Onix",
-      "weight": 5,
+      "weight": 2,
       "maxLevel": 24,
-      "minLevel": 18,
+      "minLevel": 20,
       "pokedexId": 95,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Cubone",
-      "weight": 4,
+      "weight": 2,
       "maxLevel": 24,
       "minLevel": 20,
       "pokedexId": 104,
@@ -99,10 +99,122 @@
     },
     {
       "name": "Rhyhorn",
-      "weight": 4,
+      "weight": 2,
       "maxLevel": 24,
       "minLevel": 20,
       "pokedexId": 111,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Bayleef",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 153,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Quilava",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 156,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Croconaw",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 159,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Natu",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 177,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sudowoodo",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 185,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Pineco",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 204,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dunsparce",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 206,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gligar",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 207,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Teddiursa",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 216,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Aipom",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 190,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Yanma",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 193,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Phanpy",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 231,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tyrogue",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 236,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Larvitar",
+      "weight": 4,
+      "maxLevel": 24,
+      "minLevel": 20,
+      "pokedexId": 246,
       "tileTypes": ["tall_grass"]
     }
   ],

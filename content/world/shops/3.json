@@ -3,6 +3,28 @@
   "shopId": 3,
   "items": [
     {
+      "itemKey": "dawnStone",
+      "name": "Pedra do Amanhecer",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 5000,
+      "sellPrice": 2500,
+      "iconEmoji": "🌅",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "duskStone",
+      "name": "Pedra do Entardecer",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 5000,
+      "sellPrice": 2500,
+      "iconEmoji": "🌆",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
       "itemKey": "masterballs",
       "name": "Masterball",
       "description": "Captura garantida! 100% de chance.",
@@ -23,6 +45,17 @@
       "iconEmoji": "💊",
       "isPremium": false,
       "stock": 20
+    },
+    {
+      "itemKey": "ovalStone",
+      "name": "Pedra Oval",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 6000,
+      "sellPrice": 3000,
+      "iconEmoji": "🥚",
+      "isPremium": false,
+      "stock": 4
     },
     {
       "itemKey": "revives",

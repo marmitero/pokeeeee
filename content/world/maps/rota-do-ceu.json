@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Pidgeot",
-      "weight": 26,
+      "weight": 25,
       "maxLevel": 81,
       "minLevel": 74,
       "pokedexId": 18,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Dodrio",
-      "weight": 22,
+      "weight": 21,
       "maxLevel": 81,
       "minLevel": 74,
       "pokedexId": 85,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Charizard",
-      "weight": 28,
+      "weight": 27,
       "maxLevel": 81,
       "minLevel": 74,
       "pokedexId": 6,
@@ -35,10 +35,18 @@
     },
     {
       "name": "Gyarados",
-      "weight": 24,
+      "weight": 23,
       "maxLevel": 81,
       "minLevel": 74,
       "pokedexId": 130,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Skarmory",
+      "weight": 4,
+      "maxLevel": 84,
+      "minLevel": 80,
+      "pokedexId": 227,
       "tileTypes": ["tall_grass"]
     }
   ],

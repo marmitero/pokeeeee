@@ -33,6 +33,7 @@
  * `ALL_MOVES` de quem o chama.
  */
 import type { AllMoves, EvolvesTo, PokemonSpeciesData } from "./pokedex";
+import { EVOLUTION_ITEM_IDS } from "./evolution-items";
 
 type MoveKey = keyof AllMoves;
 type Bases = [number, number, number, number, number, number];
@@ -148,7 +149,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "As espinhas das costas crescem quando ameaçada; o veneno é fraco."),
     sp(30, "Nidorina", ["Poison"], [70, 62, 67, 55, 55, 56], 120,
       [[1, "Tackle"], [1, "PoisonSting"], [8, "Acid"], [14, "Bite"], [23, "Sludge"], [34, "PoisonJab"], [46, "SludgeBomb"]],
-      [{ speciesId: 31, trigger: "level", level: 30 }], // pedra (Lua)
+      [{ speciesId: 31, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone }],
       "Fica de vigia pelos arredores; as presas secam veneno com facilidade."),
     sp(31, "Nidoqueen", ["Poison", "Ground"], [90, 92, 87, 75, 85, 76], 45,
       [[1, "Tackle"], [1, "PoisonSting"], [12, "MudSlap"], [18, "Sludge"], [26, "Dig"], [34, "PoisonJab"], [42, "Earthquake"], [50, "SludgeBomb"], [58, "StoneEdge"]], undefined,
@@ -159,7 +160,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "Move as orelhas grandes em qualquer direção para ouvir perigos."),
     sp(33, "Nidorino", ["Poison"], [61, 72, 57, 55, 55, 65], 120,
       [[1, "Tackle"], [1, "PoisonSting"], [8, "Acid"], [14, "Peck"], [22, "Sludge"], [34, "PoisonJab"], [46, "SludgeBomb"]],
-      [{ speciesId: 34, trigger: "level", level: 30 }], // pedra (Lua)
+      [{ speciesId: 34, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone }],
       "Impulsivo: ataca primeiro e avalia o perigo depois, chifre à frente."),
     sp(34, "Nidoking", ["Poison", "Ground"], [81, 102, 77, 85, 75, 85], 45,
       [[1, "Tackle"], [1, "PoisonSting"], [12, "MudSlap"], [18, "Sludge"], [26, "Dig"], [34, "PoisonJab"], [42, "Earthquake"], [50, "SludgeBomb"], [58, "StoneEdge"]], undefined,
@@ -168,21 +169,21 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
     // ── Fadas e raposas ────────────────────────────────────────────────────
     sp(35, "Clefairy", ["Fairy"], [70, 45, 48, 60, 65, 35], 150,
       [[1, "Tackle"], [1, "DisarmingVoice"], [7, "FairyWind"], [16, "DrainingKiss"], [26, "PlayRough"], [38, "Moonblast"]],
-      [{ speciesId: 36, trigger: "level", level: 30 }], // pedra (Lua)
+      [{ speciesId: 36, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone }],
       "Adorável e raro; dança sob a luz da lua cheia em montanhas distantes."),
     sp(36, "Clefable", ["Fairy"], [95, 70, 73, 95, 90, 60], 25,
       [[1, "Tackle"], [1, "DisarmingVoice"], [14, "DrainingKiss"], [24, "PlayRough"], [34, "DazzlingGleam"], [44, "Moonblast"]], undefined,
       "Ouvido a quilômetros: fuga silenciosa e ouvido afinadíssimo."),
     sp(37, "Vulpix", ["Fire"], [38, 41, 40, 50, 65, 65], 190,
       [[1, "Ember"], [1, "QuickAttack"], [12, "FireFang"], [20, "Bite"], [30, "Flamethrower"], [40, "FireBlast"]],
-      [{ speciesId: 38, trigger: "level", level: 30 }], // pedra (Fogo)
+      [{ speciesId: 38, trigger: "item", itemId: EVOLUTION_ITEM_IDS.fireStone }],
       "As seis caudas crescem com a idade; expelam chamas quentes."),
     sp(38, "Ninetales", ["Fire"], [73, 76, 75, 81, 100, 100], 75,
       [[1, "Ember"], [1, "QuickAttack"], [12, "FireFang"], [20, "Bite"], [26, "Flamethrower"], [36, "FireBlast"], [46, "Overheat"]], undefined,
       "Nove caudas douradas; dizem que vive mil anos guardando rancor."),
     sp(39, "Jigglypuff", ["Normal", "Fairy"], [115, 45, 20, 45, 25, 20], 170,
       [[1, "Tackle"], [1, "DisarmingVoice"], [7, "FairyWind"], [16, "Headbutt"], [26, "PlayRough"], [38, "DazzlingGleam"], [48, "BodySlam"]],
-      [{ speciesId: 40, trigger: "level", level: 30 }], // pedra (Lua)
+      [{ speciesId: 40, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone }],
       "Canta uma canção que adormece; infla os olhos quando irritado."),
     sp(40, "Wigglytuff", ["Normal", "Fairy"], [140, 70, 45, 85, 50, 45], 50,
       [[1, "Tackle"], [1, "DisarmingVoice"], [16, "Headbutt"], [26, "PlayRough"], [34, "DazzlingGleam"], [44, "Moonblast"], [52, "HyperBeam"]], undefined,
@@ -202,7 +203,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "Enterra-se no solo durante o dia e caminha sob a lua."),
     sp(44, "Gloom", ["Grass", "Poison"], [60, 65, 70, 85, 75, 40], 120,
       [[1, "Absorb"], [1, "PoisonSting"], [12, "MegaDrain"], [20, "RazorLeaf"], [26, "Sludge"], [34, "PetalDance"], [44, "SolarBeam"]],
-      [{ speciesId: 45, trigger: "level", level: 30 }], // pedra (Folha)
+      [{ speciesId: 45, trigger: "item", itemId: EVOLUTION_ITEM_IDS.leafStone },
+      { speciesId: 182, trigger: "item", itemId: EVOLUTION_ITEM_IDS.sunStone }],
       "O mel que escorre da boca tem um cheiro capaz de derrubar adultos."),
     sp(45, "Vileplume", ["Grass", "Poison"], [75, 80, 85, 110, 90, 50], 45,
       [[1, "Absorb"], [1, "PoisonSting"], [14, "MegaDrain"], [22, "Sludge"], [30, "PetalDance"], [40, "EnergyBall"], [50, "SludgeBomb"], [58, "SolarBeam"]], undefined,
@@ -253,7 +255,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "Persegue quem o irrita até a exaustão — da vítima, não dele."),
     sp(58, "Growlithe", ["Fire"], [55, 70, 45, 70, 50, 60], 190,
       [[1, "Ember"], [1, "QuickAttack"], [12, "FireFang"], [20, "Bite"], [30, "Flamethrower"], [40, "FireBlast"]],
-      [{ speciesId: 59, trigger: "level", level: 30 }], // pedra (Fogo)
+      [{ speciesId: 59, trigger: "item", itemId: EVOLUTION_ITEM_IDS.fireStone }],
       "Cão de guarda leal; o latido assusta intrusos a quilômetros."),
     sp(59, "Arcanine", ["Fire"], [90, 110, 80, 100, 80, 95], 75,
       [[1, "Ember"], [1, "QuickAttack"], [12, "FireFang"], [20, "Bite"], [28, "ExtremeSpeed"], [38, "Flamethrower"], [48, "FireBlast"]], undefined,
@@ -264,7 +266,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "A espiral na barriga indica o grau de hipnese que ela exerce."),
     sp(61, "Poliwhirl", ["Water"], [65, 65, 65, 50, 50, 90], 120,
       [[1, "Bubble"], [1, "WaterGun"], [15, "BubbleBeam"], [24, "WaterPulse"], [34, "Surf"], [46, "HydroPump"]],
-      [{ speciesId: 62, trigger: "level", level: 30 }], // pedra (Água)
+      [{ speciesId: 62, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone },
+      { speciesId: 186, trigger: "item", itemId: EVOLUTION_ITEM_IDS.kingsRock }],
       "As pernas se desenvolvem; em terra, prefere andar de quatro."),
     sp(62, "Poliwrath", ["Water", "Fighting"], [90, 95, 95, 70, 90, 70], 45,
       [[1, "Bubble"], [1, "WaterGun"], [14, "BubbleBeam"], [22, "Submission"], [30, "Waterfall"], [38, "BrickBreak"], [46, "DynamicPunch"], [54, "Surf"]], undefined,
@@ -299,7 +302,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "Planta carnívora: digere insetos com ácido e usa raízes como pés."),
     sp(70, "Weepinbell", ["Grass", "Poison"], [65, 90, 50, 85, 45, 55], 120,
       [[1, "VineWhip"], [1, "Acid"], [12, "RazorLeaf"], [20, "Sludge"], [30, "SeedBomb"], [38, "SludgeBomb"], [48, "SolarBeam"]],
-      [{ speciesId: 71, trigger: "level", level: 30 }], // pedra (Folha)
+      [{ speciesId: 71, trigger: "item", itemId: EVOLUTION_ITEM_IDS.leafStone }],
       "Cospe pólen que paralisa; então engole a presa inteira."),
     sp(71, "Victreebel", ["Grass", "Poison"], [80, 105, 65, 100, 70, 70], 45,
       [[1, "VineWhip"], [1, "Acid"], [14, "RazorLeaf"], [24, "Sludge"], [34, "LeafBlade"], [44, "SludgeBomb"], [54, "SolarBeam"]], undefined,
@@ -327,7 +330,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "Galopa a 240 km/h; a chama da crina riscando o vento assusta."),
     sp(79, "Slowpoke", ["Water", "Psychic"], [90, 65, 65, 40, 40, 15], 190,
       [[1, "Tackle"], [1, "Confusion"], [12, "WaterGun"], [20, "Headbutt"], [28, "WaterPulse"], [38, "Surf"], [48, "FutureSight"], [58, "Psychic"]],
-      [{ speciesId: 80, trigger: "level", level: 37 }],
+      [{ speciesId: 80, trigger: "level", level: 37 },
+        { speciesId: 199, trigger: "item", itemId: EVOLUTION_ITEM_IDS.kingsRock }],
       "Esquece o que ia fazer no meio do caminho até a beira do lago."),
     sp(80, "Slowbro", ["Water", "Psychic"], [95, 75, 110, 100, 80, 30], 75,
       [[1, "Tackle"], [1, "Confusion"], [12, "WaterGun"], [20, "Headbutt"], [28, "WaterPulse"], [36, "Surf"], [44, "FutureSight"], [52, "Psychic"]], undefined,
@@ -365,7 +369,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "Tão tóxico que as plantas morrem no caminho por onde passa."),
     sp(90, "Shellder", ["Water"], [30, 65, 100, 45, 25, 40], 190,
       [[1, "Tackle"], [1, "Bubble"], [12, "IceShard"], [18, "AuroraBeam"], [26, "WaterPulse"], [34, "Surf"], [44, "IceBeam"], [54, "HydroPump"]],
-      [{ speciesId: 91, trigger: "level", level: 30 }], // pedra (Água)
+      [{ speciesId: 91, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone }],
       "A concha é mais dura que diamante; só abre para atacar."),
     sp(91, "Cloyster", ["Water", "Ice"], [50, 95, 180, 85, 45, 70], 60,
       [[1, "Tackle"], [1, "IceShard"], [14, "AuroraBeam"], [22, "WaterPulse"], [32, "Surf"], [42, "IceBeam"], [50, "Blizzard"], [58, "HydroPump"]], undefined,
@@ -401,7 +405,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       "O Pokémon mais rápido do rolamento comum; explode por pouco."),
     sp(102, "Exeggcute", ["Grass", "Psychic"], [60, 40, 80, 60, 45, 40], 90,
       [[1, "Confusion"], [1, "Absorb"], [12, "MegaDrain"], [20, "Psybeam"], [30, "EnergyBall"], [40, "FutureSight"], [50, "Psychic"], [60, "SolarBeam"]],
-      [{ speciesId: 103, trigger: "level", level: 30 }], // pedra (Folha)
+      [{ speciesId: 103, trigger: "item", itemId: EVOLUTION_ITEM_IDS.leafStone }],
       "Seis ovos que se agregam por telepatia; um dorme, outro pensa."),
     sp(103, "Exeggutor", ["Grass", "Psychic"], [95, 95, 85, 125, 75, 55], 45,
       [[1, "Confusion"], [1, "Absorb"], [14, "MegaDrain"], [24, "Psybeam"], [34, "EnergyBall"], [44, "Psychic"], [54, "SolarBeam"]], undefined,
@@ -437,7 +441,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [[1, "Tackle"], [1, "MudSlap"], [10, "RockThrow"], [18, "Headbutt"], [26, "RockSlide"], [34, "Dig"], [44, "Earthquake"], [54, "StoneEdge"], [62, "IronTail"]], undefined,
       "A carapaça suporta erupções; o chifre derruba arranha-céus."),
     sp(113, "Chansey", ["Normal"], [250, 5, 5, 35, 105, 50], 30,
-      [[1, "Tackle"], [1, "QuickAttack"], [16, "BodySlam"], [28, "TakeDown"], [40, "DazzlingGleam"], [52, "HyperBeam"]], undefined,
+      [[1, "Tackle"], [1, "QuickAttack"], [16, "BodySlam"], [28, "TakeDown"], [40, "DazzlingGleam"], [52, "HyperBeam"]],
+      [{ speciesId: 242, trigger: "item", itemId: EVOLUTION_ITEM_IDS.ovalStone }],
       "Botovos do dia; quem come um ovo ganha bondade infinita, dizem."),
     sp(114, "Tangela", ["Grass"], [65, 55, 115, 100, 40, 60], 45,
       [[1, "Absorb"], [1, "VineWhip"], [10, "MegaDrain"], [18, "AncientPower"], [28, "SeedBomb"], [40, "EnergyBall"], [52, "SolarBeam"]], undefined,
@@ -450,7 +455,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [{ speciesId: 117, trigger: "level", level: 32 }],
       "Cospe tinta pra fugir; enrola a cauda em corais para não boiar."),
     sp(117, "Seadra", ["Water"], [55, 65, 95, 95, 45, 85], 75,
-      [[1, "Bubble"], [1, "WaterGun"], [14, "BubbleBeam"], [24, "WaterPulse"], [32, "Surf"], [42, "HydroPump"], [52, "DragonPulse"]], undefined,
+      [[1, "Bubble"], [1, "WaterGun"], [14, "BubbleBeam"], [24, "WaterPulse"], [32, "Surf"], [42, "HydroPump"], [52, "DragonPulse"]],
+      [{ speciesId: 230, trigger: "item", itemId: EVOLUTION_ITEM_IDS.dragonScale }],
       "As guelras expelam jatos de água com agulhas venenosas."),
     sp(118, "Goldeen", ["Water"], [45, 67, 60, 35, 50, 63], 225,
       [[1, "Tackle"], [1, "Peck"], [12, "WaterGun"], [18, "WaterPulse"], [26, "Waterfall"], [36, "Surf"], [46, "HydroPump"]],
@@ -465,7 +471,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [[1, "Confusion"], [1, "DisarmingVoice"], [12, "Psybeam"], [22, "DazzlingGleam"], [32, "ShadowBall"], [42, "Psychic"], [52, "Moonblast"]], undefined,
       "Pantomima paredes invisíveis — e elas ficam reais de verdade."),
     sp(123, "Scyther", ["Bug", "Flying"], [70, 110, 80, 55, 80, 105], 45,
-      [[1, "QuickAttack"], [1, "FuryCutter"], [16, "WingAttack"], [24, "AerialAce"], [32, "Slash"], [40, "XScissor"], [50, "NightSlash"], [58, "AirSlash"]], undefined,
+      [[1, "QuickAttack"], [1, "FuryCutter"], [16, "WingAttack"], [24, "AerialAce"], [32, "Slash"], [40, "XScissor"], [50, "NightSlash"], [58, "AirSlash"]],
+      [{ speciesId: 212, trigger: "item", itemId: EVOLUTION_ITEM_IDS.metalCoat }],
       "As foices cortam troncos; movimenta-se tão rápido que parece sumir."),
     sp(124, "Jynx", ["Ice", "Psychic"], [65, 50, 35, 115, 95, 95], 45,
       [[1, "Lick"], [1, "PowderSnow"], [12, "Confusion"], [20, "IcePunch"], [28, "Psybeam"], [40, "IceBeam"], [50, "Blizzard"], [60, "Psychic"]], undefined,
@@ -499,7 +506,8 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [[1, "Tackle"], [1, "Ember"], [14, "QuickAttack"], [22, "FireFang"], [32, "IronTail"], [42, "Flamethrower"], [52, "Overheat"]], undefined, // não ligado
       "A bolsa de fogo interna aquece o próprio corpo a novecentos graus."),
     sp(137, "Porygon", ["Normal"], [65, 60, 70, 85, 75, 40], 45,
-      [[1, "Tackle"], [1, "ThunderShock"], [12, "Psybeam"], [20, "ShockWave"], [30, "IceBeam"], [40, "Thunderbolt"], [50, "Psychic"], [58, "HyperBeam"]], undefined,
+      [[1, "Tackle"], [1, "ThunderShock"], [12, "Psybeam"], [20, "ShockWave"], [30, "IceBeam"], [40, "Thunderbolt"], [50, "Psychic"], [58, "HyperBeam"]],
+      [{ speciesId: 233, trigger: "item", itemId: EVOLUTION_ITEM_IDS.upgrade }],
       "Feito de código: existe só para estudar o movimento dimensional."),
     sp(138, "Omanyte", ["Rock", "Water"], [35, 40, 100, 90, 55, 35], 45,
       [[1, "RockThrow"], [1, "WaterGun"], [14, "BubbleBeam"], [22, "AncientPower"], [32, "RockSlide"], [42, "Surf"], [52, "HydroPump"]],

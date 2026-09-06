@@ -8,8 +8,8 @@ import { POKEDEX, getPokemonSpecies } from "./pokedex";
 /**
  * Guardas da Fase 6.4-A — o mundo até o mapa 20 (2026-09-06).
  *
- * Pedido do mantenedor: mapas temáticos (regiões) até o 20, com as 156
- * espécies distribuídas de forma balanceada e separada — formas básicas e
+ * Pedido do mantenedor: mapas temáticos (regiões) até o 20, com as espécies
+ * distribuídas de forma balanceada e separada — formas básicas e
  * comuns nos mapas iniciais; evoluídos, raros e faixas de nível altas nos
  * avançados. Estes testes leem `content/world/maps/*.json` (a cópia
  * versionada do mundo — MUNDO-COMO-CODIGO) e travam o contrato para que um
@@ -66,7 +66,7 @@ const EXPECTED_SLUGS = [
   "santuario-celeste",
 ];
 
-const LEGENDARIES = new Set([144, 145, 146, 150, 151, 384]);
+const LEGENDARIES = new Set([144, 145, 146, 150, 151, 243, 244, 245, 249, 250, 251, 384]);
 
 /** Espécies dos três ginásios: o desafio não pode virar commons de mapa cedo. */
 const GYM_ACES = new Set([74, 95, 120, 121, 148, 149]);
@@ -103,9 +103,9 @@ describe("mundo até o mapa 20 (6.4-A)", () => {
     }))).toEqual(esperado);
   });
 
-  it("as 156 espécies aparecem exatamente uma vez, em mapa nenhum duplicado", () => {
+  it("as 254 espécies aparecem exatamente uma vez, em mapa nenhum duplicado", () => {
     expect(orderBySpecies.size).toBe(POKEDEX.length);
-    expect(orderBySpecies.size).toBe(156);
+    expect(orderBySpecies.size).toBe(254);
 
     const todas = new Set(POKEDEX.map((s) => s.id));
     for (const id of orderBySpecies.keys()) {

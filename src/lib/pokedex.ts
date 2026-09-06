@@ -1,4 +1,6 @@
+import { EVOLUTION_ITEM_IDS } from "./evolution-items";
 import { gen1Rest } from "./pokedex-gen1";
+import { johtoRest } from "./pokedex-johto";
 
 export type DelugeVariant =
   | "Normal"
@@ -1730,7 +1732,7 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 42, move: ALL_MOVES.Thunder },
       { level: 50, move: ALL_MOVES.WildCharge },
     ],
-    evolvesTo: [{ speciesId: 26, trigger: "level", level: 30 }], // pedra (Trovão), provisório
+    evolvesTo: [{ speciesId: 26, trigger: "item", itemId: EVOLUTION_ITEM_IDS.thunderStone }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/25.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/25.gif",
@@ -1787,7 +1789,9 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 52, move: ALL_MOVES.Earthquake },
       { level: 58, move: ALL_MOVES.StoneEdge },
     ],
-    evolvesTo: [{ speciesId: 208, trigger: "level", level: 36 }], // troca + Casaco de Metal, provisório
+    // Fase 6.4-B: cânon é troca + Revestimento de Metal; sem sistema de troca,
+    // o item sozinho é o gatilho (consumível raro, resolvido no servidor).
+    evolvesTo: [{ speciesId: 208, trigger: "item", itemId: EVOLUTION_ITEM_IDS.metalCoat }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/95.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/95.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/95.gif",
@@ -1814,9 +1818,8 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 42, move: ALL_MOVES.IceBeam },
       { level: 52, move: ALL_MOVES.HydroPump },
     ],
-    // Fase 6.3: no cânon é Pedra d'Água; como não há itens de evolução ainda,
-    // vira gatilho de nível (provisório — pedra entra com a 6.4/6.5).
-    evolvesTo: [{ speciesId: 121, trigger: "level", level: 30 }],
+    // Fase 6.4-B: Pedra d'Água, consumível na loja (antes era nível provisório).
+    evolvesTo: [{ speciesId: 121, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone }],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/120.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/120.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/120.gif",
@@ -1951,9 +1954,15 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 44, move: ALL_MOVES.ShadowBall },
       { level: 52, move: ALL_MOVES.BodySlam },
     ],
-    // Fase 6.3: no cânon é evolução por felicidade (noite); sem o sistema de
-    // felicidade, vira gatilho de nível (provisório).
-    evolvesTo: [{ speciesId: 197, trigger: "level", level: 30 }],
+    // Fase 6.4-B: com as pedras na loja, a decisão é do jogador. Espeon/Umbreon
+    // usam Pedra do Sol/Lua como proxy para felicidade (mecânica futura da 6.5).
+    evolvesTo: [
+      { speciesId: 134, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone },
+      { speciesId: 135, trigger: "item", itemId: EVOLUTION_ITEM_IDS.thunderStone },
+      { speciesId: 136, trigger: "item", itemId: EVOLUTION_ITEM_IDS.fireStone },
+      { speciesId: 196, trigger: "item", itemId: EVOLUTION_ITEM_IDS.sunStone },
+      { speciesId: 197, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone },
+    ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/133.gif",
     shinyFrontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/133.gif",
@@ -2146,9 +2155,12 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
 
 // Fase 6.3-A: o restante do catálogo Kanto vive em `pokedex-gen1.ts` (mesmos
 // tipos, sprites do mesmo CDN) e entra aqui, em ordem de id.
+// Fase 6.4-B: Johto (152–251, exceto 197/208 já presentes) entra na sequência;
+// dados derivados de PokeAPI e learnsets do catálogo de golpes existente.
 const POKEDEX_DATA: PokemonSpeciesData[] = [
   ...POKEDEX_BASE,
   ...gen1Rest(ALL_MOVES),
+  ...johtoRest(ALL_MOVES),
 ];
 
 /** Golpe padrão usado quando o nome gravado no banco não existe mais no catálogo. */

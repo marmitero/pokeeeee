@@ -15,7 +15,8 @@ import { gmCreatePokemon, gmSetLevel, type GmPokemonRow } from "./gm";
  * nível, learnset, evolução com catch-up). Os casos abaixo travam isso com
  * espécies de linha conhecida:
  *  - Charmander (4) → Charmeleon (5, nv 16) → Charizard (6, nv 36)
- *  - Pikachu (25) → Raichu (26, nv 30)
+ *  - Togepi (175) → Togetic (176, nv 20)
+ *  - Pikachu (25) NÃO evolui por nível: a pedra de Trovão é caminho próprio.
  */
 
 function row(overrides: Partial<GmPokemonRow> & { pokedexId: number; level: number }): GmPokemonRow {
@@ -97,10 +98,16 @@ describe("gmSetLevel (subir nível)", () => {
     expect(out.move4).toBe(""); // no nível 10 só conhece 3 golpes
   });
 
-  it("Pikachu 29 continua Pikachu; 30 vira Raichu", () => {
-    expect(gmSetLevel(row({ pokedexId: 25, level: 10 }), 29).pokedexId).toBe(25);
-    expect(gmSetLevel(row({ pokedexId: 25, level: 10 }), 30).pokedexId).toBe(26);
-    expect(gmSetLevel(row({ pokedexId: 25, level: 10 }), 30).name).toBe("Raichu");
+  it("Togepi 19 continua Togepi; 20 vira Togetic", () => {
+    expect(gmSetLevel(row({ pokedexId: 175, level: 5 }), 19).pokedexId).toBe(175);
+    const out = gmSetLevel(row({ pokedexId: 175, level: 5 }), 20);
+    expect(out.pokedexId).toBe(176);
+    expect(out.name).toBe("Togetic");
+  });
+
+  it("Pikachu não evolui por nível — pedra é caminho próprio (6.4-B)", () => {
+    expect(gmSetLevel(row({ pokedexId: 25, level: 30 }), 30).pokedexId).toBe(25);
+    expect(gmSetLevel(row({ pokedexId: 25, level: 30 }), 100).pokedexId).toBe(25);
   });
 
   it("sem gatilho atingido não evolui e não inventa golpe novo", () => {

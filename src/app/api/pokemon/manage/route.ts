@@ -5,6 +5,13 @@ import { users, userPokemon } from "@/db/schema";
 import { requireUser } from "@/lib/session";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { manageSchema } from "@/lib/validation";
+import {
+  EVOLUTION_ITEM_LABEL,
+  EVOLUTION_ITEM_VALUES,
+  type EvolutionItemKey,
+} from "@/lib/evolution-items";
+import { applyItemEvolution, evolutionWithItem } from "@/lib/engine/evolution";
+import { moveNamesForDb, refreshMovesForLevel, sideFromUserPokemon } from "@/lib/engine/combatant";
 import { parse, badRequest, notFound, publicUser, routeError } from "@/lib/api";
 
 /**
@@ -31,6 +38,11 @@ const ITEM_LABEL: Record<string, string> = {
   maxPotion: "Hiper Poções",
   revive: "Reviveres",
 };
+
+/** Guarda de tipo: `use_item` aceita cura OU item de evolução (6.4-B). */
+function isEvolutionItem(item: string): item is EvolutionItemKey {
+  return (EVOLUTION_ITEM_VALUES as readonly string[]).includes(item);
+}
 
 const INVENTORY_COLUMN = {
   potion: "potions",
@@ -218,6 +230,70 @@ export async function POST(req: Request) {
     // ── USE ITEM ─────────────────────────────────────────────────────────
     if (input.action === "use_item") {
       const poke = await loadOwned(input.pokemonId, uid);
+
+      // Fase 6.4-B: itens de evolução (pedras/cascos raros). Consomem o item e
+      // aplicam a evolução fora de batalha, com o mesmo motor da evolução por
+      // nível (stats recalculados, % HP preservado, apelido mantido).
+      if (isEvolutionItem(input.item)) {
+        const itemKey = input.item;
+        const rule = evolutionWithItem(poke.pokedexId, itemKey);
+        if (!rule) {
+          throw badRequest(`${EVOLUTION_ITEM_LABEL[itemKey]} não evolui ${poke.name}!`);
+        }
+
+        const side = sideFromUserPokemon(poke);
+        const outcome = applyItemEvolution(side, itemKey);
+        if (!outcome) {
+          throw badRequest(`${EVOLUTION_ITEM_LABEL[itemKey]} não evolui ${poke.name}!`);
+        }
+        const newMoves = refreshMovesForLevel(side, side.level);
+        const { move1, move2, move3, move4 } = moveNamesForDb(side);
+
+        await db.transaction(async (tx) => {
+          const deducted = await tx
+            .update(users)
+            .set({ [itemKey]: sql`${users[itemKey]} - 1` })
+            .where(and(eq(users.id, uid), sql`${users[itemKey]} > 0`))
+            .returning({ id: users.id });
+
+          if (deducted.length === 0) {
+            throw badRequest(`Sem ${EVOLUTION_ITEM_LABEL[itemKey]}!`);
+          }
+
+          await tx
+            .update(userPokemon)
+            .set({
+              pokedexId: side.pokedexId,
+              name: side.name,
+              hp: side.hp,
+              maxHp: side.maxHp,
+              attack: side.attack,
+              defense: side.defense,
+              spAttack: side.spAttack,
+              spDefense: side.spDefense,
+              speed: side.speed,
+              move1, move2, move3, move4,
+            })
+            .where(eq(userPokemon.id, poke.id));
+        });
+
+        const [updatedUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, uid));
+        const all = await db
+          .select()
+          .from(userPokemon)
+          .where(eq(userPokemon.userId, uid));
+
+        return NextResponse.json({
+          user: publicUser(updatedUser),
+          party: all,
+          message: `★ ${outcome.fromName} evoluiu para ${outcome.toName}!` +
+            (newMoves.length ? ` Aprendeu: ${newMoves.join(", ")}.` : ""),
+        });
+      }
+
       const column = INVENTORY_COLUMN[input.item];
       const inStock = user[column];
 

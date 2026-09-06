@@ -11,7 +11,7 @@
   "encounterTable": [
     {
       "name": "Dragonite",
-      "weight": 30,
+      "weight": 25,
       "maxLevel": 92,
       "minLevel": 82,
       "pokedexId": 149,
@@ -19,7 +19,7 @@
     },
     {
       "name": "Dragonair",
-      "weight": 34,
+      "weight": 28,
       "maxLevel": 92,
       "minLevel": 82,
       "pokedexId": 148,
@@ -27,7 +27,7 @@
     },
     {
       "name": "Rayquaza",
-      "weight": 16,
+      "weight": 13,
       "maxLevel": 95,
       "minLevel": 87,
       "pokedexId": 384,
@@ -35,7 +35,7 @@
     },
     {
       "name": "Zapdos",
-      "weight": 12,
+      "weight": 10,
       "maxLevel": 95,
       "minLevel": 87,
       "pokedexId": 145,
@@ -43,10 +43,58 @@
     },
     {
       "name": "Mew",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 95,
       "minLevel": 87,
       "pokedexId": 151,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Raikou",
+      "weight": 3,
+      "maxLevel": 95,
+      "minLevel": 88,
+      "pokedexId": 243,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Entei",
+      "weight": 3,
+      "maxLevel": 95,
+      "minLevel": 88,
+      "pokedexId": 244,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Suicune",
+      "weight": 3,
+      "maxLevel": 95,
+      "minLevel": 88,
+      "pokedexId": 245,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lugia",
+      "weight": 3,
+      "maxLevel": 95,
+      "minLevel": 88,
+      "pokedexId": 249,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ho-Oh",
+      "weight": 3,
+      "maxLevel": 95,
+      "minLevel": 88,
+      "pokedexId": 250,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Celebi",
+      "weight": 3,
+      "maxLevel": 95,
+      "minLevel": 88,
+      "pokedexId": 251,
       "tileTypes": ["tall_grass"]
     }
   ],
