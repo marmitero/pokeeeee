@@ -349,6 +349,99 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 
 ---
 
+### 🧭 ROADMAP REDEFINIDO PELO MANTENEDOR (2026-09-06, após a 6.4-C)
+
+> Direção declarada, em ordem e sem atalhos:
+> **1º) terminar TODOS os Pokémon → 2º) construir o mundo até 100 mapas, com
+> lojas, arenas de bosses lendários, ginásios, arena PvP e NPCs de missão.**
+> As fases numeradas abaixo substituem a ordem antiga (6.5 status → 6.6 PvP →
+> 6.7 NPCs), que passa a ser **absorvida dentro da Fase 8** — status, PvP
+> ranqueado e NPCs viram requisitos do mundo, não etapas soltas.
+
+#### 🅰️ ETAPA A — Pokédex completa (as espécies primeiro)
+
+Regra de ouro do lote (herdada da 6.4-B/6.4-C): espécies em lotes por geração,
+**linhas evolutivas completas**, learnset cobrindo os tipos, evolução dirigida
+por dados (`trigger:"level"|"item"`), **sem** mexer nos encontros dos mapas —
+a distribuição acontece só na Etapa B.
+
+- [x] **6.4-A** — mundo até o mapa 20 + 156 espécies redistribuídas ✅ 2026-09-06
+- [x] **6.4-B** — Johto (152–251) + pedras de evolução ✅ 2026-09-06
+- [x] **6.4-C** — Hoenn (252–386) — Pokédex **387** ✅ 2026-09-06
+- [ ] **6.4-D — Sinnoh (387–493)**: +107 espécies → **494**. Sprites animados
+      Gen V existem para toda a faixa. Introduz itens de evolução que ainda não
+      temos (Protetor, Eletrizador, Magmatizador, Garra Afiada, Escama Suja) —
+      cada item novo = coluna nova em `users` = **migration + SQL companheiro**.
+- [ ] **6.4-E — Unova (494–649)**: +156 espécies → **650**. É o **teto do CDN
+      animado** (`black-white/animated` vai até o id 649) — a partir daqui a
+      direção de arte precisa de decisão (ver 6.4-F).
+- [ ] **6.4-F — Além do 649 (Kalos 650–721 em diante)**: **bloqueada por uma
+      decisão de arte/produto**, não por esforço. Não há GIF animado Gen V para
+      esses ids; as opções são (a) usar sprites estáticos de outra geração só
+      para eles — quebra a unidade visual; (b) parar em 649 e chamar de
+      "Pokédex completa" do jogo; (c) arte própria (casa com o rebranding e
+      resolve o risco legal). **Levar ao mantenedor antes de implementar.**
+- [ ] **6.4-G — Formas especiais** (Mega, regionais, Rotom, Deoxys): só depois
+      de fechar a lista base; exige coluna de forma em `user_pokemon`.
+
+#### 🅱️ ETAPA B — O mundo até 100 mapas
+
+Só começa quando a Etapa A fechar (ou quando o mantenedor mandar). Cada lote de
+mapas leva junto a redistribuição das espécies daquela faixa, `world:export`,
+PR e aplicação em produção pelo workflow **World activation**.
+
+- [ ] **7.1 — Mapas 21–40** + encontros de Hoenn/Sinnoh nas bandas altas
+- [ ] **7.2 — Mapas 41–60**
+- [ ] **7.3 — Mapas 61–80**
+- [ ] **7.4 — Mapas 81–100** (fecha o mundo)
+
+Invariantes de todo lote: **mapa 1 intocado** (contrato 6.2-C); bandas de nível
+crescentes e sem buraco; toda espécie em **exatamente um** mapa; linhas
+evolutivas na mesma região; pesos somando 100 por mapa; portais formando cadeia
+navegável a pé.
+
+#### 🅲 ETAPA C — Povoar o mundo (sistemas que os 100 mapas exigem)
+
+Cada item aqui é pré-requisito de "mundo vivo" e pode andar em paralelo à
+Etapa B assim que o primeiro lote de mapas existir.
+
+- [ ] **8.1 — Lojas por região**: hoje são 3 lojas (mapas 1–3) e um catálogo
+      único. Precisa de estoque por região/nível, preços escalonados e a
+      **venda de itens** (`sellPrice` é coluna morta desde a Fase 3). Corrigir
+      junto o exploit conhecido de `quantity` negativa na compra.
+- [ ] **8.2 — Ginásios (8 + Elite)**: hoje 3 líderes (Brock/Misty/+1) e
+      `user_badges` já existe. Faltam os demais líderes com times coerentes com
+      a banda do mapa, ordem de insígnias e portas que exigem insígnia.
+- [ ] **8.3 — Arenas de bosses lendários**: encontro fixo, único por conta,
+      curado (não é grama aleatória) — tabela de "encontro roteirizado" +
+      trava de repetição. Os lendários já estão no catálogo e no mapa 20.
+- [ ] **8.4 — Status de batalha** (era a 6.5): veneno/queimadura/paralisia no
+      motor, colunas `status`/`statusTurns` em `user_pokemon` (**migration**),
+      Antídoto e Queimadura-cura voltam à loja. Vira pré-requisito de ginásio
+      difícil e de boss.
+- [ ] **8.5 — Arena PvP ranqueada** (era a 6.6): `users.elo` já existe dormente
+      e `pvp_battles.mode` já aceita `"ranked"`. Falta ranking global,
+      pareamento, recompensa por posição e antifarm.
+- [ ] **8.6 — NPCs de missão**: tipo de NPC novo (hoje só `shop`/`gym`),
+      máquina de estado de missão por jogador (**tabela nova**), diálogo com
+      ramificação, recompensa e travas de progresso. É o maior item da etapa.
+- [ ] **8.7 — Treinadores de rota** (NPCs de batalha não-ginásio), reusando o
+      motor de ginásio.
+
+#### 🅳 ETAPA D — Antes de divulgar (bloqueia monetização)
+
+- [ ] **9.1 — Rebranding completo**: identificadores internos
+      (`computeDelugeStats`, `DelugeRPGPage`, `DelugeVariant`, `DELUGE_VARIANTS`),
+      `package.json` (`name: "deluge-rpg"`), README/docs.
+- [ ] **9.2 — Decisão legal sobre nomes/sprites** (Nintendo/Game Freak via CDN
+      de terceiros). Casa com a 6.4-F: arte própria resolve as duas de uma vez.
+- [ ] **9.3 — Remetente próprio**: domínio + SPF/DKIM para o `SMTP_FROM` sair
+      do Gmail.
+- [ ] **9.4 — Premium (era 6.8)**: **BLOQUEADO** até 9.1–9.3, mais termos,
+      privacidade, pagamento e antifraude.
+
+---
+
 ## 3. Qual foi a última etapa aplicada
 
 ### ✅ FASE 6.4-C — Catálogo Hoenn (252–386): Pokédex 254 → 387 (2026-09-06)
@@ -2174,29 +2267,40 @@ encontro não mudaram).
    é assim de propósito nesta fase);
 3. (opcional) comprar uma Pedra d'Água e usar num Lombre/Clamperl.
 
-### Próxima etapa a decidir com o mantenedor
+### PRÓXIMA ETAPA: 6.4-D — Sinnoh (387–493)
 
-O plano declarado é **construir mais mapas e só então distribuir os encontros**.
-Duas frentes possíveis, na ordem que o mantenedor preferir:
+**O rumo foi decidido pelo mantenedor em 2026-09-06** (não há mais decisão em
+aberto sobre "espécies ou status"): primeiro **terminar todos os Pokémon**,
+depois **o mundo até 100 mapas** com lojas, arenas de bosses lendários,
+ginásios, arena PvP e NPCs de missão. O roadmap inteiro, em 4 etapas (A–D),
+está na **§2** deste arquivo — leia lá antes de planejar.
 
-1. **6.4-D — mundo 21–35 + redistribuição**: mapas temáticos novos para as
-   faixas de nível altas e as 133 espécies de Hoenn entrando nos encontros
-   (regra de sempre: linhas completas, bandas de nível crescentes, mapa 1
-   intocado, `world:export` + PR + workflow *World activation* para aplicar em
-   produção);
-2. **6.5 status** (veneno/queimadura/paralisia; coluna `status`/`statusTurns`
-   em `user_pokemon` → **migration 0008**, que vira pré-requisito de merge;
-   Antídoto volta à loja) → 6.6 PvP ranqueado → 6.7 NPCs.
+Concretamente, a próxima entrega é a **6.4-D — Sinnoh (387–493)**: +107
+espécies, Pokédex **387 → 494**, no mesmo padrão da 6.4-C:
 
-**Rebranding completo** continua pendente **antes** de divulgação/monetização
-(6.8 premium segue bloqueado): identificadores internos (`computeDelugeStats`,
-`DelugeRPGPage`, `DelugeVariant`…), `package.json` (`name: "deluge-rpg"` —
-aparece até no log do `npm run db:local`), README/docs, e a decisão legal sobre
-nomes/sprites Pokémon. Upgrade opcional do remetente: domínio próprio + SPF/DKIM
-para o `SMTP_FROM` sair do Gmail.
+- espécies em `src/lib/pokedex-sinnoh.ts`, dados da PokeAPI
+  (`git clone --sparse` — `raw.githubusercontent.com` é bloqueado no sandbox);
+- linhas evolutivas completas, learnsets derivados dos 133 golpes existentes,
+  curva da 6.2-C respeitada (nada acima de poder 50 nos níveis 1 e 7);
+- **sem tocar em `content/world/`** — encontros só na Etapa B;
+- testes de contrato próprios (`pokedex-sinnoh.test.ts`) + contagens de
+  `pokedex-gen1.test.ts` e `world-expansion.test.ts` atualizadas.
 
-**Antes de começar a próxima rodada:** reler este arquivo inteiro (regra do
-protocolo) e `docs/RELATORIO-POS-ATIVACAO.md`.
+⚠️ **Diferença importante em relação à 6.4-C:** Sinnoh traz itens de evolução
+que o jogo **ainda não tem** (Protetor, Eletrizador, Magmatizador, Garra
+Afiada, Escama Suja, Pedra do Entardecer/Amanhecer já existem). Cada item novo
+é uma **coluna nova em `users`** → **migration 0008 + SQL companheiro**
+(`docs/supabase-production-0008-runtime.sql`, com grants/RLS, pela regra do
+incidente de 2026-09-06) → vira **pré-requisito do merge**, aplicado à mão no
+SQL Editor do Supabase antes do deploy. Alternativa mais barata, se o
+mantenedor preferir adiar o passo de banco: mapear essas linhas para as pedras
+que já existem (proxy declarado, como Feebas → Pedra Brilhante na 6.4-C).
+
+**Teto do CDN:** os GIFs animados Gen V vão até o **id 649**. Sinnoh (493) e
+Unova (649) cabem; de 650 em diante é decisão de arte (6.4-F na §2).
+
+**Antes de começar:** reler este arquivo inteiro (regra do protocolo) e
+`docs/PROMPT-NOVA-CONVERSA.md`.
 
 ---
 
@@ -2248,7 +2352,8 @@ protocolo) e `docs/RELATORIO-POS-ATIVACAO.md`.
 | 2026-09-06 | **Merge do PR #9** — fix do incidente do cadastro em produção (`arena/01a077fb-pokeeeee` → `main`, commit `6c18858`) | ✅ Mergeado · CI do run `34053895267` verde · ⬜ validação de produção pelo mantenedor (SQL + e-mail real) | `gh pr show 9` · §3/§4.27 |
 | 2026-09-06 | **Fase 6.4-B** — catálogo Johto (98 espécies novas; Pokédex 156 → 254) + pedras/evolução por item (14 itens, schema 0007, lojas 1–3, `/api/pokemon/manage`) + redistribuição das 98 no mundo | ✅ Concluída e validada no sandbox · commit `2e2c1dc` · **PR #10** · ⬜ SQL `0007` em produção + passada visual | 18/257 unit · 8/100 integração · `docs/supabase-production-0007-runtime.sql` · §3/§4.28 |
 | 2026-09-06 | **Fase 6.4-C** — catálogo Hoenn 252–386: 133 espécies novas (Pokédex 254 → **387**), evolução por nível/pedra dirigida por dados, **sem** redistribuição no mundo (decisão do mantenedor: mapas primeiro) | ✅ Concluída e validada no sandbox · ⬜ passada visual em produção | 19/266 unit · 8/100 integração · `src/lib/pokedex-hoenn.ts` · **sem migration** · §3/§4.29 |
-| — | **Fase 6.4-D / 6.5** — mapas 21+ com os encontros de Hoenn, ou pular para status (migration 0008) | ⬜ A decidir com o mantenedor | `docs/FASE-6.md` |
+| 2026-09-06 | **Roadmap redefinido pelo mantenedor** — Etapa A (todos os Pokémon) → Etapa B (mundo até 100 mapas) → Etapa C (lojas, bosses lendários, ginásios, status, PvP ranqueado, NPCs de missão) → Etapa D (rebranding/legal/premium). A ordem antiga 6.5→6.6→6.7 foi absorvida na Etapa C | ✅ Registrado | `AI_State.md` §2 |
+| — | **Fase 6.4-D — Sinnoh (387–493)**, Pokédex 387 → 494 (atenção: itens de evolução novos ⇒ migration 0008 + SQL companheiro) | ⬜ Próxima | `AI_State.md` §2/§5 |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e
