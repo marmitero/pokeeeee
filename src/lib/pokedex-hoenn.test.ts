@@ -30,7 +30,7 @@ describe("catálogo Hoenn (6.4-C)", () => {
     for (let id = 252; id <= 386; id++) {
       expect(() => getPokemonSpecies(id), `#${id} ausente`).not.toThrow();
     }
-    expect(POKEDEX).toHaveLength(387);
+    expect(POKEDEX.length).toBeGreaterThanOrEqual(387); // 6.4-D somou Sinnoh por cima
   });
 
   it("tipos, status-base e catchRate são plausíveis", () => {

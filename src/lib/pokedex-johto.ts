@@ -134,7 +134,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Fairy, conhecido por sua presença marcante na região."),
     sp(176, "Togetic", ["Fairy", "Flying"], [55, 40, 85, 80, 105, 40], 75,
       [[1, "FairyWind"], [7, "Gust"], [14, "Peck"], [22, "DisarmingVoice"], [32, "DrainingKiss"], [42, "WingAttack"], [52, "AerialAce"], [62, "AirSlash"], [70, "DazzlingGleam"], [80, "DrillPeck"]],
-      undefined,
+      [{ speciesId: 468, trigger: "item", itemId: EVOLUTION_ITEM_IDS.shinyStone }], // 6.4-D: Togekiss
       "Um Pokémon de Johto do tipo Fairy/Flying, conhecido por sua presença marcante na região."),
     sp(177, "Natu", ["Psychic", "Flying"], [40, 50, 45, 70, 45, 70], 190,
       [[1, "Confusion"], [7, "Gust"], [14, "Peck"], [22, "WingAttack"], [32, "AerialAce"], [42, "Psybeam"], [52, "AirSlash"], [62, "FutureSight"], [70, "ZenHeadbutt"], [80, "DrillPeck"]],
@@ -190,7 +190,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Grass/Flying, conhecido por sua presença marcante na região."),
     sp(190, "Aipom", ["Normal"], [55, 70, 55, 40, 55, 85], 45,
       [[1, "Scratch"], [7, "QuickAttack"], [14, "PayDay"], [22, "Swift"], [32, "BodySlam"], [42, "Slash"], [52, "TakeDown"], [62, "HyperBeam"]],
-      undefined,
+      [{ speciesId: 424, trigger: "level", level: 32 }], // 6.4-D: Ambipom (conhecer Golpe Duplo → nível canônico)
       "Um Pokémon de Johto do tipo Normal, conhecido por sua presença marcante na região."),
     sp(191, "Sunkern", ["Grass"], [30, 30, 30, 30, 30, 30], 235,
       [[1, "Absorb"], [7, "QuickAttack"], [14, "VineWhip"], [22, "RazorLeaf"], [32, "MegaDrain"], [42, "PetalDance"], [52, "SeedBomb"], [62, "EnergyBall"], [70, "LeafBlade"], [80, "SolarBeam"]],
@@ -202,7 +202,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Grass, conhecido por sua presença marcante na região."),
     sp(193, "Yanma", ["Bug", "Flying"], [65, 65, 45, 75, 45, 95], 75,
       [[1, "LeechLife"], [7, "Gust"], [14, "Peck"], [22, "FuryCutter"], [32, "Twineedle"], [42, "BugBite"], [52, "SilverWind"], [62, "WingAttack"], [70, "AerialAce"], [80, "SignalBeam"]],
-      undefined,
+      [{ speciesId: 469, trigger: "level", level: 33 }], // 6.4-D: Yanmega (conhecer Poder Antigo → nível canônico)
       "Um Pokémon de Johto do tipo Bug/Flying, conhecido por sua presença marcante na região."),
     sp(194, "Wooper", ["Water", "Ground"], [55, 45, 45, 25, 25, 15], 255,
       [[1, "Bubble"], [7, "MudSlap"], [14, "WaterGun"], [22, "MudShot"], [32, "WaterPulse"], [42, "BubbleBeam"], [52, "BoneClub"], [62, "Waterfall"], [70, "Dig"], [80, "Bonemerang"]],
@@ -218,7 +218,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Psychic, conhecido por sua presença marcante na região."),
     sp(198, "Murkrow", ["Dark", "Flying"], [60, 85, 42, 85, 42, 91], 30,
       [[1, "Pursuit"], [7, "Gust"], [14, "Peck"], [22, "FeintAttack"], [32, "Bite"], [42, "WingAttack"], [52, "AerialAce"], [62, "NightSlash"], [70, "AirSlash"], [80, "Crunch"]],
-      undefined,
+      [{ speciesId: 430, trigger: "item", itemId: EVOLUTION_ITEM_IDS.duskStone }], // 6.4-D: Honchkrow
       "Um Pokémon de Johto do tipo Dark/Flying, conhecido por sua presença marcante na região."),
     sp(199, "Slowking", ["Water", "Psychic"], [95, 75, 80, 100, 110, 30], 70,
       [[1, "Bubble"], [7, "Confusion"], [14, "WaterGun"], [22, "WaterPulse"], [32, "BubbleBeam"], [42, "Psybeam"], [52, "Waterfall"], [62, "FutureSight"], [70, "ZenHeadbutt"], [80, "Surf"]],
@@ -226,7 +226,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Water/Psychic, conhecido por sua presença marcante na região."),
     sp(200, "Misdreavus", ["Ghost"], [60, 60, 60, 85, 85, 85], 45,
       [[1, "Astonish"], [7, "QuickAttack"], [14, "Lick"], [22, "ShadowSneak"], [32, "ShadowBall"]],
-      undefined,
+      [{ speciesId: 429, trigger: "item", itemId: EVOLUTION_ITEM_IDS.duskStone }], // 6.4-D: Mismagius
       "Um Pokémon de Johto do tipo Ghost, conhecido por sua presença marcante na região."),
     sp(201, "Unown", ["Psychic"], [48, 72, 48, 72, 48, 48], 225,
       [[1, "Confusion"], [7, "QuickAttack"], [14, "Psybeam"], [22, "FutureSight"], [32, "ZenHeadbutt"], [42, "Psychic"]],
@@ -254,7 +254,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Normal, conhecido por sua presença marcante na região."),
     sp(207, "Gligar", ["Ground", "Flying"], [65, 75, 105, 35, 65, 85], 60,
       [[1, "MudSlap"], [7, "Gust"], [14, "Peck"], [22, "MudShot"], [32, "WingAttack"], [42, "AerialAce"], [52, "BoneClub"], [62, "AirSlash"], [70, "Dig"], [80, "DrillPeck"]],
-      undefined,
+      [{ speciesId: 472, trigger: "item", itemId: EVOLUTION_ITEM_IDS.razorFang }], // 6.4-D: Gliscor
       "Um Pokémon de Johto do tipo Ground/Flying, conhecido por sua presença marcante na região."),
     sp(209, "Snubbull", ["Fairy"], [60, 80, 50, 40, 40, 30], 190,
       [[1, "FairyWind"], [7, "QuickAttack"], [14, "DisarmingVoice"], [22, "DrainingKiss"], [32, "DazzlingGleam"], [42, "PlayRough"], [52, "Moonblast"]],
@@ -282,7 +282,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Bug/Fighting, conhecido por sua presença marcante na região."),
     sp(215, "Sneasel", ["Dark", "Ice"], [55, 95, 55, 35, 75, 115], 60,
       [[1, "Pursuit"], [7, "PowderSnow"], [14, "IceShard"], [22, "IcyWind"], [32, "FeintAttack"], [42, "Bite"], [52, "IceFang"], [62, "AuroraBeam"], [70, "NightSlash"], [80, "IcePunch"]],
-      undefined,
+      [{ speciesId: 461, trigger: "item", itemId: EVOLUTION_ITEM_IDS.razorClaw }], // 6.4-D: Weavile
       "Um Pokémon de Johto do tipo Dark/Ice, conhecido por sua presença marcante na região."),
     sp(216, "Teddiursa", ["Normal"], [60, 80, 50, 50, 50, 40], 120,
       [[1, "Scratch"], [7, "QuickAttack"], [14, "PayDay"], [22, "Swift"], [32, "BodySlam"], [42, "Slash"], [52, "TakeDown"], [62, "HyperBeam"]],
@@ -306,7 +306,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Ice/Ground, conhecido por sua presença marcante na região."),
     sp(221, "Piloswine", ["Ice", "Ground"], [100, 100, 80, 60, 60, 50], 75,
       [[1, "PowderSnow"], [7, "MudSlap"], [14, "IceShard"], [22, "IcyWind"], [32, "MudShot"], [42, "IceFang"], [52, "AuroraBeam"], [62, "BoneClub"], [70, "IcePunch"], [80, "Dig"]],
-      undefined,
+      [{ speciesId: 473, trigger: "level", level: 45 }], // 6.4-D: Mamoswine (conhecer Poder Antigo; acima do 33 de Swinub→Piloswine para a cadeia só subir)
       "Um Pokémon de Johto do tipo Ice/Ground, conhecido por sua presença marcante na região."),
     sp(222, "Corsola", ["Water", "Rock"], [65, 55, 95, 65, 95, 35], 60,
       [[1, "Bubble"], [7, "RockThrow"], [14, "WaterGun"], [22, "RockTomb"], [32, "WaterPulse"], [42, "AncientPower"], [52, "BubbleBeam"], [62, "RockSlide"], [70, "Waterfall"], [80, "Surf"]],
@@ -354,7 +354,7 @@ export function johtoRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Johto do tipo Ground, conhecido por sua presença marcante na região."),
     sp(233, "Porygon2", ["Normal"], [85, 80, 90, 105, 95, 60], 45,
       [[1, "Scratch"], [7, "QuickAttack"], [14, "PayDay"], [22, "Swift"], [32, "BodySlam"], [42, "Slash"], [52, "TakeDown"], [62, "HyperBeam"]],
-      undefined,
+      [{ speciesId: 474, trigger: "item", itemId: EVOLUTION_ITEM_IDS.dubiousDisc }], // 6.4-D: Porygon-Z
       "Um Pokémon de Johto do tipo Normal, conhecido por sua presença marcante na região."),
     sp(234, "Stantler", ["Normal"], [73, 95, 62, 85, 65, 85], 45,
       [[1, "Scratch"], [7, "QuickAttack"], [14, "PayDay"], [22, "Swift"], [32, "BodySlam"], [42, "Slash"], [52, "TakeDown"], [62, "HyperBeam"]],

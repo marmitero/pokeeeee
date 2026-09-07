@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { DELUGE_VARIANTS, getPokemonSpecies } from "@/lib/pokedex";
-import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES } from "@/lib/evolution-items";
+import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES, type EvolutionItemKey } from "@/lib/evolution-items";
 import { retroSfx } from "@/lib/sound";
 import { X, ArrowRightLeft, Trash2, DollarSign, Package, Zap } from "lucide-react";
 import { api } from "@/lib/api-client";
@@ -36,11 +36,7 @@ interface PokemonBoxProps {
   allPokemon: BoxPokemon[];
   userItems: {
     potions: number; superPotions: number; maxPotions: number; revives: number;
-    fireStone: number; waterStone: number; thunderStone: number; leafStone: number;
-    moonStone: number; sunStone: number; shinyStone: number; metalCoat: number;
-    kingsRock: number; dragonScale: number; upgrade: number; duskStone: number;
-    dawnStone: number; ovalStone: number;
-  };
+  } & Record<EvolutionItemKey, number>;
   onUpdated: (updatedPokemon: BoxPokemon[], updatedUser?: unknown) => void;
   onClose: () => void;
 }

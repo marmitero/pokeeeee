@@ -57,6 +57,13 @@ interface UserState {
   duskStone: number;
   dawnStone: number;
   ovalStone: number;
+  protector: number;
+  electirizer: number;
+  magmarizer: number;
+  razorClaw: number;
+  razorFang: number;
+  dubiousDisc: number;
+  reaperCloth: number;
   wins: number;
   losses: number;
   currentMapId: number;
@@ -113,6 +120,8 @@ const GUEST_USER: UserState = {
   fireStone: 0, waterStone: 0, thunderStone: 0, leafStone: 0, moonStone: 0,
   sunStone: 0, shinyStone: 0, metalCoat: 0, kingsRock: 0, dragonScale: 0,
   upgrade: 0, duskStone: 0, dawnStone: 0, ovalStone: 0,
+  protector: 0, electirizer: 0, magmarizer: 0, razorClaw: 0, razorFang: 0,
+  dubiousDisc: 0, reaperCloth: 0,
   wins: 0, losses: 0, currentMapId: 1, playerX: 8, playerY: 12,
   role: "player",
 };
@@ -858,6 +867,10 @@ export default function DelugeRPGPage() {
             kingsRock: user.kingsRock, dragonScale: user.dragonScale,
             upgrade: user.upgrade, duskStone: user.duskStone,
             dawnStone: user.dawnStone, ovalStone: user.ovalStone,
+            protector: user.protector, electirizer: user.electirizer,
+            magmarizer: user.magmarizer, razorClaw: user.razorClaw,
+            razorFang: user.razorFang, dubiousDisc: user.dubiousDisc,
+            reaperCloth: user.reaperCloth,
           }}
           onUpdated={(updated, updatedUser) => {
             setAllPokemon(updated as BoxPokemon[]);

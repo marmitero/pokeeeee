@@ -160,7 +160,7 @@ export function hoennRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Hoenn do tipo Psychic, avistado pela primeira vez nas rotas da região."),
     sp(281, "Kirlia", ["Psychic", "Fairy"], [38, 35, 35, 65, 55, 50], 120,
       [[1, "FairyWind"], [7, "DisarmingVoice"], [14, "Confusion"], [22, "DrainingKiss"], [32, "Psybeam"], [42, "FutureSight"], [52, "DazzlingGleam"], [62, "PlayRough"], [70, "Psychic"], [80, "Moonblast"]],
-      [{ speciesId: 282, trigger: "level", level: 30 }],
+      [{ speciesId: 282, trigger: "level", level: 30 }, { speciesId: 475, trigger: "item", itemId: EVOLUTION_ITEM_IDS.dawnStone }], // 6.4-D: Gallade (sem gênero no jogo: a Pedra do Amanhecer decide)
       "Um Pokémon de Hoenn do tipo Psychic, avistado pela primeira vez nas rotas da região."),
     sp(283, "Surskit", ["Bug", "Water"], [40, 30, 32, 50, 52, 65], 200,
       [[1, "LeechLife"], [7, "Bubble"], [14, "FuryCutter"], [22, "WaterGun"], [32, "Twineedle"], [42, "BugBite"], [52, "XScissor"], [62, "Surf"], [70, "Crabhammer"], [80, "HydroPump"]],
@@ -228,7 +228,7 @@ export function hoennRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Hoenn do tipo Normal, avistado pela primeira vez nas rotas da região."),
     sp(299, "Nosepass", ["Rock"], [30, 45, 135, 45, 90, 30], 255,
       [[1, "RockPolish"], [7, "RockTomb"], [14, "RockThrow"], [22, "AncientPower"], [32, "RockSlide"], [42, "StoneEdge"]],
-      undefined,
+      [{ speciesId: 476, trigger: "item", itemId: EVOLUTION_ITEM_IDS.thunderStone }], // 6.4-D: Probopass (campo magnético → Pedra de Trovão, como em SwSh)
       "Um Pokémon de Hoenn do tipo Rock, avistado pela primeira vez nas rotas da região."),
     sp(300, "Skitty", ["Normal"], [50, 45, 45, 35, 35, 50], 255,
       [[1, "Scratch"], [7, "Tackle"], [14, "QuickAttack"], [22, "PayDay"], [32, "ViceGrip"], [42, "Swift"], [52, "ExtremeSpeed"], [62, "SkullBash"], [70, "TakeDown"], [80, "HyperBeam"]],
@@ -292,7 +292,7 @@ export function hoennRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Hoenn do tipo Bug, avistado pela primeira vez nas rotas da região."),
     sp(315, "Roselia", ["Grass", "Poison"], [50, 60, 45, 100, 80, 65], 150,
       [[1, "Absorb"], [7, "PoisonSting"], [14, "VineWhip"], [22, "RazorLeaf"], [32, "Acid"], [42, "MegaDrain"], [52, "EnergyBall"], [62, "LeafBlade"], [70, "SludgeBomb"], [80, "SolarBeam"]],
-      undefined,
+      [{ speciesId: 407, trigger: "item", itemId: EVOLUTION_ITEM_IDS.shinyStone }], // 6.4-D: Roserade
       "Um Pokémon de Hoenn do tipo Grass, avistado pela primeira vez nas rotas da região."),
     sp(316, "Gulpin", ["Poison"], [70, 43, 53, 43, 53, 40], 225,
       [[1, "PoisonSting"], [7, "Acid"], [14, "PoisonFang"], [22, "Sludge"], [32, "PoisonJab"], [42, "SludgeBomb"]],
@@ -456,7 +456,7 @@ export function hoennRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Hoenn do tipo Ghost, avistado pela primeira vez nas rotas da região."),
     sp(356, "Dusclops", ["Ghost"], [40, 70, 130, 60, 130, 25], 90,
       [[1, "Astonish"], [7, "Lick"], [14, "ShadowSneak"], [22, "ShadowBall"]],
-      undefined,
+      [{ speciesId: 477, trigger: "item", itemId: EVOLUTION_ITEM_IDS.reaperCloth }], // 6.4-D: Dusknoir
       "Um Pokémon de Hoenn do tipo Ghost, avistado pela primeira vez nas rotas da região."),
     sp(357, "Tropius", ["Grass", "Flying"], [99, 68, 83, 72, 87, 51], 200,
       [[1, "Absorb"], [7, "Gust"], [14, "VineWhip"], [22, "Peck"], [32, "RazorLeaf"], [42, "MegaDrain"], [52, "Bounce"], [62, "EnergyBall"], [70, "LeafBlade"], [80, "SolarBeam"]],
@@ -476,7 +476,7 @@ export function hoennRest(M: AllMoves): PokemonSpeciesData[] {
       "Um Pokémon de Hoenn do tipo Psychic, avistado pela primeira vez nas rotas da região."),
     sp(361, "Snorunt", ["Ice"], [50, 50, 50, 50, 50, 50], 190,
       [[1, "IceShard"], [7, "PowderSnow"], [14, "IcyWind"], [22, "IceFang"], [32, "AuroraBeam"], [42, "IcePunch"], [52, "IceBeam"], [62, "Blizzard"]],
-      [{ speciesId: 362, trigger: "level", level: 42 }],
+      [{ speciesId: 362, trigger: "level", level: 42 }, { speciesId: 478, trigger: "item", itemId: EVOLUTION_ITEM_IDS.dawnStone }], // 6.4-D: Froslass (sem gênero no jogo: a Pedra do Amanhecer decide)
       "Um Pokémon de Hoenn do tipo Ice, avistado pela primeira vez nas rotas da região."),
     sp(362, "Glalie", ["Ice"], [80, 80, 80, 80, 80, 80], 75,
       [[1, "IceShard"], [7, "PowderSnow"], [14, "IcyWind"], [22, "IceFang"], [32, "AuroraBeam"], [42, "IcePunch"], [52, "IceBeam"], [62, "Blizzard"]],

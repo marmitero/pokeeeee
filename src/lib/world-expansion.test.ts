@@ -104,10 +104,11 @@ describe("mundo até o mapa 20 (6.4-A)", () => {
   });
 
   it("as 254 espécies distribuídas aparecem exatamente uma vez, sem duplicata", () => {
-    // 6.4-C (2026-09-06): Hoenn entrou só no catálogo, por decisão do
-    // mantenedor — a redistribuição no mundo fica para o próximo lote de
-    // mapas. Por isso o mundo cobre 254 das 387 espécies, e o que se trava
-    // aqui é: nada duplicado, nada fora do catálogo, mapa 1 intocado.
+    // 6.4-C/6.4-D (2026-09-06): Hoenn e Sinnoh entraram só no catálogo, por
+    // decisão do mantenedor — a redistribuição no mundo fica para o próximo
+    // lote de mapas (Etapa B). Por isso o mundo cobre 254 das 493 espécies, e
+    // o que se trava aqui é: nada duplicado, nada fora do catálogo, mapa 1
+    // intocado.
     expect(orderBySpecies.size).toBe(254);
     expect(orderBySpecies.size).toBeLessThanOrEqual(POKEDEX.length);
 
