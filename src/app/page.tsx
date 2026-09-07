@@ -20,6 +20,7 @@ import { SpritePackModal } from "@/components/SpritePackModal";
 import { PokemonBox, BoxPokemon } from "@/components/PokemonBox";
 import { ShopModal } from "@/components/ShopModal";
 import { GymModal } from "@/components/GymModal";
+import { ChatWidget } from "@/components/ChatWidget";
 import {
   Map, Volume2, VolumeX, Swords, Sparkles, User,
   Heart, Compass, LogOut, Package, ShoppingBag, Shield,
@@ -957,6 +958,15 @@ export default function DelugeRPGPage() {
           onBattleEnd={() => setBattleState({ active: false, battleId: null })}
         />
       )}
+
+      {/* CHAT NO JOGO — 8.8 (global/local/whisper) */}
+      <ChatWidget
+        currentMapId={currentMapId}
+        currentMapName={currentMap?.name || `Mapa #${currentMapId}`}
+        userId={user.id}
+        username={user.username}
+        isLoggedIn={isLoggedIn}
+      />
     </div>
   );
 }

@@ -37,6 +37,12 @@
 > Nenhum SQL novo de produção — Unova reutiliza pedras existentes. Pendência
 > aberta: #16 (Unova em produção, vitrine 649 + evoluções GM).**
 >
+> **2026-09-07 — Decisão do mantenedor: (B) parar em 649 — Pokédex completa.
+> Fase 8.8 (Chat no jogo: global/local/whisper) concluída no sandbox,
+> aguardando merge. Pendência #17: migration 0009 + chat no HUD (💬 GLOBAL/LOCAL/PRIVADO).**
+>
+>
+>
 >
 > | # | O que testar | Como | Origem | Status |
 > |---|---|---|---|---|
@@ -56,6 +62,7 @@
 > | 14 | **Hoenn em produção (6.4-C)**: abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!` | catchbound.vercel.app | Fase 6.4-C/§4.29 | ✅ 2026-09-06 |
 > | 15 | **Sinnoh em produção (6.4-D)**: **antes do merge** colar `docs/supabase-production-0008-runtime.sql` no SQL Editor (conferência: `sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9`); após o deploy, abrir a loja 3 (Pico Celeste) e ver os 7 itens novos (🪖 Protetor, 🔋 Eletrizador, 🌋 Magmatizador, 🪝 Garra Afiada, 🦷 Presa Afiada, 💽 Disco Dúbio, 🕯️ Manto do Ceifador); via GM dar um Rhydon + 1 Protetor, usar no Pokémon Box → `★ Rhydon evoluiu para Rhyperior!`; dar um Riolu lv19 e vencer uma batalha → Lucario; vitrine de sprites com 493 espécies (2958 sprites). Encontros de Sinnoh **ainda não existem no mundo** (decisão do mantenedor) — use as Ferramentas GM | catchbound.vercel.app | Fase 6.4-D/§4.30 | ✅ 2026-09-07 (validado em produção pelo mantenedor) |
 | 16 | **Unova em produção (6.4-E)**: **sem SQL novo** (reutiliza pedras); após o deploy, vitrine de sprites com 649 espécies (3894 sprites); via GM dar Snivy lv16 → vencer batalha → Servine (lv17) → lv36 → Serperior; dar Pansage + Pedra de Folha → Simisage; dar Boldore lv39 → vencer → Gigalith (proxy troca lv40); Woobat lv24 → Swoobat (felicidade lv25). Encontros de Unova **ainda não existem no mundo** — use GM | catchbound.vercel.app | Fase 6.4-E/§4.31 | ⬜ Pendente (aguardando merge) |
+| 17 | **Chat no jogo em produção (8.8)**: **antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); após o deploy, logar no jogo, abrir o 💬 no canto inferior direito, ver 3 abas GLOBAL/LOCAL/PRIVADO; enviar mensagem em GLOBAL e ver aparecer para outro usuário; mudar de mapa e enviar em LOCAL (só quem está no mesmo mapa vê); enviar privado via ` /w <nome> <msg>` ou aba PRIVADO (só remetente e destinatário veem); conferir badge de não-lidas quando fechado | catchbound.vercel.app | Fase 8.8/§4.32 | ⬜ Pendente (aguardando merge) |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
@@ -122,8 +129,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a07b36-pokeeeee` (Fase 6.4-E — catálogo
-Unova; o `main` está em `f6f0d98` — merge do PR #12, Fase 6.4-D)
+**Branch da sessão atual:** `arena/01a07b36-pokeeeee` (Fase 8.8 — Chat no jogo global/local/whisper + decisão B Pokédex 649; o `main` está em `f6f0d98` — merge do PR #12, Fase 6.4-D, PR #13 Unova aberto)
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -390,12 +396,7 @@ a distribuição acontece só na Etapa B.
 - [x] **6.4-E — Unova (494–649)**: +156 espécies → **649**. É o **teto do CDN
       animado** (`black-white/animated` vai até o id 649) — a partir daqui a
       direção de arte precisa de decisão (ver 6.4-F) ✅ 2026-09-07
-- [ ] **6.4-F — Além do 649 (Kalos 650–721 em diante)**: **bloqueada por uma
-      decisão de arte/produto**, não por esforço. Não há GIF animado Gen V para
-      esses ids; as opções são (a) usar sprites estáticos de outra geração só
-      para eles — quebra a unidade visual; (b) parar em 649 e chamar de
-      "Pokédex completa" do jogo; (c) arte própria (casa com o rebranding e
-      resolve o risco legal). **Levar ao mantenedor antes de implementar.**
+- [x] **6.4-F — Decisão B: Pokédex completa em 649** — mantenedor escolheu **parar em 649** (honesto com a arte, sem Kalos, sem quebra visual). Etapa A fechada ✅ 2026-09-07
 - [ ] **6.4-G — Formas especiais** (Mega, regionais, Rotom, Deoxys): só depois
       de fechar a lista base; exige coluna de forma em `user_pokemon`.
 
@@ -442,15 +443,7 @@ Etapa B assim que o primeiro lote de mapas existir.
       ramificação, recompensa e travas de progresso. É o maior item da etapa.
 - [ ] **8.7 — Treinadores de rota** (NPCs de batalha não-ginásio), reusando o
       motor de ginásio.
-- [ ] **8.8 — Chat dentro do jogo** (pedido do mantenedor em 2026-09-06, após
-      validar a produção): hoje o chat só existe no **painel admin** e na
-      **arena PvP** (`chat_messages` + `GET/POST /api/pvp`, polling 5 s). Falta
-      um chat **no mundo**, para os jogadores conversarem enquanto exploram —
-      "**bonito e não poluente**": recolhível/compacto no canto do HUD, sem
-      cobrir o mapa nem a batalha, estética Press Start 2P/CRT do jogo, com
-      badge de não-lidas quando fechado. Reusa a tabela e a moderação que já
-      existem (remover mensagem, rate limit); não precisa de migration. Pode
-      ganhar canais (global / mapa) quando o mundo crescer.
+- [x] **8.8 — Chat dentro do jogo** ✅ 2026-09-07: agora existe **no mundo** — widget 💬 no HUD, 3 canais GLOBAL (servidor todo), LOCAL (mesmo mapa, `map_id`), PRIVADO (whisper, `recipient_id`, só remetente/destinatário, `/w <nome> <msg>`), recolhível com badge de não-lidas, estética Press Start 2P/CRT, polling 4s com `afterId`, reusa tabela + moderação + rate limit. Migration 0009 + `docs/supabase-production-0009-runtime.sql`
 
 #### 🅳 ETAPA D — Antes de divulgar (bloqueia monetização)
 
@@ -467,6 +460,29 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 8.8 — Chat no jogo: global/local/whisper (decisão B — Pokédex completa em 649) (2026-09-07)
+
+**Pedido do mantenedor:** decisão **B — parar em 649 e chamar de "Pokédex completa" do jogo** + implementar chat no jogo com 3 modos: local (mesmo mapa), global (servidor todo) e privado (whisper).
+
+**O que entrou**
+
+| Item | Detalhe |
+|---|---|
+| `src/db/schema.ts` + `drizzle/0009_chat_local_whisper.sql` | `chat_messages` ganhou `map_id integer` (local) e `recipient_id integer FK users.id` (whisper), 3 índices novos (`map_id`, `recipient_id`, `channel+map_id`), check `channel IN ('global','local','whisper','arena-global')` (mantém legacy arena-global) |
+| `docs/supabase-production-0009-runtime.sql` (novo) | companheiro de produção: `ADD COLUMN IF NOT EXISTS` ×2, FK idempotente, índices `IF NOT EXISTS`, drop/create check, grants runtime/backup, registro no journal (hash `7e0f69…ca7dee`, when `1788782655373`), conferência `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`. **Testado 2× num banco prodsim (0000–0008 + papel runtime): idempotente** |
+| `src/lib/validation.ts` | `chatChannelSchema` enum global/local/whisper, `chatQuerySchema` (channel, mapId, withUser, afterId, limit 50), `chatSendSchema` (channel, message 1–500, mapId, recipientUsername) |
+| `src/app/api/chat/route.ts` (novo) | GET: global (channel=global), local (channel=local + map_id), whisper com `withUser` (conversa 1-1) ou sem (lista geral + conversations agrupadas por outro participante, com lookup de usernames em lote). Suporta `afterId` para polling incremental. POST: send com rate limit 30/min, valida mapId para local, lookup de recipient para whisper (não pode para si mesmo, 404 se não existe). Reusa `chat_messages` + moderação admin existente |
+| `src/components/ChatWidget.tsx` (novo) | Widget no HUD: botão colapsado 💬 com badge total unread (global+local+whisper) no canto inferior direito; expandido 380px×420px, border 4px amber, bg slate-900, shadow, estética Press Start 2P/CRT. Tabs GLOBAL/LOCAL/PRIVADO com badges individuais, info de canal (🌍 todo servidor, 📍 mapa atual, 🔒 privado), lista de conversas recentes (whisper), mensagens com VT323, cores por canal (amber=me, purple=whisper, cyan=local), timestamp HH:MM, scroll auto, input com placeholder por canal, suporte a atalho `/w <nome> <msg>` que muda para whisper, recipient input (ou whisperWith), contador 0/500, polling 4s com afterId, unread por canal quando colapsado ou canal diferente |
+| `src/app/page.tsx` | Import + `<ChatWidget currentMapId={...} currentMapName={...} userId={...} username={...} isLoggedIn={...} />` no final, só quando logado |
+| `tests/integration/routes.ts` | Adiciona `/api/chat` GET/POST ao mapa de rotas |
+| `tests/integration/chat.integration.test.ts` (novo) | 9 testes: global envia/lista + vazia 400, local envia/lista por mapa + sem mapId 400 + isolamento por mapa, whisper envia privado e só participantes veem + self 400 + 404 + lista conversas, polling afterId |
+
+**Decisão de arte (6.4-F):** mantenedor escolheu **(B) parar em 649** — honesto com a arte (CDN animado até 649), foca na Etapa B (mundo 100 mapas). Pokédex completa = 649. Sem Kalos. Documentado em `docs/PROMPT-NOVA-CONVERSA.md`.
+
+**Validação (sandbox, banco local 0000→0009):** `npm run check` verde (lint 0 · tsc 0 · 297 unit, build 15 rotas com `/api/chat`), `test:integration` **112 verdes** (103 + 9 chat), `world:export/import` idempotente, runtime SQL idempotente. Detalhes em §4.32.
+
+---
 
 ### ✅ FASE 6.4-E — Catálogo Unova (494–649): Pokédex 493 → 649 (teto do CDN animado, sem migration) (2026-09-07)
 
@@ -2511,6 +2527,56 @@ Números observados:
 
 Não validado aqui (é do mantenedor, em produção): vitrine com 649 carregando do CDN no navegador e evoluções ao vivo via GM (Snivy lv17, Pansage+Folha, item #16 do cabeçalho).
 
+### 4.32 Fase 8.8 — Chat no jogo (global/local/whisper) + decisão B Pokédex completa 649 (2026-09-07)
+
+Ambiente do sandbox tinha resetado (`node_modules` ausente) — recuperado com `npm ci`, `cp .env.example .env`, `npm run db:local` (PID 2662) e `drizzle-kit migrate` 10 migrations ok (0000→0009).
+
+```bash
+# 1. schema → migration 0009
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npx drizzle-kit generate --name chat_local_whisper
+→ drizzle/0009_chat_local_whisper.sql (map_id, recipient_id, FK, 3 índices, check channel IN global/local/whisper/arena-global)
+sha256sum drizzle/0009_chat_local_whisper.sql
+→ 7e0f69637b2b8e398c13b1e25dc7a83b11cd9de955be61bfaa949f4ef7ca7dee
+cat drizzle/meta/_journal.json | tail
+→ idx 9 when 1788782655373 tag 0009_chat_local_whisper
+
+# 2. SQL companheiro de produção + idempotência
+cat docs/supabase-production-0009-runtime.sql | head -20
+# Teste idempotente num banco prodsim (0000–0008 + papel runtime)
+npx tsx /tmp/test-prodsim-0009.ts
+→ rodada 1: chat_columns 2 · channel_check 1 · indexes 3 · migrations 10
+→ rodada 2: idêntico (idempotente)
+
+# 3. validação + build
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npm run check
+→ Test Files 21 passed · Tests 297 passed
+→ ✓ Compiled successfully, 15 rotas (+ /api/chat)
+DATABASE_URL="..." npm run test:integration
+→ Test Files 9 passed · Tests 112 passed (103 + 9 chat)
+→ chat.integration.test.ts: 9 passed (global, local por mapa, whisper privado só participantes, self 400, 404, conversas, afterId)
+DATABASE_URL="..." npm run build
+→ ✓ Compiled successfully, 15 rotas
+
+# 4. smoke API real (dev server :3000, 2 usuários)
+POST /api/auth register alice/bob → verify → login
+POST /api/chat {channel:global, message:"Olá mundo"} → 200 id
+GET /api/chat?channel=global → contém Olá mundo
+POST /api/chat {channel:local, message:"Alguém aqui?", mapId:1} → 200
+GET /api/chat?channel=local&mapId=1 → contém, mapId=2 não contém
+POST /api/chat {channel:whisper, message:"segredo", recipientUsername:bob} → 200
+GET /api/chat?channel=whisper&withUser=alice (como bob) → contém segredo
+GET /api/chat?channel=whisper (como eve) → não contém
+GET /api/chat?channel=whisper → conversations inclui bob
+```
+
+Números observados:
+- `chat_messages` colunas: `map_id`, `recipient_id` + FK + 3 índices + check com 4 canais;
+- `POKEDEX.length` continua **649** (decisão B), vitrine 3894 sprites, mundo 254/649 intocado;
+- migrations: **0000–0009** (10), journal when 1788782655373, hash `7e0f69…ca7dee` batendo com SQL companheiro;
+- UI: ChatWidget 380×420, 3 abas GLOBAL/LOCAL/PRIVADO, badge unread, polling 4s, `/w` atalho, recipient input, cores por canal, timestamp, scroll auto.
+
+Não validado aqui (é do mantenedor, em produção): colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`), depois no navegador logar, abrir 💬, testar GLOBAL/LOCAL/PRIVADO com 2 contas, badge de não-lidas (item #17).
+
 ## 5. Qual a próxima etapa a ser aplicada
 
 > As seções 5 das rodadas anteriores (Fases 5.1 → 6.4-D, ativação do mundo,
@@ -2521,22 +2587,53 @@ Não validado aqui (é do mantenedor, em produção): vitrine com 649 carregando
 ```
 GET https://catchbound.vercel.app/api/health → {"ok":true,"emailVerification":"ok"}
 ```
-Migrations **0006, 0007 e 0008 já aplicadas** em produção; PR #12 (6.4-D) mergeado em `f6f0d98` e **pendências #1–#15 validadas pelo mantenedor** em produção. Pendência aberta: **#16 Unova (6.4-E)** — aguarda merge.
+Migrations **0006, 0007 e 0008 já aplicadas** em produção; PR #12 (6.4-D) mergeado em `f6f0d98` e **pendências #1–#15 validadas pelo mantenedor** em produção. Pendências abertas: **#16 Unova (6.4-E)** e **#17 Chat no jogo (8.8)** — aguardam merge (este PR acumula as duas).
 
-### ✅ Este merge NÃO tem passo de banco (sem migration)
+### ✅ Decisão B — Pokédex completa em 649 + Chat no jogo
 
-A 6.4-E reutiliza pedras existentes (nenhuma coluna nova). Ordem:
+**Decisão do mantenedor (2026-09-07): (B) parar em 649 e chamar de "Pokédex completa" do jogo.** Sem Kalos (650+), sem quebra de arte. A Etapa A está **fechada**.
 
-1. Mergear o PR da 6.4-E; a Vercel sobe sozinha.
-2. **Não** é preciso `world:seed`/`World activation`: mapas não mudaram e não há itens novos.
-3. Conferir produção conforme item #16 do cabeçalho.
+Este merge agora tem **passo de banco**: migration 0009 (chat local/whisper).
 
-### Passos do mantenedor após o merge (item #16 do cabeçalho)
+Ordem:
 
+1. **Antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor do Supabase de produção (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); é idempotente (testado 2× em prodsim).
+2. Mergear o PR (Unova 649 + Chat 8.8); a Vercel sobe sozinha.
+3. **Não** é preciso `world:seed`/`World activation`: mapas não mudaram.
+4. Conferir produção conforme itens #16 e #17 do cabeçalho.
+
+### Passos do mantenedor após o merge (itens #16 e #17)
+
+**#16 Unova:**
 1. `catchbound.vercel.app` → vitrine de sprites com **649 espécies** (3894 sprites) carregando do CDN Gen V animado (teto 649);
-2. `/admin` → **Ferramentas GM** → dar Snivy (495) lv16 → vencer uma batalha → `★ Snivy evoluiu para Servine!` (cânone 17) → subir para 36 → Serperior;
-3. GM → dar Pansage (511) + dar item Pedra de Folha → Pokémon Box → usar pedra → `★ Pansage evoluiu para Simisage!` (idem Pansear/Panpour);
-4. GM → dar Boldore (525) lv39 → vencer batalha → Gigalith (proxy troca lv40) e Woobat lv24 → Swoobat (proxy felicidade lv25).
+2. `/admin` → Ferramentas GM → dar Snivy (495) lv16 → vencer batalha → `★ Snivy evoluiu para Servine!` (cânone 17) → subir para 36 → Serperior;
+3. GM → dar Pansage (511) + Pedra de Folha → Pokémon Box → usar pedra → `★ Pansage evoluiu para Simisage!`;
+4. GM → dar Boldore lv39 → vencer → Gigalith (proxy troca lv40) e Woobat lv24 → Swoobat.
+
+**#17 Chat no jogo:**
+1. Logar no jogo (2 contas para testar privado), abrir o botão 💬 no canto inferior direito;
+2. Aba GLOBAL: enviar mensagem e ver aparecer para outro usuário logado;
+3. Aba LOCAL: mudar de mapa (via portal) e enviar mensagem — só quem está no mesmo mapa vê (testar com 2 contas no mesmo mapa vs mapas diferentes);
+4. Aba PRIVADO: enviar via `/w <nome> <msg>` ou preenchendo destinatário — só remetente e destinatário veem; conferir lista de conversas recentes e badge de não-lidas quando chat fechado ou em outro canal.
+
+### PRÓXIMA ETAPA: Etapa B — Mundo até 100 mapas
+
+Com a Pokédex fechada em 649 (B) e chat no jogo entregue, a próxima é **Etapa B — O mundo até 100 mapas**:
+
+- **7.1 Mapas 21–40** + redistribuição das espécies Hoenn/Sinnoh/Unova nas bandas altas (pesos = 100, evolução nunca em mapa anterior, lendários ≥ mapa 10 peso ≤20, mapa 1 intocado, cadeia de portais);
+- Depois 7.2 (41–60), 7.3 (61–80), 7.4 (81–100);
+- Cada lote: `default-world.ts` + `world:seed` + `world:export` + PR + `World activation` em produção.
+
+Paralelamente, Etapa C ainda tem:
+- **8.1 Lojas por região** (venda de itens + fix exploit quantity),
+- **8.2 Ginásios 8 + Elite**,
+- **8.3 Arenas de bosses lendários**,
+- **8.4 Status de batalha**,
+- **8.5 Arena PvP ranqueada** (ELO dormente),
+- **8.6 NPCs de missão**,
+- **8.7 Treinadores de rota**.
+
+**Antes de começar:** reler este arquivo inteiro (regra do protocolo) e `docs/PROMPT-NOVA-CONVERSA.md`.
 
 ### PRÓXIMA ETAPA: decisão 6.4-F + fila
 
@@ -2608,7 +2705,8 @@ Ou seja: próxima conversa = **perguntar ao mantenedor: (a/b/c) para 6.4-F** e, 
 | 2026-09-06 | **Validação de produção pelo mantenedor** — pendências #1–#14 do cabeçalho (sprites, GM, evoluções por nível e pedra, batalha, captura, ginásio, editor, e-mail real, chat, mapas, admin) conferidas em `catchbound.vercel.app` | ✅ Todas OK · chat só existe no admin e na arena PvP → pedido de **chat no jogo** registrado como 8.8 (Etapa C) | cabeçalho + §2 |
 | 2026-09-06 | **Fase 6.4-D** — catálogo Sinnoh 387–493: 106 espécies novas (Pokédex 387 → **493**), 7 itens de evolução **reais** (colunas em `users`, vendidos na loja 3), **migration 0008** + `docs/supabase-production-0008-runtime.sql` (idempotente, testado 2×), 20 linhas cruzadas em Kanto/Johto/Hoenn, **sem** redistribuição no mundo | ✅ Concluída e validada no sandbox · ⬜ SQL `0008` em produção **antes do merge** + passada visual (#15) | 20/284 unit · 8/103 integração · `src/lib/pokedex-sinnoh.ts` · `drizzle/0008_sinnoh_evolution_items.sql` · §3/§4.30 |
 | 2026-09-07 | **Fase 6.4-E — Unova (494–649)**: 156 espécies novas (Pokédex 493 → **649**, teto do CDN animado), 9 evoluções por pedra reutilizando itens existentes, 6 proxies (troca→nível, felicidade→nível), **sem migration**, testes 297 unit / 103 integração, sem tocar em `content/world/maps/` | ✅ Concluída e validada no sandbox · ⬜ vitrine 649 + evoluções ao vivo em produção (#16) | 21/297 unit · 8/103 integração · `src/lib/pokedex-unova.ts` · **sem migration** · §3/§4.31 |
-| — | **Fase 6.4-F — Além do 649 (Kalos 650–721+)** + **8.8 Chat no jogo** (fila da Etapa C) | ⬜ Próxima (decisão de arte/produto) | `AI_State.md` §2/§5 |
+| 2026-09-07 | **Decisão B — Pokédex completa em 649** + **Fase 8.8 — Chat no jogo (global/local/whisper)**: chat_messages + map_id + recipient_id, 3 índices, check canal, API /api/chat (global/local/whisper com afterId), ChatWidget HUD (💬 GLOBAL/LOCAL/PRIVADO, badge unread, /w atalho), migration 0009 + `docs/supabase-production-0009-runtime.sql` idempotente | ✅ Concluída e validada no sandbox · ⬜ chat no jogo em produção (#17) | 21/297 unit · 9/112 integração · `src/app/api/chat/route.ts` · `src/components/ChatWidget.tsx` · `drizzle/0009` · §3/§4.32 |
+| — | **Etapa B — Mundo até 100 mapas (7.1 21–40 + redistribuição Hoenn/Sinnoh/Unova)** | ⬜ Próxima | `AI_State.md` §2/§5 |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

@@ -400,6 +400,25 @@ export const battleActionSchema = z.discriminatedUnion("action", [
 
 export const battleQuerySchema = z.object({ battleId: idSchema });
 
+// ─── /api/chat (Fase 8.8) ─────────────────────────────────────────────────
+
+export const chatChannelSchema = z.enum(["global", "local", "whisper"]);
+
+export const chatQuerySchema = z.object({
+  channel: chatChannelSchema.default("global"),
+  mapId: idSchema.optional(),
+  withUser: usernameSchema.optional(),
+  afterId: idSchema.optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+export const chatSendSchema = z.object({
+  channel: chatChannelSchema,
+  message: z.string().trim().min(1, "Mensagem vazia").max(500, "Máximo de 500 caracteres"),
+  mapId: idSchema.optional(),
+  recipientUsername: usernameSchema.optional(),
+});
+
 // ─── /api/admin (Fase 5) ──────────────────────────────────────────────────
 
 export const adminActionSchema = z.discriminatedUnion("action", [
