@@ -34,16 +34,24 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Stunky",
+      "name": "Shuppet",
       "weight": 9,
       "maxLevel": 30,
       "minLevel": 19,
+      "pokedexId": 353,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Stunky",
+      "weight": 8,
+      "maxLevel": 31,
+      "minLevel": 21,
       "pokedexId": 434,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Magnemite",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 31,
       "minLevel": 21,
       "pokedexId": 81,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Grimer",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 31,
       "minLevel": 21,
       "pokedexId": 88,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Voltorb",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 31,
       "minLevel": 21,
       "pokedexId": 100,
@@ -75,9 +83,9 @@
     },
     {
       "name": "Munna",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 31,
-      "minLevel": 21,
+      "minLevel": 23,
       "pokedexId": 517,
       "tileTypes": ["tall_grass"]
     },
@@ -91,7 +99,7 @@
     },
     {
       "name": "Trubbish",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 31,
       "minLevel": 23,
       "pokedexId": 568,
@@ -111,14 +119,6 @@
       "maxLevel": 31,
       "minLevel": 23,
       "pokedexId": 602,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Aron",
-      "weight": 3,
-      "maxLevel": 31,
-      "minLevel": 23,
-      "pokedexId": 304,
       "tileTypes": ["tall_grass"]
     },
     {

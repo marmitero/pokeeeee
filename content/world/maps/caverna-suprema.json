@@ -26,11 +26,11 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Luxio",
+      "name": "Kirlia",
       "weight": 11,
       "maxLevel": 55,
       "minLevel": 44,
-      "pokedexId": 404,
+      "pokedexId": 281,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -42,27 +42,27 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Lampent",
+      "name": "Hitmonchan",
       "weight": 8,
       "maxLevel": 56,
       "minLevel": 46,
-      "pokedexId": 608,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Hitmonlee",
-      "weight": 7,
-      "maxLevel": 56,
-      "minLevel": 46,
-      "pokedexId": 106,
+      "pokedexId": 107,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Jynx",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 56,
       "minLevel": 46,
       "pokedexId": 124,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Electabuzz",
+      "weight": 6,
+      "maxLevel": 56,
+      "minLevel": 46,
+      "pokedexId": 125,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -106,11 +106,11 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Sawk",
+      "name": "Murkrow",
       "weight": 3,
       "maxLevel": 56,
       "minLevel": 48,
-      "pokedexId": 539,
+      "pokedexId": 198,
       "tileTypes": ["tall_grass"]
     },
     {

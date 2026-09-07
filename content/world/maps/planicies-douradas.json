@@ -58,19 +58,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Slugma",
+      "name": "Doduo",
       "weight": 6,
       "maxLevel": 35,
       "minLevel": 25,
-      "pokedexId": 218,
+      "pokedexId": 84,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Cacnea",
+      "name": "Slugma",
       "weight": 5,
       "maxLevel": 35,
       "minLevel": 25,
-      "pokedexId": 331,
+      "pokedexId": 218,
       "tileTypes": ["tall_grass"]
     },
     {

@@ -1,6 +1,6 @@
 {
   "format": "catchbound-world/1",
-  "shopId": 1,
+  "shopId": 4,
   "items": [
     {
       "itemKey": "dawnStone",
@@ -67,6 +67,17 @@
       "iconEmoji": "🔥",
       "isPremium": false,
       "stock": 5
+    },
+    {
+      "itemKey": "greatballs",
+      "name": "Greatball",
+      "description": "Maior chance de captura.",
+      "category": "ball",
+      "buyPrice": 600,
+      "sellPrice": 300,
+      "iconEmoji": "🔵",
+      "isPremium": false,
+      "stock": 60
     },
     {
       "itemKey": "kingsRock",
@@ -209,7 +220,7 @@
       "sellPrice": 750,
       "iconEmoji": "⚡",
       "isPremium": false,
-      "stock": 10
+      "stock": 25
     },
     {
       "itemKey": "shinyStone",
@@ -232,6 +243,17 @@
       "iconEmoji": "☀️",
       "isPremium": false,
       "stock": 4
+    },
+    {
+      "itemKey": "superPotions",
+      "name": "Super Poção",
+      "description": "Restaura 50 HP de um Pokémon.",
+      "category": "potion",
+      "buyPrice": 700,
+      "sellPrice": 350,
+      "iconEmoji": "🧴",
+      "isPremium": false,
+      "stock": 60
     },
     {
       "itemKey": "thunderStone",

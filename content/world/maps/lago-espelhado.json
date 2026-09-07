@@ -42,16 +42,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Xatu",
-      "weight": 8,
-      "maxLevel": 75,
-      "minLevel": 65,
-      "pokedexId": 178,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Gastrodon",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 75,
       "minLevel": 65,
       "pokedexId": 423,
@@ -59,7 +51,7 @@
     },
     {
       "name": "Simipour",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 75,
       "minLevel": 65,
       "pokedexId": 516,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Musharna",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 75,
       "minLevel": 65,
       "pokedexId": 518,
@@ -82,6 +74,22 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
+      "name": "Starmie",
+      "weight": 5,
+      "maxLevel": 75,
+      "minLevel": 65,
+      "pokedexId": 121,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Sharpedo",
+      "weight": 4,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 319,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
       "name": "Grumpig",
       "weight": 4,
       "maxLevel": 75,
@@ -90,19 +98,11 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Mr. Mime",
-      "weight": 4,
-      "maxLevel": 75,
-      "minLevel": 67,
-      "pokedexId": 122,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Swoobat",
+      "name": "Cinccino",
       "weight": 3,
       "maxLevel": 75,
       "minLevel": 67,
-      "pokedexId": 528,
+      "pokedexId": 573,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -114,12 +114,12 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Deoxys",
+      "name": "Kyogre",
       "weight": 2,
       "maxLevel": 75,
       "minLevel": 67,
-      "pokedexId": 386,
-      "tileTypes": ["tall_grass"]
+      "pokedexId": 382,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Uxie",

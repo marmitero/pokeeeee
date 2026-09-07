@@ -58,16 +58,8 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Staraptor",
-      "weight": 6,
-      "maxLevel": 96,
-      "minLevel": 86,
-      "pokedexId": 398,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Stoutland",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 96,
       "minLevel": 86,
       "pokedexId": 508,
@@ -83,10 +75,18 @@
     },
     {
       "name": "Vanilluxe",
+      "weight": 5,
+      "maxLevel": 96,
+      "minLevel": 86,
+      "pokedexId": 584,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lickilicky",
       "weight": 4,
       "maxLevel": 96,
       "minLevel": 88,
-      "pokedexId": 584,
+      "pokedexId": 463,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -114,19 +114,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Togekiss",
-      "weight": 2,
-      "maxLevel": 96,
-      "minLevel": 88,
-      "pokedexId": 468,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Porygon-Z",
       "weight": 2,
       "maxLevel": 96,
       "minLevel": 88,
       "pokedexId": 474,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Regigigas",
+      "weight": 2,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 486,
       "tileTypes": ["tall_grass"]
     },
     {

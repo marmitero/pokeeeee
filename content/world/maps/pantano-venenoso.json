@@ -34,19 +34,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Krabby",
+      "name": "Horsea",
       "weight": 9,
       "maxLevel": 27,
       "minLevel": 16,
-      "pokedexId": 98,
+      "pokedexId": 116,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Horsea",
+      "name": "Goldeen",
       "weight": 8,
       "maxLevel": 28,
       "minLevel": 18,
-      "pokedexId": 116,
+      "pokedexId": 118,
       "tileTypes": ["tall_grass", "water"]
     },
     {
@@ -66,12 +66,12 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Shuppet",
+      "name": "Carvanha",
       "weight": 5,
       "maxLevel": 28,
       "minLevel": 18,
-      "pokedexId": 353,
-      "tileTypes": ["tall_grass"]
+      "pokedexId": 318,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Luvdisc",
@@ -79,14 +79,6 @@
       "maxLevel": 28,
       "minLevel": 18,
       "pokedexId": 370,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Corphish",
-      "weight": 4,
-      "maxLevel": 28,
-      "minLevel": 20,
-      "pokedexId": 341,
       "tileTypes": ["tall_grass", "water"]
     },
     {
@@ -99,10 +91,18 @@
     },
     {
       "name": "Tentacool",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 28,
       "minLevel": 20,
       "pokedexId": 72,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Shellder",
+      "weight": 3,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 90,
       "tileTypes": ["tall_grass", "water"]
     },
     {

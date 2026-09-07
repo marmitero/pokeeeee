@@ -74,19 +74,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Ralts",
+      "name": "Shinx",
       "weight": 5,
       "maxLevel": 24,
       "minLevel": 14,
-      "pokedexId": 280,
+      "pokedexId": 403,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Shinx",
+      "name": "Swinub",
       "weight": 4,
       "maxLevel": 24,
       "minLevel": 16,
-      "pokedexId": 403,
+      "pokedexId": 220,
       "tileTypes": ["tall_grass"]
     },
     {

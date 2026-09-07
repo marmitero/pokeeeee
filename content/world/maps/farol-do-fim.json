@@ -10,40 +10,56 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Tentacruel",
+      "name": "Jellicent",
       "weight": 15,
       "maxLevel": 87,
       "minLevel": 76,
-      "pokedexId": 73,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Jellicent",
-      "weight": 13,
-      "maxLevel": 89,
-      "minLevel": 78,
       "pokedexId": 593,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Nidoqueen",
+      "name": "Banette",
+      "weight": 13,
+      "maxLevel": 89,
+      "minLevel": 78,
+      "pokedexId": 354,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mismagius",
       "weight": 11,
       "maxLevel": 89,
       "minLevel": 78,
+      "pokedexId": 429,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mienshao",
+      "weight": 10,
+      "maxLevel": 89,
+      "minLevel": 78,
+      "pokedexId": 620,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidoqueen",
+      "weight": 8,
+      "maxLevel": 90,
+      "minLevel": 80,
       "pokedexId": 31,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Nidoking",
-      "weight": 10,
-      "maxLevel": 89,
-      "minLevel": 78,
+      "weight": 7,
+      "maxLevel": 90,
+      "minLevel": 80,
       "pokedexId": 34,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Poliwrath",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 90,
       "minLevel": 80,
       "pokedexId": 62,
@@ -51,7 +67,7 @@
     },
     {
       "name": "Feraligatr",
-      "weight": 7,
+      "weight": 5,
       "maxLevel": 90,
       "minLevel": 80,
       "pokedexId": 160,
@@ -59,7 +75,7 @@
     },
     {
       "name": "Politoed",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 90,
       "minLevel": 80,
       "pokedexId": 186,
@@ -67,35 +83,27 @@
     },
     {
       "name": "Swampert",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 90,
-      "minLevel": 80,
+      "minLevel": 82,
       "pokedexId": 260,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Ludicolo",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 90,
-      "minLevel": 80,
+      "minLevel": 82,
       "pokedexId": 272,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Dusknoir",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 90,
       "minLevel": 82,
       "pokedexId": 477,
       "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Samurott",
-      "weight": 4,
-      "maxLevel": 90,
-      "minLevel": 82,
-      "pokedexId": 503,
-      "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Seismitoad",
@@ -107,26 +115,18 @@
     },
     {
       "name": "Chandelure",
-      "weight": 3,
+      "weight": 2,
       "maxLevel": 90,
       "minLevel": 82,
       "pokedexId": 609,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Tangrowth",
+      "name": "Azelf",
       "weight": 2,
       "maxLevel": 90,
       "minLevel": 82,
-      "pokedexId": 465,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Regigigas",
-      "weight": 2,
-      "maxLevel": 90,
-      "minLevel": 82,
-      "pokedexId": 486,
+      "pokedexId": 482,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -180,8 +180,66 @@
       "label": "Norte → Planalto do Raio"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-farol-do-fim",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja do Farol",
+      "shopId": 10,
+      "dialog": "A última loja antes do fim do mundo. Abasteça-se!"
+    },
+    {
+      "id": "gym-farol-do-fim",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Nocturna",
+      "gymLeaderName": "Nocturna",
+      "dialog": "Sou Nocturna, a luz que guia e assombra."
+    },
+    {
+      "id": "healer-farol-do-fim",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Farol do Fim",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Nocturna",
+      "title": "Líder do Ginásio do Farol",
+      "badgeName": "Insígnia Lampião",
+      "badgeEmoji": "🏮",
+      "specialty": "Ghost",
+      "requiredBadges": 9,
+      "rewardMoney": 26000,
+      "shopId": 10,
+      "npcDialog": "Sou Nocturna, a luz que guia e assombra. As almas do farol querem te conhecer… em batalha!",
+      "defeatDialog": "Sua luz se apagou… o farol te espera na escuridão.",
+      "winDialog": "Você brilhou mais que o farol! A Insígnia Lampião é sua!",
+      "team": [
+        {
+          "level": 86,
+          "variant": "Normal",
+          "pokedexId": 31
+        },
+        {
+          "level": 88,
+          "variant": "Normal",
+          "pokedexId": 34
+        },
+        {
+          "level": 90,
+          "variant": "Normal",
+          "pokedexId": 593
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [

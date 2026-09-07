@@ -42,16 +42,8 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Shellder",
-      "weight": 8,
-      "maxLevel": 37,
-      "minLevel": 27,
-      "pokedexId": 90,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
       "name": "Chinchou",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 37,
       "minLevel": 27,
       "pokedexId": 170,
@@ -59,7 +51,7 @@
     },
     {
       "name": "Snorunt",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 37,
       "minLevel": 27,
       "pokedexId": 361,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Buizel",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 37,
       "minLevel": 27,
       "pokedexId": 418,
@@ -83,9 +75,9 @@
     },
     {
       "name": "Finneon",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 37,
-      "minLevel": 29,
+      "minLevel": 27,
       "pokedexId": 456,
       "tileTypes": ["tall_grass", "water"]
     },
@@ -96,6 +88,22 @@
       "minLevel": 29,
       "pokedexId": 592,
       "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Machop",
+      "weight": 4,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 66,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Timburr",
+      "weight": 3,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 532,
+      "tileTypes": ["tall_grass"]
     },
     {
       "name": "Wailmer",
@@ -115,19 +123,11 @@
     },
     {
       "name": "Cubchoo",
-      "weight": 3,
+      "weight": 2,
       "maxLevel": 37,
       "minLevel": 29,
       "pokedexId": 613,
       "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Kabuto",
-      "weight": 2,
-      "maxLevel": 37,
-      "minLevel": 29,
-      "pokedexId": 140,
-      "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Smoochum",
@@ -188,8 +188,61 @@
       "label": "Norte → Torre dos Espíritos"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-ilhas-glaciais",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja Glacial",
+      "shopId": 5,
+      "dialog": "Estoque reforçado contra o frio — e contra treinadores despreparados!"
+    },
+    {
+      "id": "gym-ilhas-glaciais",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Glacio",
+      "gymLeaderName": "Glacio",
+      "dialog": "Sou Glacio. Aqui o frio separa os treinadores dos turistas."
+    },
+    {
+      "id": "healer-ilhas-glaciais",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Ilhas Glaciais",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Glacio",
+      "title": "Líder do Ginásio Glacial",
+      "badgeName": "Insígnia Floco",
+      "badgeEmoji": "❄️",
+      "specialty": "Ice",
+      "requiredBadges": 4,
+      "rewardMoney": 9000,
+      "shopId": 5,
+      "npcDialog": "Sou Glacio. Aqui o frio separa os treinadores dos turistas. Vamos ver de que lado você está.",
+      "defeatDialog": "Congelado… literalmente. Aqueça-se e tente de novo.",
+      "winDialog": "Impossível derreter… você passou! Tome a Insígnia Floco!",
+      "team": [
+        {
+          "level": 33,
+          "variant": "Normal",
+          "pokedexId": 86
+        },
+        {
+          "level": 37,
+          "variant": "Normal",
+          "pokedexId": 361
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
@@ -197,8 +250,8 @@
     ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
     ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
     ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
-    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
-    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "stone", "center", "stone", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "stone", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],

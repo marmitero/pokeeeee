@@ -18,8 +18,16 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pidgeotto",
+      "name": "Bibarel",
       "weight": 12,
+      "maxLevel": 53,
+      "minLevel": 42,
+      "pokedexId": 400,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Pidgeotto",
+      "weight": 11,
       "maxLevel": 53,
       "minLevel": 42,
       "pokedexId": 17,
@@ -27,7 +35,7 @@
     },
     {
       "name": "Loudred",
-      "weight": 11,
+      "weight": 9,
       "maxLevel": 53,
       "minLevel": 42,
       "pokedexId": 294,
@@ -35,15 +43,15 @@
     },
     {
       "name": "Staravia",
-      "weight": 9,
-      "maxLevel": 53,
-      "minLevel": 42,
+      "weight": 8,
+      "maxLevel": 54,
+      "minLevel": 44,
       "pokedexId": 397,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Herdier",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 54,
       "minLevel": 44,
       "pokedexId": 507,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Tranquill",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 54,
       "minLevel": 44,
       "pokedexId": 520,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Girafarig",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 54,
       "minLevel": 44,
       "pokedexId": 203,
@@ -75,9 +83,9 @@
     },
     {
       "name": "Kangaskhan",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 54,
-      "minLevel": 44,
+      "minLevel": 46,
       "pokedexId": 115,
       "tileTypes": ["tall_grass"]
     },
@@ -87,14 +95,6 @@
       "maxLevel": 54,
       "minLevel": 46,
       "pokedexId": 128,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Porygon",
-      "weight": 4,
-      "maxLevel": 54,
-      "minLevel": 46,
-      "pokedexId": 137,
       "tileTypes": ["tall_grass"]
     },
     {

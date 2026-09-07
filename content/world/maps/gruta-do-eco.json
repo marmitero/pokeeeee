@@ -18,16 +18,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Boldore",
-      "weight": 13,
-      "maxLevel": 63,
-      "minLevel": 52,
-      "pokedexId": 525,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Gothorita",
-      "weight": 11,
+      "weight": 13,
       "maxLevel": 63,
       "minLevel": 52,
       "pokedexId": 575,
@@ -35,23 +27,23 @@
     },
     {
       "name": "Duosion",
-      "weight": 10,
+      "weight": 11,
       "maxLevel": 63,
       "minLevel": 52,
       "pokedexId": 578,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Arbok",
-      "weight": 8,
-      "maxLevel": 64,
-      "minLevel": 54,
-      "pokedexId": 24,
+      "name": "Sandslash",
+      "weight": 10,
+      "maxLevel": 63,
+      "minLevel": 52,
+      "pokedexId": 28,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Machoke",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 64,
       "minLevel": 54,
       "pokedexId": 67,
@@ -59,7 +51,7 @@
     },
     {
       "name": "Medicham",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 64,
       "minLevel": 54,
       "pokedexId": 308,
@@ -67,34 +59,42 @@
     },
     {
       "name": "Gurdurr",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 64,
       "minLevel": 54,
       "pokedexId": 533,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Hitmonchan",
+      "name": "Hitmonlee",
       "weight": 5,
       "maxLevel": 64,
       "minLevel": 54,
-      "pokedexId": 107,
+      "pokedexId": 106,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Throh",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 64,
-      "minLevel": 56,
+      "minLevel": 54,
       "pokedexId": 538,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Sudowoodo",
+      "name": "Sawk",
       "weight": 4,
       "maxLevel": 64,
       "minLevel": 56,
-      "pokedexId": 185,
+      "pokedexId": 539,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mr. Mime",
+      "weight": 4,
+      "maxLevel": 64,
+      "minLevel": 56,
+      "pokedexId": 122,
       "tileTypes": ["tall_grass"]
     },
     {

@@ -138,11 +138,11 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Swinub",
+      "name": "Makuhita",
       "weight": 2,
       "maxLevel": 22,
       "minLevel": 14,
-      "pokedexId": 220,
+      "pokedexId": 296,
       "tileTypes": ["tall_grass"]
     }
   ],

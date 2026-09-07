@@ -26,40 +26,32 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Banette",
+      "name": "Drapion",
       "weight": 11,
       "maxLevel": 86,
       "minLevel": 75,
-      "pokedexId": 354,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Mismagius",
-      "weight": 10,
-      "maxLevel": 86,
-      "minLevel": 75,
-      "pokedexId": 429,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Drapion",
-      "weight": 8,
-      "maxLevel": 87,
-      "minLevel": 77,
       "pokedexId": 452,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Weavile",
-      "weight": 7,
-      "maxLevel": 87,
-      "minLevel": 77,
+      "weight": 10,
+      "maxLevel": 86,
+      "minLevel": 75,
       "pokedexId": 461,
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Zoroark",
+      "weight": 8,
+      "maxLevel": 87,
+      "minLevel": 77,
+      "pokedexId": 571,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Bisharp",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 87,
       "minLevel": 77,
       "pokedexId": 625,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Zweilous",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 87,
       "minLevel": 77,
       "pokedexId": 634,
@@ -83,9 +75,9 @@
     },
     {
       "name": "Shiftry",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 87,
-      "minLevel": 79,
+      "minLevel": 77,
       "pokedexId": 275,
       "tileTypes": ["tall_grass"]
     },
@@ -99,7 +91,7 @@
     },
     {
       "name": "Scolipede",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 87,
       "minLevel": 79,
       "pokedexId": 545,
@@ -115,7 +107,7 @@
     },
     {
       "name": "Yanmega",
-      "weight": 2,
+      "weight": 3,
       "maxLevel": 87,
       "minLevel": 79,
       "pokedexId": 469,
@@ -127,6 +119,14 @@
       "maxLevel": 87,
       "minLevel": 79,
       "pokedexId": 212,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Giratina",
+      "weight": 2,
+      "maxLevel": 87,
+      "minLevel": 79,
+      "pokedexId": 487,
       "tileTypes": ["tall_grass"]
     },
     {

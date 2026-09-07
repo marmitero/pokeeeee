@@ -18,16 +18,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Kirlia",
-      "weight": 12,
-      "maxLevel": 57,
-      "minLevel": 46,
-      "pokedexId": 281,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Vibrava",
-      "weight": 11,
+      "weight": 12,
       "maxLevel": 57,
       "minLevel": 46,
       "pokedexId": 329,
@@ -35,23 +27,23 @@
     },
     {
       "name": "Kadabra",
-      "weight": 9,
+      "weight": 11,
       "maxLevel": 57,
       "minLevel": 46,
       "pokedexId": 64,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Electabuzz",
-      "weight": 8,
-      "maxLevel": 58,
-      "minLevel": 48,
-      "pokedexId": 125,
+      "name": "Xatu",
+      "weight": 9,
+      "maxLevel": 57,
+      "minLevel": 46,
+      "pokedexId": 178,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Magmar",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 58,
       "minLevel": 48,
       "pokedexId": 126,
@@ -59,7 +51,7 @@
     },
     {
       "name": "Sigilyph",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 58,
       "minLevel": 48,
       "pokedexId": 561,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Druddigon",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 58,
       "minLevel": 48,
       "pokedexId": 621,
@@ -79,6 +71,14 @@
       "maxLevel": 58,
       "minLevel": 48,
       "pokedexId": 489,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Swoobat",
+      "weight": 5,
+      "maxLevel": 58,
+      "minLevel": 48,
+      "pokedexId": 528,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -188,8 +188,66 @@
       "label": "Norte → Trilha do Ocaso"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-santuario-celeste",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja do Santuário",
+      "shopId": 7,
+      "dialog": "Itens abençoados pelos dragões do templo!"
+    },
+    {
+      "id": "gym-santuario-celeste",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Ventus",
+      "gymLeaderName": "Ventus",
+      "dialog": "Sou Ventus, guardião do Santuário. Mostre suas asas!"
+    },
+    {
+      "id": "healer-santuario-celeste",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Santuário Celeste",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Ventus",
+      "title": "Líder do Ginásio Celeste",
+      "badgeName": "Insígnia Templo",
+      "badgeEmoji": "⛩️",
+      "specialty": "Flying",
+      "requiredBadges": 6,
+      "rewardMoney": 15000,
+      "shopId": 7,
+      "npcDialog": "Sou Ventus, guardião do Santuário. Só quem voa alto entra no templo — mostre suas asas!",
+      "defeatDialog": "O vento te derrubou… o templo espera sua volta.",
+      "winDialog": "Você voa como os dragões do santuário! Tome a Insígnia Templo!",
+      "team": [
+        {
+          "level": 54,
+          "variant": "Normal",
+          "pokedexId": 329
+        },
+        {
+          "level": 56,
+          "variant": "Normal",
+          "pokedexId": 621
+        },
+        {
+          "level": 58,
+          "variant": "Normal",
+          "pokedexId": 169
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [

@@ -10,32 +10,24 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Vullaby",
+      "name": "Tropius",
       "weight": 14,
       "maxLevel": 40,
       "minLevel": 29,
+      "pokedexId": 357,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Vullaby",
+      "weight": 12,
+      "maxLevel": 42,
+      "minLevel": 31,
       "pokedexId": 629,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Machop",
-      "weight": 12,
-      "maxLevel": 42,
-      "minLevel": 31,
-      "pokedexId": 66,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Timburr",
-      "weight": 11,
-      "maxLevel": 42,
-      "minLevel": 31,
-      "pokedexId": 532,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Scraggy",
-      "weight": 9,
+      "weight": 11,
       "maxLevel": 42,
       "minLevel": 31,
       "pokedexId": 559,
@@ -43,10 +35,18 @@
     },
     {
       "name": "Mienfoo",
+      "weight": 9,
+      "maxLevel": 42,
+      "minLevel": 31,
+      "pokedexId": 619,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Volbeat",
       "weight": 8,
       "maxLevel": 43,
       "minLevel": 33,
-      "pokedexId": 619,
+      "pokedexId": 313,
       "tileTypes": ["tall_grass"]
     },
     {

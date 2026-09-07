@@ -18,8 +18,16 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Solosis",
+      "name": "Abra",
       "weight": 12,
+      "maxLevel": 38,
+      "minLevel": 27,
+      "pokedexId": 63,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Solosis",
+      "weight": 11,
       "maxLevel": 38,
       "minLevel": 27,
       "pokedexId": 577,
@@ -27,18 +35,10 @@
     },
     {
       "name": "Emolga",
-      "weight": 11,
-      "maxLevel": 38,
-      "minLevel": 27,
-      "pokedexId": 587,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Doduo",
       "weight": 9,
       "maxLevel": 38,
       "minLevel": 27,
-      "pokedexId": 84,
+      "pokedexId": 587,
       "tileTypes": ["tall_grass"]
     },
     {

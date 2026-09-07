@@ -888,6 +888,7 @@ export default function DelugeRPGPage() {
           shopName={shopCtx.shopName}
           npcDialog={shopCtx.dialog}
           userMoney={user.money}
+          inventory={user as unknown as Record<string, number>}
           onPurchase={(updatedUser) => setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }))}
           onClose={() => setShopCtx(null)}
         />

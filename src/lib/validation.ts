@@ -187,6 +187,13 @@ export const shopActionSchema = z.discriminatedUnion("action", [
     itemId: idSchema,
     quantity: quantitySchema.default(1),
   }),
+  // Etapa C (8.1): venda de itens — `sellPrice` existia desde a Fase 3 como
+  // coluna morta; agora é o valor de recompra.
+  z.object({
+    action: z.literal("sell"),
+    itemId: idSchema,
+    quantity: quantitySchema.default(1),
+  }),
 ]);
 
 export const shopQuerySchema = z.object({

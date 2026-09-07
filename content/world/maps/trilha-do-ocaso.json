@@ -18,16 +18,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Bibarel",
-      "weight": 12,
-      "maxLevel": 59,
-      "minLevel": 48,
-      "pokedexId": 400,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Poliwhirl",
-      "weight": 11,
+      "weight": 12,
       "maxLevel": 59,
       "minLevel": 48,
       "pokedexId": 61,
@@ -35,7 +27,7 @@
     },
     {
       "name": "Vigoroth",
-      "weight": 9,
+      "weight": 11,
       "maxLevel": 59,
       "minLevel": 48,
       "pokedexId": 288,
@@ -43,15 +35,15 @@
     },
     {
       "name": "Palpitoad",
-      "weight": 8,
-      "maxLevel": 60,
-      "minLevel": 50,
+      "weight": 9,
+      "maxLevel": 59,
+      "minLevel": 48,
       "pokedexId": 536,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Fearow",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 60,
       "minLevel": 50,
       "pokedexId": 22,
@@ -59,7 +51,7 @@
     },
     {
       "name": "Golbat",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 60,
       "minLevel": 50,
       "pokedexId": 42,
@@ -67,10 +59,18 @@
     },
     {
       "name": "Persian",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 60,
       "minLevel": 50,
       "pokedexId": 53,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Haunter",
+      "weight": 5,
+      "maxLevel": 60,
+      "minLevel": 50,
+      "pokedexId": 93,
       "tileTypes": ["tall_grass"]
     },
     {

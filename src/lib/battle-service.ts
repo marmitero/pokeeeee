@@ -24,6 +24,8 @@ import {
   type SideState,
 } from "@/lib/engine/combatant";
 import { applyXp, battleXpGain, xpToNextLevel, MAX_LEVEL } from "@/lib/engine/xp";
+import { rollStoneDrop } from "@/lib/engine/drops";
+import { EVOLUTION_ITEM_LABEL } from "@/lib/evolution-items";
 import { applyEvolution } from "@/lib/engine/evolution";
 import { BALL_LABEL, captureChance, rollCapture, type BallKey } from "@/lib/engine/capture";
 import { badRequest, forbidden, notFound } from "@/lib/api";
@@ -56,7 +58,7 @@ export interface BattleView {
   status: string;
   state: BattleState;
   /** Recompensas concedidas no último turno (para a UI exibir). */
-  rewards?: { xp?: number; levelsGained?: number; money?: number; badge?: string };
+  rewards?: { xp?: number; levelsGained?: number; money?: number; badge?: string; stone?: string };
   party?: unknown[];
   user?: unknown;
 }
@@ -503,16 +505,34 @@ async function resolveFaint(
 
   // ── Selvagem: vitória ──────────────────────────────────────────────────
   const money = wildWinMoney(state.opponent.level);
-  await db
-    .update(users)
-    .set({
-      money: sql`${users.money} + ${money}`,
-      wins: sql`${users.wins} + 1`,
-    })
-    .where(eq(users.id, userId));
+
+  // ── Etapa C (8.1): drop de pedra de evolução (nv 40+, 0,2%) ─────────────
+  const stone = rollStoneDrop(state.opponent.level);
+  if (stone) {
+    await db
+      .update(users)
+      .set({
+        money: sql`${users.money} + ${money}`,
+        wins: sql`${users.wins} + 1`,
+        [stone]: sql`${users[stone]} + 1`,
+      })
+      .where(eq(users.id, userId));
+  } else {
+    await db
+      .update(users)
+      .set({
+        money: sql`${users.money} + ${money}`,
+        wins: sql`${users.wins} + 1`,
+      })
+      .where(eq(users.id, userId));
+  }
 
   rewards.money = money;
   log = pushLog(log, `Você venceu a batalha! +${money} Pk$`);
+  if (stone) {
+    rewards.stone = EVOLUTION_ITEM_LABEL[stone];
+    log = pushLog(log, `✨ O selvagem derrubou ${EVOLUTION_ITEM_LABEL[stone]}!`);
+  }
   return { log, status: "WON", continue: false };
 }
 
