@@ -636,6 +636,8 @@ mantenedor roda `DATABASE_URL=<produção> npm run world:seed` (ou
   `ALL_MOVES`, que todo alvo de evolução existe na Pokédex e que os sprites
   seguem o padrão de URL.
 
+> **Continuação na Fase 7.1 (2026-09-07)** — `docs/FASE-7-MUNDO.md`: o mundo foi a 40 mapas, o elenco das 649 espécies passou a ser **artefato gerado** (`world-layout.ts` + `world-distribute.ts` → `world-encounters.ts`) e as bandas foram reescaladas (mapa 1 continua travado em 3–10).
+
 ## 6.5 — Sistema de status
 
 - Estados: `poison`, `burn`, `paralysis`, `sleep`, `freeze` (escolher subconjunto

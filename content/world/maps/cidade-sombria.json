@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "cidade-sombria",
   "name": "Mapa 13: Cidade Sombria",
-  "description": "Becos de neon e um dojo de portas abertas (nv 54–64). Umbreon, Lucario e os Hitmon-irmãos; Centro Pokémon na praça.",
+  "description": "Becos de neon e um dojo de portas abertas (nv 29–43). Sombrios e Lutadores dividem a praça; Centro Pokémon entre os becos.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,131 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Umbreon",
-      "weight": 8,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 197,
+      "name": "Vullaby",
+      "weight": 14,
+      "maxLevel": 40,
+      "minLevel": 29,
+      "pokedexId": 629,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Persian",
+      "name": "Machop",
+      "weight": 12,
+      "maxLevel": 42,
+      "minLevel": 31,
+      "pokedexId": 66,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Timburr",
+      "weight": 11,
+      "maxLevel": 42,
+      "minLevel": 31,
+      "pokedexId": 532,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Scraggy",
       "weight": 9,
-      "maxLevel": 63,
-      "minLevel": 56,
-      "pokedexId": 53,
+      "maxLevel": 42,
+      "minLevel": 31,
+      "pokedexId": 559,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Meowth",
-      "weight": 6,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 52,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Raticate",
-      "weight": 11,
-      "maxLevel": 63,
-      "minLevel": 56,
-      "pokedexId": 20,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Primeape",
-      "weight": 11,
-      "maxLevel": 63,
-      "minLevel": 56,
-      "pokedexId": 57,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Hitmonlee",
-      "weight": 6,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 106,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Hitmonchan",
-      "weight": 6,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 107,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Lucario",
+      "name": "Mienfoo",
       "weight": 8,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 448,
+      "maxLevel": 43,
+      "minLevel": 33,
+      "pokedexId": 619,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Machoke",
-      "weight": 5,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 67,
+      "name": "Illumise",
+      "weight": 7,
+      "maxLevel": 43,
+      "minLevel": 33,
+      "pokedexId": 314,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Machamp",
+      "name": "Houndour",
       "weight": 6,
-      "maxLevel": 64,
-      "minLevel": 58,
-      "pokedexId": 68,
+      "maxLevel": 43,
+      "minLevel": 33,
+      "pokedexId": 228,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Espeon",
-      "weight": 4,
-      "maxLevel": 64,
-      "minLevel": 60,
-      "pokedexId": 196,
+      "name": "Skorupi",
+      "weight": 5,
+      "maxLevel": 43,
+      "minLevel": 33,
+      "pokedexId": 451,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Murkrow",
-      "weight": 4,
-      "maxLevel": 64,
-      "minLevel": 60,
-      "pokedexId": 198,
+      "name": "Pawniard",
+      "weight": 5,
+      "maxLevel": 43,
+      "minLevel": 33,
+      "pokedexId": 624,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Granbull",
+      "name": "Tyrogue",
       "weight": 4,
-      "maxLevel": 64,
-      "minLevel": 60,
-      "pokedexId": 210,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 236,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Ursaring",
+      "name": "Riolu",
       "weight": 4,
-      "maxLevel": 64,
-      "minLevel": 60,
-      "pokedexId": 217,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 447,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Smeargle",
-      "weight": 4,
-      "maxLevel": 64,
-      "minLevel": 60,
-      "pokedexId": 235,
+      "name": "Zorua",
+      "weight": 3,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 570,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Hitmontop",
-      "weight": 4,
-      "maxLevel": 64,
-      "minLevel": 60,
-      "pokedexId": 237,
+      "name": "Metapod",
+      "weight": 3,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 11,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kakuna",
+      "weight": 3,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 14,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Silcoon",
+      "weight": 2,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 266,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cascoon",
+      "weight": 2,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 268,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Deino",
+      "weight": 2,
+      "maxLevel": 43,
+      "minLevel": 35,
+      "pokedexId": 633,
       "tileTypes": ["tall_grass"]
     }
   ],

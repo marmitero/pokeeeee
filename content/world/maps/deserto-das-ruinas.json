@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "deserto-das-ruinas",
   "name": "Mapa 8: Deserto das Ruínas",
-  "description": "Dunas e ruínas enterradas (nv 34–44). Fósseis vivos, Graveler e Kangaskhan; Centro Pokémon no oásis.",
+  "description": "Dunas sobre ruínas enterradas (nv 19–33). Fósseis vivos, pedreiros teimosos e mães protetoras; Centro Pokémon no oásis.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,91 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Sandslash",
-      "weight": 12,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 28,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Dugtrio",
-      "weight": 12,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 51,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Marowak",
-      "weight": 9,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 105,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Arbok",
-      "weight": 9,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 24,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Graveler",
+      "name": "Geodude",
       "weight": 14,
-      "maxLevel": 41,
-      "minLevel": 34,
-      "pokedexId": 75,
+      "maxLevel": 30,
+      "minLevel": 19,
+      "pokedexId": 74,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Kangaskhan",
+      "name": "Nosepass",
+      "weight": 12,
+      "maxLevel": 32,
+      "minLevel": 21,
+      "pokedexId": 299,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Spinda",
       "weight": 11,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 115,
+      "maxLevel": 32,
+      "minLevel": 21,
+      "pokedexId": 327,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Tauros",
-      "weight": 11,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 128,
+      "name": "Swablu",
+      "weight": 9,
+      "maxLevel": 32,
+      "minLevel": 21,
+      "pokedexId": 333,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pinsir",
-      "weight": 10,
-      "maxLevel": 43,
-      "minLevel": 36,
-      "pokedexId": 127,
+      "name": "Baltoy",
+      "weight": 8,
+      "maxLevel": 33,
+      "minLevel": 23,
+      "pokedexId": 343,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Noctowl",
+      "name": "Abra",
+      "weight": 7,
+      "maxLevel": 33,
+      "minLevel": 23,
+      "pokedexId": 63,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Taillow",
+      "weight": 6,
+      "maxLevel": 33,
+      "minLevel": 23,
+      "pokedexId": 276,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cubone",
+      "weight": 5,
+      "maxLevel": 33,
+      "minLevel": 23,
+      "pokedexId": 104,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Snubbull",
+      "weight": 5,
+      "maxLevel": 33,
+      "minLevel": 23,
+      "pokedexId": 209,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Whismur",
       "weight": 4,
-      "maxLevel": 44,
-      "minLevel": 40,
-      "pokedexId": 164,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 293,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Donphan",
+      "name": "Duskull",
       "weight": 4,
-      "maxLevel": 44,
-      "minLevel": 40,
-      "pokedexId": 232,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 355,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pupitar",
-      "weight": 4,
-      "maxLevel": 44,
-      "minLevel": 40,
-      "pokedexId": 247,
+      "name": "Dwebble",
+      "weight": 3,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 557,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Yamask",
+      "weight": 3,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 562,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Golett",
+      "weight": 3,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 622,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sandile",
+      "weight": 2,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 551,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Azurill",
+      "weight": 2,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 298,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Happiny",
+      "weight": 2,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 440,
       "tileTypes": ["tall_grass"]
     }
   ],

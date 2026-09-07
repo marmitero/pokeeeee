@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "santuario-celeste",
   "name": "Mapa 20: Santuário Celeste",
-  "description": "O topo da jornada (nv 82–95). Dratini completa a linha: Dragonair e Dragonite reinam; Rayquaza, Zapdos e Mew aparecem para muito poucos. Centro Pokémon no templo.",
+  "description": "O topo da primeira jornada (nv 44–58). Dragões reinam no templo; os lendários de Kanto e Johto assistem. Centro Pokémon no altar.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,91 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Dragonite",
-      "weight": 25,
-      "maxLevel": 92,
-      "minLevel": 82,
-      "pokedexId": 149,
+      "name": "Crobat",
+      "weight": 14,
+      "maxLevel": 55,
+      "minLevel": 44,
+      "pokedexId": 169,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Dragonair",
-      "weight": 28,
-      "maxLevel": 92,
-      "minLevel": 82,
-      "pokedexId": 148,
+      "name": "Kirlia",
+      "weight": 12,
+      "maxLevel": 57,
+      "minLevel": 46,
+      "pokedexId": 281,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Rayquaza",
-      "weight": 13,
-      "maxLevel": 95,
-      "minLevel": 87,
-      "pokedexId": 384,
+      "name": "Vibrava",
+      "weight": 11,
+      "maxLevel": 57,
+      "minLevel": 46,
+      "pokedexId": 329,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kadabra",
+      "weight": 9,
+      "maxLevel": 57,
+      "minLevel": 46,
+      "pokedexId": 64,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Electabuzz",
+      "weight": 8,
+      "maxLevel": 58,
+      "minLevel": 48,
+      "pokedexId": 125,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magmar",
+      "weight": 7,
+      "maxLevel": 58,
+      "minLevel": 48,
+      "pokedexId": 126,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sigilyph",
+      "weight": 6,
+      "maxLevel": 58,
+      "minLevel": 48,
+      "pokedexId": 561,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Druddigon",
+      "weight": 5,
+      "maxLevel": 58,
+      "minLevel": 48,
+      "pokedexId": 621,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Phione",
+      "weight": 5,
+      "maxLevel": 58,
+      "minLevel": 48,
+      "pokedexId": 489,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Articuno",
+      "weight": 4,
+      "maxLevel": 58,
+      "minLevel": 50,
+      "pokedexId": 144,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Zapdos",
-      "weight": 10,
-      "maxLevel": 95,
-      "minLevel": 87,
+      "weight": 4,
+      "maxLevel": 58,
+      "minLevel": 50,
       "pokedexId": 145,
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Moltres",
+      "weight": 3,
+      "maxLevel": 58,
+      "minLevel": 50,
+      "pokedexId": 146,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mewtwo",
+      "weight": 3,
+      "maxLevel": 58,
+      "minLevel": 50,
+      "pokedexId": 150,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Mew",
-      "weight": 6,
-      "maxLevel": 95,
-      "minLevel": 87,
+      "weight": 3,
+      "maxLevel": 58,
+      "minLevel": 50,
       "pokedexId": 151,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Raikou",
-      "weight": 3,
-      "maxLevel": 95,
-      "minLevel": 88,
+      "weight": 2,
+      "maxLevel": 58,
+      "minLevel": 50,
       "pokedexId": 243,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Entei",
-      "weight": 3,
-      "maxLevel": 95,
-      "minLevel": 88,
+      "weight": 2,
+      "maxLevel": 58,
+      "minLevel": 50,
       "pokedexId": 244,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Suicune",
-      "weight": 3,
-      "maxLevel": 95,
-      "minLevel": 88,
-      "pokedexId": 245,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Lugia",
-      "weight": 3,
-      "maxLevel": 95,
-      "minLevel": 88,
+      "weight": 2,
+      "maxLevel": 58,
+      "minLevel": 50,
       "pokedexId": 249,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Ho-Oh",
-      "weight": 3,
-      "maxLevel": 95,
-      "minLevel": 88,
-      "pokedexId": 250,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Celebi",
-      "weight": 3,
-      "maxLevel": 95,
-      "minLevel": 88,
-      "pokedexId": 251,
       "tileTypes": ["tall_grass"]
     }
   ],
@@ -118,6 +166,26 @@
       "targetX": 8,
       "targetY": 1,
       "label": "Sul → Caverna Suprema"
+    },
+    {
+      "id": "p20-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "trilha-do-ocaso",
+      "targetMapName": "Trilha do Ocaso",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Trilha do Ocaso"
+    },
+    {
+      "id": "p20-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "trilha-do-ocaso",
+      "targetMapName": "Trilha do Ocaso",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Trilha do Ocaso"
     }
   ],
   "npcs": [],
@@ -125,7 +193,7 @@
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
-    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
     ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],

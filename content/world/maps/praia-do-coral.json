@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "praia-do-coral",
+  "name": "Mapa 24: Praia do Coral",
+  "description": "Recife raso e areia branca (nv 53–67). Aquáticos de água quente e caranguejos de concha; Centro Pokémon na barraca da praia.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Crawdaunt",
+      "weight": 15,
+      "maxLevel": 64,
+      "minLevel": 53,
+      "pokedexId": 342,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Sealeo",
+      "weight": 13,
+      "maxLevel": 66,
+      "minLevel": 55,
+      "pokedexId": 364,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Quagsire",
+      "weight": 11,
+      "maxLevel": 66,
+      "minLevel": 55,
+      "pokedexId": 195,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Seadra",
+      "weight": 10,
+      "maxLevel": 66,
+      "minLevel": 55,
+      "pokedexId": 117,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Lanturn",
+      "weight": 8,
+      "maxLevel": 67,
+      "minLevel": 57,
+      "pokedexId": 171,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Azumarill",
+      "weight": 7,
+      "maxLevel": 67,
+      "minLevel": 57,
+      "pokedexId": 184,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Lumineon",
+      "weight": 6,
+      "maxLevel": 67,
+      "minLevel": 57,
+      "pokedexId": 457,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Crustle",
+      "weight": 5,
+      "maxLevel": 67,
+      "minLevel": 57,
+      "pokedexId": 558,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Wartortle",
+      "weight": 5,
+      "maxLevel": 67,
+      "minLevel": 57,
+      "pokedexId": 8,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Croconaw",
+      "weight": 4,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 159,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Marshtomp",
+      "weight": 4,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 259,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Prinplup",
+      "weight": 3,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 394,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Dewott",
+      "weight": 3,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 502,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Butterfree",
+      "weight": 2,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 12,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Beautifly",
+      "weight": 2,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 267,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Suicune",
+      "weight": 2,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 245,
+      "tileTypes": ["tall_grass", "water"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p24-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "gruta-do-eco",
+      "targetMapName": "Gruta do Eco",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Gruta do Eco"
+    },
+    {
+      "id": "p24-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "gruta-do-eco",
+      "targetMapName": "Gruta do Eco",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Gruta do Eco"
+    },
+    {
+      "id": "p24-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "forja-abandonada",
+      "targetMapName": "Forja Abandonada",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Forja Abandonada"
+    },
+    {
+      "id": "p24-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "forja-abandonada",
+      "targetMapName": "Forja Abandonada",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Forja Abandonada"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "center", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "fossa-abissal",
   "name": "Mapa 15: Fossa Abissal",
-  "description": "Águas negras sem luz (nv 62–72). Os aquáticos definitivos — Starmie, Vaporeon e o próprio Blastoise.",
+  "description": "Águas negras sem luz (nv 33–47). Os aquáticos definitivos — polvos, estrelas-do-mar e jacarés de mar aberto.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,124 +10,140 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Tentacruel",
-      "weight": 10,
-      "maxLevel": 71,
-      "minLevel": 64,
-      "pokedexId": 73,
+      "name": "Alomomola",
+      "weight": 14,
+      "maxLevel": 44,
+      "minLevel": 33,
+      "pokedexId": 594,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Kingler",
-      "weight": 10,
-      "maxLevel": 71,
-      "minLevel": 64,
-      "pokedexId": 99,
+      "name": "Axew",
+      "weight": 12,
+      "maxLevel": 46,
+      "minLevel": 35,
+      "pokedexId": 610,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Lombre",
+      "weight": 11,
+      "maxLevel": 46,
+      "minLevel": 35,
+      "pokedexId": 271,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Seadra",
-      "weight": 10,
-      "maxLevel": 71,
-      "minLevel": 64,
-      "pokedexId": 117,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Seaking",
-      "weight": 10,
-      "maxLevel": 71,
-      "minLevel": 64,
-      "pokedexId": 119,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Starmie",
+      "name": "Corsola",
       "weight": 9,
-      "maxLevel": 71,
-      "minLevel": 64,
-      "pokedexId": 121,
+      "maxLevel": 46,
+      "minLevel": 35,
+      "pokedexId": 222,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Vaporeon",
-      "weight": 9,
-      "maxLevel": 71,
-      "minLevel": 64,
-      "pokedexId": 134,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Poliwrath",
-      "weight": 6,
-      "maxLevel": 72,
-      "minLevel": 66,
-      "pokedexId": 62,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Blastoise",
+      "name": "Omanyte",
       "weight": 8,
-      "maxLevel": 72,
-      "minLevel": 66,
-      "pokedexId": 9,
+      "maxLevel": 47,
+      "minLevel": 37,
+      "pokedexId": 138,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Dratini",
+      "weight": 7,
+      "maxLevel": 47,
+      "minLevel": 37,
+      "pokedexId": 147,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Feraligatr",
-      "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 160,
+      "name": "Totodile",
+      "weight": 6,
+      "maxLevel": 47,
+      "minLevel": 37,
+      "pokedexId": 158,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Qwilfish",
+      "weight": 5,
+      "maxLevel": 47,
+      "minLevel": 37,
+      "pokedexId": 211,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Delibird",
+      "weight": 5,
+      "maxLevel": 47,
+      "minLevel": 37,
+      "pokedexId": 225,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Lanturn",
+      "name": "Mudkip",
       "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 171,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 258,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Bagon",
+      "weight": 4,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 371,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Azumarill",
-      "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 184,
+      "name": "Piplup",
+      "weight": 3,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 393,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Gible",
+      "weight": 3,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 443,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Politoed",
-      "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 186,
-      "tileTypes": ["tall_grass"]
+      "name": "Tirtouga",
+      "weight": 3,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 564,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Slowking",
-      "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 199,
-      "tileTypes": ["tall_grass"]
+      "name": "Lapras",
+      "weight": 2,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 131,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Octillery",
-      "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 224,
-      "tileTypes": ["tall_grass"]
+      "name": "Relicanth",
+      "weight": 2,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 369,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Mantine",
-      "weight": 4,
-      "maxLevel": 72,
-      "minLevel": 68,
-      "pokedexId": 226,
-      "tileTypes": ["tall_grass"]
+      "name": "Mantyke",
+      "weight": 2,
+      "maxLevel": 47,
+      "minLevel": 39,
+      "pokedexId": 458,
+      "tileTypes": ["tall_grass", "water"]
     }
   ],
   "portals": [

@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "rota-do-ceu",
   "name": "Mapa 18: Rota do Céu",
-  "description": "Correntes de ar acima das nuvens (nv 74–84). Charizard e Gyarados cortam o vento; Pidgeot patrulha em bando.",
+  "description": "Correntes de ar acima das nuvens (nv 40–54). Asas por todo lado: quem não voe aqui, pelo menos salta longe.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,43 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Pidgeot",
-      "weight": 25,
-      "maxLevel": 81,
-      "minLevel": 74,
-      "pokedexId": 18,
+      "name": "Zangoose",
+      "weight": 14,
+      "maxLevel": 51,
+      "minLevel": 40,
+      "pokedexId": 335,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Dodrio",
-      "weight": 21,
-      "maxLevel": 81,
-      "minLevel": 74,
-      "pokedexId": 85,
+      "name": "Pidgeotto",
+      "weight": 12,
+      "maxLevel": 53,
+      "minLevel": 42,
+      "pokedexId": 17,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Charizard",
-      "weight": 27,
-      "maxLevel": 81,
-      "minLevel": 74,
-      "pokedexId": 6,
+      "name": "Loudred",
+      "weight": 11,
+      "maxLevel": 53,
+      "minLevel": 42,
+      "pokedexId": 294,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gyarados",
-      "weight": 23,
-      "maxLevel": 81,
-      "minLevel": 74,
-      "pokedexId": 130,
+      "name": "Staravia",
+      "weight": 9,
+      "maxLevel": 53,
+      "minLevel": 42,
+      "pokedexId": 397,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Skarmory",
+      "name": "Herdier",
+      "weight": 8,
+      "maxLevel": 54,
+      "minLevel": 44,
+      "pokedexId": 507,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tranquill",
+      "weight": 7,
+      "maxLevel": 54,
+      "minLevel": 44,
+      "pokedexId": 520,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Girafarig",
+      "weight": 6,
+      "maxLevel": 54,
+      "minLevel": 44,
+      "pokedexId": 203,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Munchlax",
+      "weight": 5,
+      "maxLevel": 54,
+      "minLevel": 44,
+      "pokedexId": 446,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kangaskhan",
+      "weight": 5,
+      "maxLevel": 54,
+      "minLevel": 44,
+      "pokedexId": 115,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tauros",
       "weight": 4,
-      "maxLevel": 84,
-      "minLevel": 80,
-      "pokedexId": 227,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 128,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Porygon",
+      "weight": 4,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 137,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Aipom",
+      "weight": 3,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 190,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Stantler",
+      "weight": 3,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 234,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Miltank",
+      "weight": 3,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 241,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Castform",
+      "weight": 2,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 351,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Bouffalant",
+      "weight": 2,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 626,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Chatot",
+      "weight": 2,
+      "maxLevel": 54,
+      "minLevel": 46,
+      "pokedexId": 441,
       "tileTypes": ["tall_grass"]
     }
   ],

@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "duna-de-vidro",
+  "name": "Mapa 31: Duna de Vidro",
+  "description": "Areia vitrificada por um raio antigo (nv 67–81). Terra, pedra e o eco de eletricidade no vidro.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Golurk",
+      "weight": 15,
+      "maxLevel": 78,
+      "minLevel": 67,
+      "pokedexId": 623,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Raichu",
+      "weight": 13,
+      "maxLevel": 80,
+      "minLevel": 69,
+      "pokedexId": 26,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Muk",
+      "weight": 11,
+      "maxLevel": 80,
+      "minLevel": 69,
+      "pokedexId": 89,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Zebstrika",
+      "weight": 10,
+      "maxLevel": 80,
+      "minLevel": 69,
+      "pokedexId": 523,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magneton",
+      "weight": 8,
+      "maxLevel": 81,
+      "minLevel": 71,
+      "pokedexId": 82,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Electrode",
+      "weight": 7,
+      "maxLevel": 81,
+      "minLevel": 71,
+      "pokedexId": 101,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rhydon",
+      "weight": 6,
+      "maxLevel": 81,
+      "minLevel": 71,
+      "pokedexId": 112,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Hippowdon",
+      "weight": 5,
+      "maxLevel": 81,
+      "minLevel": 71,
+      "pokedexId": 450,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Probopass",
+      "weight": 5,
+      "maxLevel": 81,
+      "minLevel": 71,
+      "pokedexId": 476,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Excadrill",
+      "weight": 4,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 530,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Eelektrik",
+      "weight": 4,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 603,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rampardos",
+      "weight": 3,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 409,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Bastiodon",
+      "weight": 3,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 411,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ambipom",
+      "weight": 2,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 424,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gliscor",
+      "weight": 2,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 472,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Azelf",
+      "weight": 2,
+      "maxLevel": 81,
+      "minLevel": 73,
+      "pokedexId": 482,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p31-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "recife-da-tempestade",
+      "targetMapName": "Recife da Tempestade",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Recife da Tempestade"
+    },
+    {
+      "id": "p31-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "recife-da-tempestade",
+      "targetMapName": "Recife da Tempestade",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Recife da Tempestade"
+    },
+    {
+      "id": "p31-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "geleira-suspensa",
+      "targetMapName": "Geleira Suspensa",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Geleira Suspensa"
+    },
+    {
+      "id": "p31-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "geleira-suspensa",
+      "targetMapName": "Geleira Suspensa",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Geleira Suspensa"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

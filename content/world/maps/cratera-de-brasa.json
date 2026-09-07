@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "cratera-de-brasa",
+  "name": "Mapa 27: Cratera de Brasa",
+  "description": "Borda de um vulcão que ainda respira (nv 59–73). Fogo, terra e os dragões que escolhem pedra quente para chocar.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Camerupt",
+      "weight": 15,
+      "maxLevel": 70,
+      "minLevel": 59,
+      "pokedexId": 323,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Claydol",
+      "weight": 13,
+      "maxLevel": 72,
+      "minLevel": 61,
+      "pokedexId": 344,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dusclops",
+      "weight": 11,
+      "maxLevel": 72,
+      "minLevel": 61,
+      "pokedexId": 356,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ninetales",
+      "weight": 10,
+      "maxLevel": 72,
+      "minLevel": 61,
+      "pokedexId": 38,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magcargo",
+      "weight": 8,
+      "maxLevel": 73,
+      "minLevel": 63,
+      "pokedexId": 219,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Piloswine",
+      "weight": 7,
+      "maxLevel": 73,
+      "minLevel": 63,
+      "pokedexId": 221,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Simisear",
+      "weight": 6,
+      "maxLevel": 73,
+      "minLevel": 63,
+      "pokedexId": 514,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Donphan",
+      "weight": 5,
+      "maxLevel": 73,
+      "minLevel": 63,
+      "pokedexId": 232,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Fraxure",
+      "weight": 5,
+      "maxLevel": 73,
+      "minLevel": 63,
+      "pokedexId": 611,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dragonair",
+      "weight": 4,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 148,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Shelgon",
+      "weight": 4,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 372,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gabite",
+      "weight": 3,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 444,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ho-Oh",
+      "weight": 3,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 250,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Latias",
+      "weight": 2,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 380,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Latios",
+      "weight": 2,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 381,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Groudon",
+      "weight": 2,
+      "maxLevel": 73,
+      "minLevel": 65,
+      "pokedexId": 383,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p27-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "pantano-do-silencio",
+      "targetMapName": "Pântano do Silêncio",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Pântano do Silêncio"
+    },
+    {
+      "id": "p27-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "pantano-do-silencio",
+      "targetMapName": "Pântano do Silêncio",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Pântano do Silêncio"
+    },
+    {
+      "id": "p27-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "lago-espelhado",
+      "targetMapName": "Lago Espelhado",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Lago Espelhado"
+    },
+    {
+      "id": "p27-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "lago-espelhado",
+      "targetMapName": "Lago Espelhado",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Lago Espelhado"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

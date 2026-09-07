@@ -1,39 +1,49 @@
 import type { WildEncounterEntry } from "@/db/schema";
 import { getPokemonSpecies } from "./pokedex";
 import type { TileId } from "./tiles";
+import type { Rect, WorldEncounterRow } from "./world-layout";
+import {
+  descriptionFor,
+  GYM_ACE_MIN_MAP,
+  LEGENDARY_MIN_MAP,
+  WORLD_LEGENDARIES,
+  WORLD_MAP_COUNT,
+  WORLD_MAP_LAYOUT,
+} from "./world-layout";
+import { WORLD_ENCOUNTERS } from "./world-encounters";
 
 /**
- * O mundo padrão do jogo (Fase 6.4-A — expansão até o mapa 20).
+ * O mundo padrão do jogo (Fase 7.1 — Etapa B: 40 mapas).
  *
- * Pedido do mantenedor: gerar mapas até o 20 seguindo o conceito dos três
- * primeiros, com **temas/-regiões** para que os encontros de cada tipo fiquem
- * coesos por mapa, e distribuir as 156 espécies de forma **balanceada e
- * separada**: formas básicas/comuns nos mapas iniciais, evoluídos/raros e
- * faixas de nível altas nos mapas avançados.
+ * Este módulo é a **renderização**, não a autoria. Nenhum número de conteúdo é
+ * digitado aqui; os dados vivem em dois lugares:
  *
- * Este módulo é PURO (sem banco): produz os dados que dois consumidores usam:
- * - `src/lib/seed-maps.ts` — semeia um banco vazio (fluxo de CI/integração);
- * - `scripts/world-seed.mts` — aplica de forma idempotente num banco que já
- *   tem os 3 mapas antigos (fluxo de dev/produção), seguido de `world:export`
- *   para versionar em `content/world/` (MUNDO-COMO-CODIGO).
+ * - `world-layout.ts` — os 40 mapas (identidade, bioma, grade, Centro Pokémon,
+ *   banda de nível) e as listas travadas por contrato (mapa 1, lendários, ases
+ *   de ginásio);
+ * - `world-encounters.ts` — **artefato gerado** por `world-distribute.ts` com
+ *   `[id, peso, nv mín, nv máx, água]` de cada uma das 649 espécies.
  *
- * Decisões de conteúdo registradas aqui:
- * - O **mapa 1 é intocável** (contrato da 6.2-C: iniciais nv 3–8, Pikachu
- *   4–9, Eevee 4–10, ginásio do Brock 12/14).
- * - Os mapas 2 e 3 **trocaram de elenco** (eram da época de 25 espécies:
- *   Gengar/Lucario/Rayquaza commons em mapa 2–3). Agora seguem a progressão:
- *   floresta de insetos/plantas e colinas rochosas. Ginásios (Misty 18/21,
- *   Lance 38/45), lojas e portais originais permanecem; o mapa 3 ganhou a
- *   saída norte que inicia a cadeia até o mapa 20.
- * - Mapas 4–20: um tema por mapa, corredor de portais norte/sul, Centro
- *   Pokémon apenas nos mapas 4, 8, 13, 16 e 20 (trecho longo sem curar é
- *   dificuldade de propósito — o jogo não deve facilitar).
- * - Faixas de nível sobem +4 por mapa com sobreposição de +4/+2: 8–16, 14–24,
- *   18–28 … 78–90, 82–95. Dentro da faixa, o peso decide o quão alto o bicho
- *   aparece (comum no andar de baixo, raro/lendário no topo).
- * - Cada espécie aparece em **exatamente um** mapa (guardado por teste) e
- *   nenhuma evolução aparece em mapa ANTERIOR ao da sua forma anterior
- *   (também guardado por teste).
+ * Fluxo (contrato da Etapa B): `default-world.ts` → `npm run world:seed` →
+ * `npm run world:export` → `content/world/maps/*.json` versionados → testes →
+ * PR → ativação do mundo. Editar tabela de encontro à mão é sempre um erro:
+ * regere com `npm run world:distribute -- --write`.
+ *
+ * Decisões de conteúdo:
+ * - O **mapa 1 é intocável** (contrato da 6.2-C): grade, NPCs, portais e as
+ *   cinco entradas com os níveis originais (`map1Table` abaixo é verbatim).
+ * - Mapas 2 e 3 preservam grade, lojas e ginásios; o **elenco** é o da
+ *   redistribuição, e as bandas subiram de "+4 por mapa em 20 mapas" para uma
+ *   escada contínua de 3→100 em 40 mapas.
+ * - Lendários: nunca antes do mapa `LEGENDARY_MIN_MAP` (10) e sempre com peso
+ *   pequeno; os mapas marcados `legendaryHaven` no layout concentram os míticos.
+ * - Centro Pokémon é **tile** (`center`), não entidade nova: aparece nos mapas
+ *   com `center` no layout. Trecho longo sem curar é dificuldade de propósito.
+ * - Cada espécie aparece em exatamente **um** mapa e nenhum evoluído mora em
+ *   mapa anterior ao da própria pré-evolução (guardas de
+ *   `world-expansion.test.ts`).
+ * - Nenhum NPC de loja nos mapas novos: sem item novo nesta etapa, `shops/`
+ *   fica intacto e loja fantasma violaria o contrato.
  */
 
 export interface DefaultPortalSpec {
@@ -72,51 +82,34 @@ export interface DefaultMapData {
   npcs: DefaultNpcSpec[];
 }
 
-// ── Faixa de nível por mapa ─────────────────────────────────────────────────
-export const WORLD_BANDS: Record<number, [number, number]> = {
-  1: [3, 10], 2: [8, 16], 3: [14, 24], 4: [18, 28], 5: [22, 32],
-  6: [26, 36], 7: [30, 40], 8: [34, 44], 9: [38, 48], 10: [42, 52],
-  11: [46, 56], 12: [50, 60], 13: [54, 64], 14: [58, 68], 15: [62, 72],
-  16: [66, 76], 17: [70, 80], 18: [74, 84], 19: [78, 90], 20: [82, 95],
-};
+// Reexportos: quem consumia estas constantes por aqui não precisa conhecer o
+// módulo novo, e a fonte de verdade continua sendo `world-layout.ts`.
+export { WORLD_BANDS, type Rect, type WorldMapLayout } from "./world-layout";
+export { GYM_ACE_MIN_MAP, LEGENDARY_MIN_MAP };
+export const DEFAULT_LEGENDARIES: ReadonlySet<number> = WORLD_LEGENDARIES;
 
-const LEGENDARIES = new Set([144, 145, 146, 150, 151, 384]);
-
-/** Espécies que também podem aparecer andando na borda d'água dos mapas aquáticos. */
-const AQUATIC = new Set([
-  54, 55, 60, 61, 62, 72, 73, 79, 80, 86, 87, 90, 91, 98, 99, 116, 117,
-  118, 119, 120, 121, 129, 130, 131, 134,
-]);
-
-/** Regra de nível dentro da faixa do mapa, a partir do peso (raridade). */
-function levelsFor(weight: number, legendary: boolean, band: [number, number]): [number, number] {
-  const [lo, hi] = band;
-  if (legendary) return [Math.max(lo, hi - 8), hi];
-  if (weight >= 14) return [lo, hi - 3]; // comum: anda na base da faixa
-  if (weight >= 9) return [lo + 2, hi - 1]; // incomum
-  if (weight >= 5) return [lo + 4, hi]; // raro: só no topo
-  return [lo + 6, hi]; // muito raro
+/**
+ * Linha gerada → entrada de `encounterTable`. `água = 1` só aparece nos mapas
+ * com `waterRects` e libera o tile `water` além da grama alta.
+ */
+function rowToEntry(row: WorldEncounterRow): WildEncounterEntry {
+  const [pokedexId, weight, minLevel, maxLevel, water] = row;
+  return {
+    pokedexId,
+    name: getPokemonSpecies(pokedexId).name,
+    weight,
+    minLevel,
+    maxLevel,
+    tileTypes: water === 1 ? ["tall_grass", "water"] : ["tall_grass"],
+  };
 }
 
-type EncSpec = [id: number, weight: number];
-
-function buildEncounterTable(order: number, specs: EncSpec[]): WildEncounterEntry[] {
-  const band = WORLD_BANDS[order];
-  const watery = [5, 10, 15].includes(order);
-  return specs.map(([pokedexId, weight]) => {
-    const legendary = LEGENDARIES.has(pokedexId);
-    const [minLevel, maxLevel] = levelsFor(weight, legendary, band);
-    return {
-      pokedexId,
-      name: getPokemonSpecies(pokedexId).name,
-      weight,
-      minLevel,
-      maxLevel,
-      tileTypes: watery && AQUATIC.has(pokedexId)
-        ? ["tall_grass", "water"]
-        : ["tall_grass"],
-    };
-  });
+function buildEncounterTable(order: number): WildEncounterEntry[] {
+  const rows = WORLD_ENCOUNTERS[order] ?? [];
+  if (rows.length === 0) throw new Error(`mapa ${order} sem tabela de encontros gerada`);
+  const soma = rows.reduce((acc, r) => acc + r[1], 0);
+  if (soma !== 100) throw new Error(`pesos do mapa ${order} somam ${soma}, não 100`);
+  return rows.map(rowToEntry);
 }
 
 /**
@@ -134,7 +127,7 @@ function map1Table(): WildEncounterEntry[] {
 }
 
 // ── Grades temáticas (16×16, índice [y][x]) ──────────────────────────────────
-type Rect = [number, number, number, number]; // x1, y1, x2, y2
+// `Rect` vem de `world-layout.ts` — é o mesmo tipo que o layout usa.
 
 function emptyGrid(fill: TileId): TileId[][] {
   return Array.from({ length: 16 }, () => Array.from({ length: 16 }, () => fill));
@@ -150,16 +143,16 @@ function fillRect(g: TileId[][], [x1, y1, x2, y2]: Rect, tile: TileId, onlyOn?: 
 }
 
 /**
- * Grade temática dos mapas 4–20: borda de árvores com portais nas colunas
- * 7/8 (norte/sul), trilha em cruz, retângulos de grama alta, água e decoração.
- * A grama alta só substitui o chão do tema — nunca trilha, água ou borda.
+ * Grade temática: borda de árvores com portais nas colunas 7/8 (norte/sul),
+ * trilha em cruz, retângulos de grama alta, água e decoração. A grama alta só
+ * substitui o chão do tema — nunca trilha, água ou borda.
  */
 function themedGrid(opts: {
   ground: TileId;
-  grassRects: Rect[];
-  waterRects?: Rect[];
-  flowers?: Array<[number, number]>;
-  center?: [number, number];
+  grassRects: readonly Rect[];
+  waterRects?: readonly Rect[];
+  flowers?: readonly (readonly [number, number])[];
+  center?: readonly [number, number];
   northExit: boolean;
   southExit: boolean;
 }): TileId[][] {
@@ -245,7 +238,7 @@ function originalGrids() {
     }
   }
 
-  // MAPA 3: Pico Celeste (grade original + saída norte p/ cadeia até o 20)
+  // MAPA 3: Pico Celeste (grade original + saída norte p/ cadeia até o 40)
   const map3 = emptyGrid("stone");
   for (let x = 0; x < 16; x++) { map3[0][x] = "tree"; map3[15][x] = "tree"; }
   for (let y = 0; y < 16; y++) {
@@ -268,245 +261,81 @@ function originalGrids() {
 }
 
 /**
- * Elenco por mapa: [pokedexId, peso]. Peso soma 100 em todos os mapas.
- * O mapa 1 NÃO está aqui: é contrato fixo da 6.2-C (`map1Table`).
+ * Os 40 mapas, em ordem de jornada. Mapas 1–3 verbatim da semente original
+ * (grade, NPCs, portais); 4–40 saem do `world-layout.ts` (tema, grade, Centro
+ * Pokémon) e da tabela gerada.
  */
-const ENCOUNTERS: Record<number, EncSpec[]> = {
-  2: [[10, 6], [13, 6], [11, 3], [14, 3], [16, 7], [21, 4], [19, 6], [43, 7], [69, 7], [46, 3], [48, 3], [152, 5], [155, 5], [158, 5], [161, 4], [163, 4], [165, 4], [167, 4], [187, 4], [172, 3], [191, 3], [179, 4]],
-  3: [[74, 8], [50, 5], [27, 5], [66, 4], [56, 4], [29, 4], [32, 4], [30, 2], [33, 2], [95, 2], [104, 2], [111, 2], [153, 4], [156, 4], [159, 4], [177, 4], [185, 4], [204, 4], [206, 4], [207, 4], [216, 4], [190, 4], [193, 4], [231, 4], [236, 4], [246, 4]],
-  4: [[41, 20], [42, 7], [35, 8], [63, 8], [23, 13], [39, 8], [102, 8], [113, 2], [108, 8], [173, 3], [174, 3], [175, 4], [188, 4], [209, 4]],
-  5: [[129, 10], [118, 8], [72, 8], [98, 7], [116, 7], [120, 6], [54, 6], [79, 6], [90, 3], [60, 7], [170, 4], [183, 4], [194, 4], [211, 4], [222, 4], [223, 4], [162, 4], [168, 4]],
-  6: [[88, 16], [109, 15], [92, 10], [49, 7], [44, 10], [2, 7], [114, 10], [61, 10], [154, 4], [195, 4], [182, 3], [218, 4]],
-  7: [[81, 17], [82, 10], [100, 17], [101, 10], [26, 7], [135, 5], [125, 6], [137, 12], [180, 4], [239, 4], [228, 4], [233, 4]],
-  8: [[28, 12], [51, 12], [105, 9], [24, 9], [75, 14], [115, 11], [128, 11], [127, 10], [164, 4], [232, 4], [247, 4]],
-  9: [[77, 13], [58, 13], [37, 10], [17, 9], [22, 7], [84, 7], [83, 4], [143, 9], [189, 4], [192, 4], [203, 4], [241, 4], [234, 4], [166, 4], [229, 4]],
-  10: [[86, 13], [87, 12], [91, 8], [124, 12], [131, 7], [144, 2], [55, 10], [80, 10], [8, 10], [215, 4], [220, 4], [225, 4], [238, 4]],
-  11: [[93, 19], [97, 18], [96, 14], [122, 13], [64, 16], [169, 4], [178, 4], [200, 4], [201, 4], [202, 4]],
-  12: [[5, 20], [38, 12], [59, 12], [78, 14], [126, 14], [136, 10], [146, 3], [157, 4], [181, 4], [219, 4], [240, 3]],
-  13: [[197, 8], [53, 9], [52, 6], [20, 11], [57, 11], [106, 6], [107, 6], [448, 8], [67, 5], [68, 6], [196, 4], [198, 4], [210, 4], [217, 4], [235, 4], [237, 4]],
-  14: [[36, 17], [40, 17], [282, 15], [45, 13], [70, 12], [103, 12], [3, 10], [176, 4]],
-  15: [[73, 10], [99, 10], [117, 10], [119, 10], [121, 9], [134, 9], [62, 6], [9, 8], [160, 4], [171, 4], [184, 4], [186, 4], [199, 4], [224, 4], [226, 4]],
-  16: [[138, 12], [139, 9], [140, 12], [141, 9], [142, 14], [76, 11], [34, 11], [31, 10], [221, 4], [230, 4], [213, 4]],
-  17: [[12, 14], [15, 14], [47, 14], [71, 14], [123, 16], [147, 16], [205, 4], [212, 4], [214, 4]],
-  18: [[18, 25], [85, 21], [6, 27], [130, 23], [227, 4]],
-  19: [[150, 9], [132, 9], [94, 17], [65, 15], [112, 17], [208, 15], [89, 5], [110, 5], [248, 4], [242, 4]],
-  20: [[149, 25], [148, 28], [384, 13], [145, 10], [151, 6], [243, 3], [244, 3], [245, 3], [249, 3], [250, 3], [251, 3]],
-};
-
-/** Os 20 mapas, em ordem de jornada. Grades dos mapas 4–20 são temáticas. */
 export function buildDefaultMaps(): DefaultMapData[] {
   const { map1, map2, map3 } = originalGrids();
+  const legacyGrids: Record<number, TileId[][]> = { 1: map1, 2: map2, 3: map3 };
 
-  const maps: DefaultMapData[] = [
-    {
-      order: 1, slug: "vale-pallet", name: "Mapa 1: Vale Pallet", shortName: "Vale Pallet",
-      description: "Lar dos primeiros treinadores. Ginásio do Brock (Pedra) e Loja básica.",
-      width: 16, height: 16, tileGrid: map1,
-      encounterTable: map1Table(),
-      portals: [
-        { id: "p1-north-1", sourceX: 7, sourceY: 0, targetSlug: "floresta-viridian", targetMapName: "Floresta de Viridian", targetX: 7, targetY: 14, label: "Norte → Floresta de Viridian" },
-        { id: "p1-north-2", sourceX: 8, sourceY: 0, targetSlug: "floresta-viridian", targetMapName: "Floresta de Viridian", targetX: 8, targetY: 14, label: "Norte → Floresta de Viridian" },
-      ],
-      npcs: [
-        { id: "shop-pallet", x: 2, y: 7, type: "shop", name: "Loja Pallet", shopId: 1, dialog: "Bem-vindo! Temos itens básicos para sua jornada!" },
-        { id: "gym-brock", x: 11, y: 4, type: "gym", name: "Brock", gymId: 1, dialog: "Sou Brock! Líder do Ginásio Pewter! Você tem coragem para me enfrentar?" },
-      ],
-    },
-    {
-      order: 2, slug: "floresta-viridian", name: "Mapa 2: Floresta de Viridian", shortName: "Floresta de Viridian",
-      description: "Mata fechada de insetos e plantas selvagens (nv 8–16). Ginásio da Misty (Água) e Loja intermediária.",
-      width: 16, height: 16, tileGrid: map2,
-      encounterTable: buildEncounterTable(2, ENCOUNTERS[2]),
-      portals: [
-        { id: "p2-south-1", sourceX: 7, sourceY: 15, targetSlug: "vale-pallet", targetMapName: "Vale Pallet", targetX: 7, targetY: 1, label: "Sul → Vale Pallet" },
-        { id: "p2-south-2", sourceX: 8, sourceY: 15, targetSlug: "vale-pallet", targetMapName: "Vale Pallet", targetX: 8, targetY: 1, label: "Sul → Vale Pallet" },
-        { id: "p2-east-1", sourceX: 15, sourceY: 7, targetSlug: "pico-celeste", targetMapName: "Pico Celeste", targetX: 1, targetY: 7, label: "Leste → Pico Celeste" },
-        { id: "p2-east-2", sourceX: 15, sourceY: 8, targetSlug: "pico-celeste", targetMapName: "Pico Celeste", targetX: 1, targetY: 8, label: "Leste → Pico Celeste" },
-      ],
-      npcs: [
-        { id: "shop-viridian", x: 3, y: 11, type: "shop", name: "Loja da Floresta", shopId: 2, dialog: "Estoque intermediário para Treinadores que chegam longe!" },
-        { id: "gym-misty", x: 11, y: 3, type: "gym", name: "Misty", gymId: 2, dialog: "Sou Misty! A Garota Sereia! Prepare-se para se afogar!" },
-      ],
-    },
-    {
-      order: 3, slug: "pico-celeste", name: "Mapa 3: Pico Celeste", shortName: "Pico Celeste",
-      description: "Colinas rochosas na subida da montanha (nv 14–24). Ginásio do Lance (Dragão); ao norte começa a longa jornada até o mapa 20.",
-      width: 16, height: 16, tileGrid: map3,
-      encounterTable: buildEncounterTable(3, ENCOUNTERS[3]),
-      portals: [
-        { id: "p3-west-1", sourceX: 0, sourceY: 7, targetSlug: "floresta-viridian", targetMapName: "Floresta de Viridian", targetX: 14, targetY: 7, label: "Oeste → Floresta de Viridian" },
-        { id: "p3-west-2", sourceX: 0, sourceY: 8, targetSlug: "floresta-viridian", targetMapName: "Floresta de Viridian", targetX: 14, targetY: 8, label: "Oeste → Floresta de Viridian" },
-        // norte → Mapa 4 entra pela cadeia abaixo (ids p3-north-1/2)
-      ],
-      npcs: [
-        { id: "shop-peak", x: 8, y: 12, type: "shop", name: "Loja do Pico", shopId: 3, dialog: "Items raros para os mais fortes Treinadores do mundo!" },
-        { id: "gym-lance", x: 7, y: 3, type: "gym", name: "Lance", gymId: 3, dialog: "Lance, Mestre dos Dragões! Ninguém passou por mim ainda!" },
-      ],
-    },
-  ];
+  const maps: DefaultMapData[] = WORLD_MAP_LAYOUT.map((layout) => ({
+    order: layout.order,
+    slug: layout.slug,
+    name: layout.name,
+    shortName: layout.shortName,
+    description: descriptionFor(layout),
+    width: 16,
+    height: 16,
+    tileGrid: layout.legacyGrid
+      ? legacyGrids[layout.order]!
+      : themedGrid({
+          ground: layout.ground ?? "grass",
+          grassRects: layout.grassRects ?? [[2, 2, 6, 6], [9, 2, 13, 6], [2, 9, 6, 13], [9, 9, 13, 13]],
+          waterRects: layout.waterRects,
+          flowers: layout.flowers,
+          center: layout.center,
+          northExit: layout.order < WORLD_MAP_COUNT,
+          southExit: layout.order !== 1,
+        }),
+    encounterTable: layout.order === 1 ? map1Table() : buildEncounterTable(layout.order),
+    portals: [], // preenchido pela cadeia abaixo
+    npcs: [],
+  }));
 
-  // ── Mapas 4–20: definições temáticas ──────────────────────────────────────
-  const themes: Array<{
-    slug: string; name: string; shortName: string; description: string;
-    ground: TileId; grassRects: Rect[]; waterRects?: Rect[];
-    flowers?: Array<[number, number]>; center?: [number, number];
-  }> = [
-    {
-      slug: "caverna-monte-lua", name: "Mapa 4: Caverna do Monte Lua", shortName: "Caverna do Monte Lua",
-      description: "Túneis úmidos de pedra (nv 18–28). Zubat e Clefairy por todo lado; Chansey é raríssima. Centro Pokémon disponível.",
-      ground: "stone",
-      grassRects: [[2, 2, 6, 6], [9, 2, 13, 6], [2, 9, 5, 13], [9, 9, 13, 13]],
-      center: [6, 10],
-    },
-    {
-      slug: "litoral-vermilion", name: "Mapa 5: Litoral de Vermilion", shortName: "Litoral de Vermilion",
-      description: "Praia e mar raso (nv 22–32). Pequenos aquáticos na água e na restinga; Shellder é o achado raro.",
-      ground: "sand",
-      grassRects: [[2, 8, 6, 13], [10, 8, 13, 13]],
-      waterRects: [[10, 1, 14, 6], [1, 1, 5, 4]],
-    },
-    {
-      slug: "pantano-venenoso", name: "Mapa 6: Pântano Venenoso", shortName: "Pântano Venenoso",
-      description: "Lama tóxica e névoa (nv 26–36). Grimer, Koffing e Gastly; Ivysaur medra no lodo.",
-      ground: "grass",
-      grassRects: [[2, 2, 6, 6], [9, 3, 13, 6], [3, 9, 12, 13]],
-      waterRects: [[9, 9, 13, 13]],
-    },
-    {
-      slug: "usina-volt", name: "Mapa 7: Usina de Volt", shortName: "Usina de Volt",
-      description: "Geradores zumbindo (nv 30–40). Magnemite e Voltorb sobrecarregam os corredores; Jolteon é raríssimo.",
-      ground: "stone",
-      grassRects: [[2, 2, 5, 6], [10, 2, 13, 6], [2, 9, 13, 13]],
-    },
-    {
-      slug: "deserto-das-ruinas", name: "Mapa 8: Deserto das Ruínas", shortName: "Deserto das Ruínas",
-      description: "Dunas e ruínas enterradas (nv 34–44). Fósseis vivos, Graveler e Kangaskhan; Centro Pokémon no oásis.",
-      ground: "sand",
-      grassRects: [[1, 2, 5, 7], [10, 2, 14, 7], [4, 10, 11, 13]],
-      center: [6, 10],
-    },
-    {
-      slug: "planicies-douradas", name: "Mapa 9: Planícies Douradas", shortName: "Planícies Douradas",
-      description: "Campos abertos de vento e pólen (nv 38–48). Cães e cavalos de fogo correm soltos; Snorlalx bloqueia a trilha.",
-      ground: "grass",
-      grassRects: [[2, 2, 13, 6], [2, 9, 6, 13], [9, 9, 13, 13]],
-      flowers: [[3, 7], [12, 8], [6, 3]],
-    },
-    {
-      slug: "ilhas-glaciais", name: "Mapa 10: Ilhas Glaciais", shortName: "Ilhas Glaciais",
-      description: "Canais congelados (nv 42–52). Seel e Jynx nas margens; Lapras é raro e Articuno, lendário.",
-      ground: "grass",
-      grassRects: [[2, 5, 6, 10], [9, 5, 13, 10]],
-      waterRects: [[1, 1, 14, 3], [1, 12, 14, 14]],
-    },
-    {
-      slug: "torre-dos-espiritos", name: "Mapa 11: Torre dos Espíritos", shortName: "Torre dos Espíritos",
-      description: "Andares silenciosos entre velas (nv 46–56). Haunter flanqueia; Hypno e Kadabra vigiam os corredores.",
-      ground: "stone",
-      grassRects: [[2, 2, 6, 5], [9, 2, 13, 5], [2, 9, 6, 13], [9, 9, 13, 13]],
-    },
-    {
-      slug: "vulcao-cinnabar", name: "Mapa 12: Vulcão de Cinnabar", shortName: "Vulcão de Cinnabar",
-      description: "Cinzas e magma (nv 50–60). As linhas de fogo completas; Charmeleon treina aqui antes das asas; Moltres aninha na cratera.",
-      ground: "stone",
-      grassRects: [[2, 2, 6, 6], [9, 2, 13, 6], [4, 9, 11, 13]],
-    },
-    {
-      slug: "cidade-sombria", name: "Mapa 13: Cidade Sombria", shortName: "Cidade Sombria",
-      description: "Becos de neon e um dojo de portas abertas (nv 54–64). Umbreon, Lucario e os Hitmon-irmãos; Centro Pokémon na praça.",
-      ground: "stone",
-      grassRects: [[2, 2, 5, 5], [10, 2, 13, 5], [2, 9, 13, 13]],
-      flowers: [[6, 3], [9, 12]],
-      center: [6, 10],
-    },
-    {
-      slug: "vale-das-fadas", name: "Mapa 14: Vale das Fadas", shortName: "Vale das Fadas",
-      description: "Campinas cor-de-rosa (nv 58–68). Clefable e Wigglytuff fazem festa; Gardevoir guarda o vale; Venusaur descansa à sombra.",
-      ground: "grass",
-      grassRects: [[2, 2, 6, 6], [9, 2, 13, 6], [2, 9, 6, 13], [9, 9, 13, 13]],
-      flowers: [[7, 3], [8, 12], [3, 8], [12, 7]],
-    },
-    {
-      slug: "fossa-abissal", name: "Mapa 15: Fossa Abissal", shortName: "Fossa Abissal",
-      description: "Águas negras sem luz (nv 62–72). Os aquáticos definitivos — Starmie, Vaporeon e o próprio Blastoise.",
-      ground: "sand",
-      grassRects: [[5, 4, 10, 12]],
-      waterRects: [[1, 1, 4, 14], [11, 1, 14, 14]],
-    },
-    {
-      slug: "canion-dos-fosseis", name: "Mapa 16: Cânion dos Fósseis", shortName: "Cânion dos Fósseis",
-      description: "Estratos escavados pelo tempo (nv 66–76). Omanyte e Kabuto despertam; Golem, Nidoking e Nidoqueen dominam o leito; Centro Pokémon no acampamento.",
-      ground: "sand",
-      grassRects: [[2, 2, 6, 6], [9, 2, 13, 6], [3, 9, 12, 13]],
-      center: [6, 10],
-    },
-    {
-      slug: "selva-profunda", name: "Mapa 17: Selva Profunda", shortName: "Selva Profunda",
-      description: "Dossel fechado que engole a luz (nv 70–80). Insetos gigantes tesouram o ar; Dratini desliza nos riachos.",
-      ground: "grass",
-      grassRects: [[1, 1, 6, 6], [9, 1, 14, 6], [1, 9, 6, 14], [9, 9, 14, 14]],
-    },
-    {
-      slug: "rota-do-ceu", name: "Mapa 18: Rota do Céu", shortName: "Rota do Céu",
-      description: "Correntes de ar acima das nuvens (nv 74–84). Charizard e Gyarados cortam o vento; Pidgeot patrulha em bando.",
-      ground: "grass",
-      grassRects: [[2, 3, 6, 7], [9, 3, 13, 7], [4, 10, 11, 13]],
-      flowers: [[7, 2], [8, 13]],
-    },
-    {
-      slug: "caverna-suprema", name: "Mapa 19: Caverna Suprema", shortName: "Caverna Suprema",
-      description: "O fundo do mundo (nv 78–90). Gengar, Alakazam, Steelix e Rhydon no auge; Mewtwo observa de algum lugar.",
-      ground: "stone",
-      grassRects: [[2, 2, 6, 5], [9, 2, 13, 5], [2, 8, 5, 13], [9, 8, 13, 13]],
-    },
-    {
-      slug: "santuario-celeste", name: "Mapa 20: Santuário Celeste", shortName: "Santuário Celeste",
-      description: "O topo da jornada (nv 82–95). Dratini completa a linha: Dragonair e Dragonite reinam; Rayquaza, Zapdos e Mew aparecem para muito poucos. Centro Pokémon no templo.",
-      ground: "grass",
-      grassRects: [[2, 2, 6, 6], [9, 2, 13, 6], [4, 9, 11, 13]],
-      flowers: [[7, 3], [8, 12], [3, 8], [12, 8]],
-      center: [6, 10],
-    },
-  ];
+  // ── Portais e NPCs dos três mapas originais (contrato 6.2-C / 6.4-A) ──────
+  const [m1, m2, m3] = maps;
+  m1!.portals.push(
+    { id: "p1-north-1", sourceX: 7, sourceY: 0, targetSlug: m2!.slug, targetMapName: m2!.shortName, targetX: 7, targetY: 14, label: `Norte → ${m2!.shortName}` },
+    { id: "p1-north-2", sourceX: 8, sourceY: 0, targetSlug: m2!.slug, targetMapName: m2!.shortName, targetX: 8, targetY: 14, label: `Norte → ${m2!.shortName}` },
+  );
+  m1!.npcs.push(
+    { id: "shop-pallet", x: 2, y: 7, type: "shop", name: "Loja Pallet", shopId: 1, dialog: "Bem-vindo! Temos itens básicos para sua jornada!" },
+    { id: "gym-brock", x: 11, y: 4, type: "gym", name: "Brock", gymId: 1, dialog: "Sou Brock! Líder do Ginásio Pewter! Você tem coragem para me enfrentar?" },
+  );
+  m2!.portals.push(
+    { id: "p2-south-1", sourceX: 7, sourceY: 15, targetSlug: m1!.slug, targetMapName: m1!.shortName, targetX: 7, targetY: 1, label: `Sul → ${m1!.shortName}` },
+    { id: "p2-south-2", sourceX: 8, sourceY: 15, targetSlug: m1!.slug, targetMapName: m1!.shortName, targetX: 8, targetY: 1, label: `Sul → ${m1!.shortName}` },
+    { id: "p2-east-1", sourceX: 15, sourceY: 7, targetSlug: m3!.slug, targetMapName: m3!.shortName, targetX: 1, targetY: 7, label: `Leste → ${m3!.shortName}` },
+    { id: "p2-east-2", sourceX: 15, sourceY: 8, targetSlug: m3!.slug, targetMapName: m3!.shortName, targetX: 1, targetY: 8, label: `Leste → ${m3!.shortName}` },
+  );
+  m2!.npcs.push(
+    { id: "shop-viridian", x: 3, y: 11, type: "shop", name: "Loja da Floresta", shopId: 2, dialog: "Estoque intermediário para Treinadores que chegam longe!" },
+    { id: "gym-misty", x: 11, y: 3, type: "gym", name: "Misty", gymId: 2, dialog: "Sou Misty! A Garota Sereia! Prepare-se para se afogar!" },
+  );
+  m3!.portals.push(
+    { id: "p3-west-1", sourceX: 0, sourceY: 7, targetSlug: m2!.slug, targetMapName: m2!.shortName, targetX: 14, targetY: 7, label: `Oeste → ${m2!.shortName}` },
+    { id: "p3-west-2", sourceX: 0, sourceY: 8, targetSlug: m2!.slug, targetMapName: m2!.shortName, targetX: 14, targetY: 8, label: `Oeste → ${m2!.shortName}` },
+  );
+  m3!.npcs.push(
+    { id: "shop-peak", x: 8, y: 12, type: "shop", name: "Loja do Pico", shopId: 3, dialog: "Items raros para os mais fortes Treinadores do mundo!" },
+    { id: "gym-lance", x: 7, y: 3, type: "gym", name: "Lance", gymId: 3, dialog: "Lance, Mestre dos Dragões! Ninguém passou por mim ainda!" },
+  );
 
-  for (let i = 0; i < themes.length; i++) {
-    const order = 4 + i;
-    const theme = themes[i];
-    maps.push({
-      order,
-      slug: theme.slug,
-      name: theme.name,
-      shortName: theme.shortName,
-      description: theme.description,
-      width: 16,
-      height: 16,
-      tileGrid: themedGrid({
-        ground: theme.ground,
-        grassRects: theme.grassRects,
-        waterRects: theme.waterRects,
-        flowers: theme.flowers,
-        center: theme.center,
-        northExit: order < 20, // o 20 é o fim da linha
-        southExit: true,
-      }),
-      encounterTable: buildEncounterTable(order, ENCOUNTERS[order]),
-      portals: [], // preenchido pela cadeia abaixo
-      npcs: [],
-    });
-  }
-
-  // ── Cadeia de portais 3→4→…→20 (norte) e volta (sul) ─────────────────────
+  // ── Cadeia de portais 3→4→…→40 (norte) e volta (sul) ──────────────────────
+  // Os tiles 7/8 são espelhados: entrar em qualquer um dos dois cai no tile
+  // correspondente do vizinho, e a volta é sempre simétrica. Assim o grafo do
+  // mundo continua uma trilha navegável a partir do mapa 1.
   for (let i = 2; i < maps.length - 1; i++) {
-    // i = índice do mapa atual na lista (2 = mapa 3, que ganha saída norte).
-    const from = maps[i];
-    const to = maps[i + 1];
+    const from = maps[i]!;
+    const to = maps[i + 1]!;
     from.portals.push(
       { id: `p${from.order}-north-1`, sourceX: 7, sourceY: 0, targetSlug: to.slug, targetMapName: to.shortName, targetX: 7, targetY: 14, label: `Norte → ${to.shortName}` },
-      { id: `p${from.order}-north-2`, sourceX: 8, sourceY: 0, targetSlug: to.slug, targetMapName: to.shortName, targetX: 8, targetY: 14, label: `Norte → ${to.shortName}` }
+      { id: `p${from.order}-north-2`, sourceX: 8, sourceY: 0, targetSlug: to.slug, targetMapName: to.shortName, targetX: 8, targetY: 14, label: `Norte → ${to.shortName}` },
     );
     to.portals.push(
       { id: `p${to.order}-south-1`, sourceX: 7, sourceY: 15, targetSlug: from.slug, targetMapName: from.shortName, targetX: 7, targetY: 1, label: `Sul → ${from.shortName}` },
-      { id: `p${to.order}-south-2`, sourceX: 8, sourceY: 15, targetSlug: from.slug, targetMapName: from.shortName, targetX: 8, targetY: 1, label: `Sul → ${from.shortName}` }
+      { id: `p${to.order}-south-2`, sourceX: 8, sourceY: 15, targetSlug: from.slug, targetMapName: from.shortName, targetX: 8, targetY: 1, label: `Sul → ${from.shortName}` },
     );
   }
 

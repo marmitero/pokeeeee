@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "geleira-suspensa",
+  "name": "Mapa 32: Geleira Suspensa",
+  "description": "Plataforma de gelo acima da névoa (nv 69–83). Gelo por todo lado e os aquáticos que aguentam água congelada.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Dewgong",
+      "weight": 15,
+      "maxLevel": 80,
+      "minLevel": 69,
+      "pokedexId": 87,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Glalie",
+      "weight": 13,
+      "maxLevel": 82,
+      "minLevel": 71,
+      "pokedexId": 362,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Froslass",
+      "weight": 11,
+      "maxLevel": 82,
+      "minLevel": 71,
+      "pokedexId": 478,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cloyster",
+      "weight": 10,
+      "maxLevel": 82,
+      "minLevel": 71,
+      "pokedexId": 91,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Starmie",
+      "weight": 8,
+      "maxLevel": 83,
+      "minLevel": 73,
+      "pokedexId": 121,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Wailord",
+      "weight": 7,
+      "maxLevel": 83,
+      "minLevel": 73,
+      "pokedexId": 321,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Milotic",
+      "weight": 6,
+      "maxLevel": 83,
+      "minLevel": 73,
+      "pokedexId": 350,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Abomasnow",
+      "weight": 5,
+      "maxLevel": 83,
+      "minLevel": 73,
+      "pokedexId": 460,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Beartic",
+      "weight": 5,
+      "maxLevel": 83,
+      "minLevel": 73,
+      "pokedexId": 614,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Vaporeon",
+      "weight": 4,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 134,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Porygon2",
+      "weight": 4,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 233,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Glaceon",
+      "weight": 3,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 471,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Carracosta",
+      "weight": 3,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 565,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Clefable",
+      "weight": 2,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 36,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Regice",
+      "weight": 2,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 378,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Palkia",
+      "weight": 2,
+      "maxLevel": 83,
+      "minLevel": 75,
+      "pokedexId": 484,
+      "tileTypes": ["tall_grass", "water"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p32-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "duna-de-vidro",
+      "targetMapName": "Duna de Vidro",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Duna de Vidro"
+    },
+    {
+      "id": "p32-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "duna-de-vidro",
+      "targetMapName": "Duna de Vidro",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Duna de Vidro"
+    },
+    {
+      "id": "p32-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "serra-fumegante",
+      "targetMapName": "Serra Fumegante",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Serra Fumegante"
+    },
+    {
+      "id": "p32-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "serra-fumegante",
+      "targetMapName": "Serra Fumegante",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Serra Fumegante"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "water", "water", "water", "water", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "water", "water", "water", "water", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

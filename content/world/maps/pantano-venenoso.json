@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "pantano-venenoso",
   "name": "Mapa 6: Pântano Venenoso",
-  "description": "Lama tóxica e névoa (nv 26–36). Grimer, Koffing e Gastly; Ivysaur medra no lodo.",
+  "description": "Lama tóxica e névoa baixa (nv 14–28). Lodo que borbulha: venenosos, sapos e os Fantasmas que gostam de umidade.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,99 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Grimer",
-      "weight": 16,
-      "maxLevel": 33,
-      "minLevel": 26,
-      "pokedexId": 88,
+      "name": "Oddish",
+      "weight": 14,
+      "maxLevel": 25,
+      "minLevel": 14,
+      "pokedexId": 43,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Koffing",
-      "weight": 15,
-      "maxLevel": 33,
-      "minLevel": 26,
-      "pokedexId": 109,
+      "name": "Lotad",
+      "weight": 12,
+      "maxLevel": 27,
+      "minLevel": 16,
+      "pokedexId": 270,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Ferroseed",
+      "weight": 11,
+      "maxLevel": 27,
+      "minLevel": 16,
+      "pokedexId": 597,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gastly",
-      "weight": 10,
-      "maxLevel": 35,
-      "minLevel": 28,
-      "pokedexId": 92,
-      "tileTypes": ["tall_grass"]
+      "name": "Krabby",
+      "weight": 9,
+      "maxLevel": 27,
+      "minLevel": 16,
+      "pokedexId": 98,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Venomoth",
+      "name": "Horsea",
+      "weight": 8,
+      "maxLevel": 28,
+      "minLevel": 18,
+      "pokedexId": 116,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Staryu",
       "weight": 7,
-      "maxLevel": 36,
-      "minLevel": 30,
-      "pokedexId": 49,
+      "maxLevel": 28,
+      "minLevel": 18,
+      "pokedexId": 120,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Gulpin",
+      "weight": 6,
+      "maxLevel": 28,
+      "minLevel": 18,
+      "pokedexId": 316,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gloom",
-      "weight": 10,
-      "maxLevel": 35,
-      "minLevel": 28,
-      "pokedexId": 44,
+      "name": "Shuppet",
+      "weight": 5,
+      "maxLevel": 28,
+      "minLevel": 18,
+      "pokedexId": 353,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Ivysaur",
-      "weight": 7,
-      "maxLevel": 36,
-      "minLevel": 30,
-      "pokedexId": 2,
-      "tileTypes": ["tall_grass"]
+      "name": "Luvdisc",
+      "weight": 5,
+      "maxLevel": 28,
+      "minLevel": 18,
+      "pokedexId": 370,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Tangela",
-      "weight": 10,
-      "maxLevel": 35,
-      "minLevel": 28,
-      "pokedexId": 114,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Poliwhirl",
-      "weight": 10,
-      "maxLevel": 35,
-      "minLevel": 28,
-      "pokedexId": 61,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Meganium",
+      "name": "Corphish",
       "weight": 4,
-      "maxLevel": 36,
-      "minLevel": 32,
-      "pokedexId": 154,
-      "tileTypes": ["tall_grass"]
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 341,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Quagsire",
+      "name": "Surskit",
       "weight": 4,
-      "maxLevel": 36,
-      "minLevel": 32,
-      "pokedexId": 195,
-      "tileTypes": ["tall_grass"]
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 283,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Bellossom",
+      "name": "Tentacool",
       "weight": 3,
-      "maxLevel": 36,
-      "minLevel": 32,
-      "pokedexId": 182,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 72,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Remoraid",
+      "weight": 3,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 223,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Cherubi",
+      "weight": 3,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 420,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Slugma",
-      "weight": 4,
-      "maxLevel": 36,
-      "minLevel": 32,
-      "pokedexId": 218,
+      "name": "Panpour",
+      "weight": 2,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 515,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Ducklett",
+      "weight": 2,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 580,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Foongus",
+      "weight": 2,
+      "maxLevel": 28,
+      "minLevel": 20,
+      "pokedexId": 590,
       "tileTypes": ["tall_grass"]
     }
   ],

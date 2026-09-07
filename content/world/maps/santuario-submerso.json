@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "santuario-submerso",
+  "name": "Mapa 39: Santuário Submerso",
+  "description": "Templo que o mar decidiu guardar (nv 84–98). Colunas cobertas de água, plantas de maré e lendários que dormiam embaixo delas.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Alakazam",
+      "weight": 15,
+      "maxLevel": 95,
+      "minLevel": 84,
+      "pokedexId": 65,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gothitelle",
+      "weight": 13,
+      "maxLevel": 97,
+      "minLevel": 86,
+      "pokedexId": 576,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Reuniclus",
+      "weight": 11,
+      "maxLevel": 97,
+      "minLevel": 86,
+      "pokedexId": 579,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kingdra",
+      "weight": 10,
+      "maxLevel": 97,
+      "minLevel": 86,
+      "pokedexId": 230,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Tyranitar",
+      "weight": 8,
+      "maxLevel": 98,
+      "minLevel": 88,
+      "pokedexId": 248,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Empoleon",
+      "weight": 7,
+      "maxLevel": 98,
+      "minLevel": 88,
+      "pokedexId": 395,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Gallade",
+      "weight": 6,
+      "maxLevel": 98,
+      "minLevel": 88,
+      "pokedexId": 475,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gengar",
+      "weight": 5,
+      "maxLevel": 98,
+      "minLevel": 88,
+      "pokedexId": 94,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gardevoir",
+      "weight": 5,
+      "maxLevel": 98,
+      "minLevel": 88,
+      "pokedexId": 282,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Blastoise",
+      "weight": 4,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 9,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Giratina",
+      "weight": 4,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 487,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cresselia",
+      "weight": 3,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 488,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Shaymin",
+      "weight": 3,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 492,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Victini",
+      "weight": 2,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 494,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Virizion",
+      "weight": 2,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 640,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Keldeo",
+      "weight": 2,
+      "maxLevel": 98,
+      "minLevel": 90,
+      "pokedexId": 647,
+      "tileTypes": ["tall_grass", "water"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p39-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "tundra-ancestral",
+      "targetMapName": "Tundra Ancestral",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Tundra Ancestral"
+    },
+    {
+      "id": "p39-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "tundra-ancestral",
+      "targetMapName": "Tundra Ancestral",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Tundra Ancestral"
+    },
+    {
+      "id": "p39-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "coroa-do-mundo",
+      "targetMapName": "Coroa do Mundo",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Coroa do Mundo"
+    },
+    {
+      "id": "p39-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "coroa-do-mundo",
+      "targetMapName": "Coroa do Mundo",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Coroa do Mundo"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "center", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}
