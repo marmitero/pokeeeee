@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 import { layoutByOrder, WORLD_BANDS, WORLD_MAP_COUNT } from "../src/lib/world-layout";
 import { getPokemonSpecies } from "../src/lib/pokedex";
 import { distributeWorld, validateDistribution } from "../src/lib/world-distribute";
+import { buildDefaultMaps } from "../src/lib/default-world";
 
 const OUT = fileURLToPath(new URL("../src/lib/world-encounters.ts", import.meta.url));
 const args = process.argv.slice(2);
@@ -39,6 +40,21 @@ if (mode === "report") {
     const cast = (d.rows[n] ?? [])
       .map(([id, w, lo, hi, water]) => `${getPokemonSpecies(id).name}:${w}[${lo}-${hi}${water ? "≈" : ""}]`)
       .join(" ");
+    if (n === 1) {
+      // O mapa 1 não passa pelo gerador: é contrato verbatim da 6.2-C. Lido da
+      // própria semente para o relatório nunca contar um mapa 1 que não existe.
+      const pinada = buildDefaultMaps()[0]!;
+      console.log(
+        `M 1 ${layout.shortName.padEnd(24)} nv ${band?.[0]}–${band?.[1]}  n=${String(pinada.encounterTable.length).padStart(2)}  [contrato 6.2-C — pinado em default-world.ts (map1Table)]`
+      );
+      console.log(
+        "      " +
+          pinada.encounterTable
+            .map((e) => `${e.name}:${e.weight}[${e.minLevel}-${e.maxLevel}${e.tileTypes.includes("water") ? "≈" : ""}]`)
+            .join(" ")
+      );
+      continue;
+    }
     console.log(`M${String(n).padStart(2)} ${layout.shortName.padEnd(24)} nv ${band?.[0]}–${band?.[1]}  n=${String(list.length).padStart(2)}  [${layout.types.join("/")}]`);
     console.log(`      ${cast}`);
   }
