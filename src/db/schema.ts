@@ -434,9 +434,19 @@ export const chatMessages = pgTable("chat_messages", {
   username: text("username").notNull(),
   message: text("message").notNull(),
   channel: text("channel").notNull().default("global"),
+  // 8.8 Chat no jogo (2026-09-07): local = mesmo mapa, whisper = privado
+  mapId: integer("map_id"),
+  recipientId: integer("recipient_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   index("chat_messages_channel_created_idx").on(table.channel, table.createdAt),
   index("chat_messages_user_id_idx").on(table.userId),
+  index("chat_messages_map_id_idx").on(table.mapId),
+  index("chat_messages_recipient_id_idx").on(table.recipientId),
+  index("chat_messages_channel_map_idx").on(table.channel, table.mapId),
   check("chat_messages_length_check", sql`char_length(${table.message}) BETWEEN 1 AND 500`),
+  check(
+    "chat_messages_channel_check",
+    sql`${table.channel} IN ('global','local','whisper','arena-global')`
+  ),
 ]);

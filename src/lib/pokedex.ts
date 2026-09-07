@@ -3,6 +3,7 @@ import { gen1Rest } from "./pokedex-gen1";
 import { johtoRest } from "./pokedex-johto";
 import { hoennRest } from "./pokedex-hoenn";
 import { sinnohRest } from "./pokedex-sinnoh";
+import { unovaRest } from "./pokedex-unova";
 
 export type DelugeVariant =
   | "Normal"
@@ -2168,12 +2169,16 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
 // geração — só catálogo; a redistribuição no mundo fica para o lote de mapas.
 // Fase 6.4-D: Sinnoh (387–493, exceto 448 já presente) — só catálogo, com os
 // 7 itens de evolução novos (migration 0008) e proxies documentados no módulo.
+// Fase 6.4-E: Unova (494–649) — 156 espécies, só catálogo; Unova é fechada
+// (nenhuma linha cruza gens antigas). Itens de evolução reutilizam pedras
+// existentes (nenhuma migration); troca/felicidade viram nível (doc no módulo).
 const POKEDEX_DATA: PokemonSpeciesData[] = [
   ...POKEDEX_BASE,
   ...gen1Rest(ALL_MOVES),
   ...johtoRest(ALL_MOVES),
   ...hoennRest(ALL_MOVES),
   ...sinnohRest(ALL_MOVES),
+  ...unovaRest(ALL_MOVES),
 ];
 
 /** Golpe padrão usado quando o nome gravado no banco não existe mais no catálogo. */
