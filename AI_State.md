@@ -2705,7 +2705,7 @@ Não validado aqui (é do mantenedor, em produção): colar `docs/supabase-produ
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🅱️ Etapa B (2026-09-07): 7.1 entregue no branch/PR — o que vem agora
+### 🅱️ Etapa B (2026-09-07): 7.1 entregue — **PR #14** aberto para `main`
 
 **Estado desta rodada:** 40 mapas + 649 espécies redistribuídas, `npm run check`
 (lint + tsc + 308 unit + build 15 rotas) e 112 de integração verdes;
@@ -2719,6 +2719,8 @@ igual). **Sem migration e sem SQL companheiro** — nada de schema mudou.
    subir a cadeia 3→4→…→40 e checar encontros coerentes (bioma, nível dentro da
    banda, lendários só do 10 para frente, peso baixo).
 2. Ver `docs/FASE-7-MUNDO.md` (tabela de bandas/temas e decisões de conteúdo).
+
+**PR:** #14 (`arena/01a07c70-pokeeeee` → `main`, 2 commits, 54 arquivos).
 
 ⚠️ **Passo manual deste PR:** o app do GitHub do agente **não tem permissão
 `workflows`**, então `.github/workflows/world-activation.yml` (que gateda
