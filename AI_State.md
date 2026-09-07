@@ -2722,13 +2722,30 @@ igual). **Sem migration e sem SQL companheiro** — nada de schema mudou.
 
 **PR:** #14 (`arena/01a07c70-pokeeeee` → `main`, 2 commits, 54 arquivos).
 
-⚠️ **Passo manual deste PR:** o app do GitHub do agente **não tem permissão
-`workflows`**, então `.github/workflows/world-activation.yml` (que gateda
-`/api/maps == 20`) **não** foi alterado no branch. O espelho `docs/world-
-activation.yml` está atualizado e há um patch pronto — aplicar
-`git apply docs/patches/world-activation-40-mapas.patch` (ou o `cp` do espelho)
-**antes** de rodar `World activation` com `apply=true`, senão o step "Verify
-public API" falha. Registrado em `docs/FASE-7-MUNDO.md`.
+⚠️ **Passo manual deste PR (ainda em aberto):** o app do GitHub do agente **não
+tem permissão `workflows`** — qualquer push que toque em
+`.github/workflows/` (até apagar um arquivo) é rejeitado com `refusing to allow
+a GitHub App to create or update workflow … without `workflows` permission`.
+`.github/workflows/world-activation.yml` continua gateda **20** mapas e o
+conteúdo versionado tem **40** ⇒ a ativação morreria em "Verify public API".
+
+**Armadilha nova, descoberta na prática:** um `.patch` **não é** um workflow. O
+commit `7243618` criou `.github/workflows/world-activation-40-mapas` com o
+conteúdo do patch antigo — sem `.yml` o GitHub não registra nada (`gh workflow
+list` seguiu mostrando "maps 1-20") e o arquivo real não mudou. O certo é
+**aplicar** o patch sobre o arquivo existente:
+
+```bash
+git apply docs/patches/world-activation-40-fix.patch
+diff .github/workflows/world-activation.yml docs/world-activation.yml   # vazio
+gh workflow list | grep "World activation"   # → maps 1-40 + rebalance
+git add -A && git commit -m "ci(7.1): World activation 20 → 40" && git push
+```
+
+O patch (verificado com `git apply --check` no head do branch) atualiza o
+workflow com o conteúdo do espelho `docs/world-activation.yml`, apaga o arquivo
+sem extensão criado por engano e remove o patch obsoleto. Resultado esperado:
+14 steps, gate `if [ "$n" != "40" ]`, step novo `npm run world:distribute:check`.
 
 **Próxima etapa: 7.2 — Mapas 41–60.** Com o gerador pronto, o lote é: (a) 20
 entradas novas em `WORLD_MAP_LAYOUT`, (b) reescalonar `WORLD_BANDS` para o mapa
@@ -2864,6 +2881,7 @@ Ou seja: próxima conversa = **perguntar ao mantenedor: (a/b/c) para 6.4-F** e, 
 | 2026-09-06 | **Fase 6.4-D** — catálogo Sinnoh 387–493: 106 espécies novas (Pokédex 387 → **493**), 7 itens de evolução **reais** (colunas em `users`, vendidos na loja 3), **migration 0008** + `docs/supabase-production-0008-runtime.sql` (idempotente, testado 2×), 20 linhas cruzadas em Kanto/Johto/Hoenn, **sem** redistribuição no mundo | ✅ Concluída e validada no sandbox · ⬜ SQL `0008` em produção **antes do merge** + passada visual (#15) | 20/284 unit · 8/103 integração · `src/lib/pokedex-sinnoh.ts` · `drizzle/0008_sinnoh_evolution_items.sql` · §3/§4.30 |
 | 2026-09-07 | **Fase 6.4-E — Unova (494–649)**: 156 espécies novas (Pokédex 493 → **649**, teto do CDN animado), 9 evoluções por pedra reutilizando itens existentes, 6 proxies (troca→nível, felicidade→nível), **sem migration**, testes 297 unit / 103 integração, sem tocar em `content/world/maps/` | ✅ Concluída e validada no sandbox · ⬜ vitrine 649 + evoluções ao vivo em produção (#16) | 21/297 unit · 8/103 integração · `src/lib/pokedex-unova.ts` · **sem migration** · §3/§4.31 |
 | 2026-09-07 | **Decisão B — Pokédex completa em 649** + **Fase 8.8 — Chat no jogo (global/local/whisper)**: chat_messages + map_id + recipient_id, 3 índices, check canal, API /api/chat (global/local/whisper com afterId), ChatWidget HUD (💬 GLOBAL/LOCAL/PRIVADO, badge unread, /w atalho), migration 0009 + `docs/supabase-production-0009-runtime.sql` idempotente | ✅ Concluída e validada no sandbox · ⬜ chat no jogo em produção (#17) | 21/297 unit · 9/112 integração · `src/app/api/chat/route.ts` · `src/components/ChatWidget.tsx` · `drizzle/0009` · §3/§4.32 |
+| 2026-09-07 | **Correção de processo (7.1)** — o gate do workflow `World activation` precisava sair de 20 para 40 mapas; o agente não tem permissão `workflows` e o primeiro reparo (colar o patch como arquivo novo `.github/workflows/world-activation-40-mapas`) **não funcionou**: sem `.yml` o GitHub não registra workflow nenhum e o arquivo real continuou o mesmo. Corrigido com `docs/patches/world-activation-40-fix.patch` (aplicar, não colar) + receita de conferência em `docs/FASE-7-MUNDO.md` | ⬜ manter aplicação pelo mantenedor | `gh workflow list` · `diff .github/workflows/… docs/…` |
 | 2026-09-07 | **Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 espécies**: `world-layout.ts` (40 mapas como dados), `world-distribute.ts` (gerador determinístico: alvo por rank, varredura mapa-a-mapa, afinidade de bioma, teto de desvio, pesos em agenda geométrica, piso de nível de evolução), `world-encounters.ts` (artefato gerado commitado), `default-world.ts` virou renderizador, bandas reescaladas M2 6–20 → M40 86–100 (mapa 1 travado em 3–10), 40 JSONs em `content/world/maps/`, workflow `World activation` 20→40 + `world:distribute:check`, +20 guardas de teste | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-7-MUNDO.md` · §3/§4.33 · 22/308 unit · 9/112 integração · build 15 rotas |
 | — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 
