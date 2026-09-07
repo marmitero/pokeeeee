@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "caverna-suprema",
   "name": "Mapa 19: Caverna Suprema",
-  "description": "O fundo do mundo (nv 78–90). Gengar, Alakazam, Steelix e Rhydon no auge; Mewtwo observa de algum lugar.",
+  "description": "O fundo do mundo (nv 42–56). Psíquicos, Aço e o que sobrou dos Fantasmas no escuro de verdade.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,83 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Mewtwo",
+      "name": "Spiritomb",
+      "weight": 14,
+      "maxLevel": 53,
+      "minLevel": 42,
+      "pokedexId": 442,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Flaaffy",
+      "weight": 12,
+      "maxLevel": 55,
+      "minLevel": 44,
+      "pokedexId": 180,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Luxio",
+      "weight": 11,
+      "maxLevel": 55,
+      "minLevel": 44,
+      "pokedexId": 404,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sneasel",
       "weight": 9,
-      "maxLevel": 90,
-      "minLevel": 82,
-      "pokedexId": 150,
+      "maxLevel": 55,
+      "minLevel": 44,
+      "pokedexId": 215,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Ditto",
-      "weight": 9,
-      "maxLevel": 89,
-      "minLevel": 80,
-      "pokedexId": 132,
+      "name": "Lampent",
+      "weight": 8,
+      "maxLevel": 56,
+      "minLevel": 46,
+      "pokedexId": 608,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gengar",
-      "weight": 17,
-      "maxLevel": 87,
-      "minLevel": 78,
-      "pokedexId": 94,
+      "name": "Hitmonlee",
+      "weight": 7,
+      "maxLevel": 56,
+      "minLevel": 46,
+      "pokedexId": 106,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Alakazam",
-      "weight": 15,
-      "maxLevel": 87,
-      "minLevel": 78,
-      "pokedexId": 65,
+      "name": "Jynx",
+      "weight": 6,
+      "maxLevel": 56,
+      "minLevel": 46,
+      "pokedexId": 124,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Rhydon",
-      "weight": 17,
-      "maxLevel": 87,
-      "minLevel": 78,
-      "pokedexId": 112,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Steelix",
-      "weight": 15,
-      "maxLevel": 87,
-      "minLevel": 78,
-      "pokedexId": 208,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Muk",
+      "name": "Misdreavus",
       "weight": 5,
-      "maxLevel": 90,
-      "minLevel": 82,
-      "pokedexId": 89,
+      "maxLevel": 56,
+      "minLevel": 46,
+      "pokedexId": 200,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Weezing",
+      "name": "Wobbuffet",
       "weight": 5,
-      "maxLevel": 90,
-      "minLevel": 82,
-      "pokedexId": 110,
+      "maxLevel": 56,
+      "minLevel": 46,
+      "pokedexId": 202,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Tyranitar",
+      "name": "Sableye",
       "weight": 4,
-      "maxLevel": 90,
-      "minLevel": 84,
-      "pokedexId": 248,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 302,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Blissey",
+      "name": "Mawile",
       "weight": 4,
-      "maxLevel": 90,
-      "minLevel": 84,
-      "pokedexId": 242,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 303,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rotom",
+      "weight": 3,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 479,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sawk",
+      "weight": 3,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 539,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Absol",
+      "weight": 3,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 359,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Skarmory",
+      "weight": 2,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 227,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Basculin",
+      "weight": 2,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 550,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Beldum",
+      "weight": 2,
+      "maxLevel": 56,
+      "minLevel": 48,
+      "pokedexId": 374,
       "tileTypes": ["tall_grass"]
     }
   ],

@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "litoral-vermilion",
   "name": "Mapa 5: Litoral de Vermilion",
-  "description": "Praia e mar raso (nv 22–32). Pequenos aquáticos na água e na restinga; Shellder é o achado raro.",
+  "description": "Praia e mar raso (nv 13–27). Aquáticos pequenos na arrebentação e na restinga; conchas são o achado raro.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,147 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Magikarp",
-      "weight": 10,
-      "maxLevel": 31,
-      "minLevel": 24,
-      "pokedexId": 129,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Goldeen",
-      "weight": 8,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 118,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Tentacool",
-      "weight": 8,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 72,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Krabby",
-      "weight": 7,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 98,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Horsea",
-      "weight": 7,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 116,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Staryu",
-      "weight": 6,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 120,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Psyduck",
-      "weight": 6,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 54,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Slowpoke",
-      "weight": 6,
-      "maxLevel": 32,
-      "minLevel": 26,
-      "pokedexId": 79,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Shellder",
-      "weight": 3,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 90,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
       "name": "Poliwag",
-      "weight": 7,
-      "maxLevel": 32,
-      "minLevel": 26,
+      "weight": 14,
+      "maxLevel": 24,
+      "minLevel": 13,
       "pokedexId": 60,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Chinchou",
+      "name": "Magikarp",
+      "weight": 12,
+      "maxLevel": 26,
+      "minLevel": 15,
+      "pokedexId": 129,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Wooper",
+      "weight": 11,
+      "maxLevel": 26,
+      "minLevel": 15,
+      "pokedexId": 194,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Spoink",
+      "weight": 9,
+      "maxLevel": 26,
+      "minLevel": 15,
+      "pokedexId": 325,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Feebas",
+      "weight": 8,
+      "maxLevel": 27,
+      "minLevel": 17,
+      "pokedexId": 349,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Spheal",
+      "weight": 7,
+      "maxLevel": 27,
+      "minLevel": 17,
+      "pokedexId": 363,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Clamperl",
+      "weight": 6,
+      "maxLevel": 27,
+      "minLevel": 17,
+      "pokedexId": 366,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Tympole",
+      "weight": 5,
+      "maxLevel": 27,
+      "minLevel": 17,
+      "pokedexId": 535,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Vanillite",
+      "weight": 5,
+      "maxLevel": 27,
+      "minLevel": 17,
+      "pokedexId": 582,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Elgyem",
       "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 170,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 605,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Goldeen",
+      "weight": 4,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 118,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Carvanha",
+      "weight": 3,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 318,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Gothita",
+      "weight": 3,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 574,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Marill",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
+      "weight": 3,
+      "maxLevel": 27,
+      "minLevel": 19,
       "pokedexId": 183,
-      "tileTypes": ["tall_grass"]
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Wooper",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 194,
-      "tileTypes": ["tall_grass"]
+      "name": "Wingull",
+      "weight": 2,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 278,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Qwilfish",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 211,
-      "tileTypes": ["tall_grass"]
+      "name": "Barboach",
+      "weight": 2,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 339,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Corsola",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 222,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Remoraid",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 223,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Furret",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 162,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Ariados",
-      "weight": 4,
-      "maxLevel": 32,
-      "minLevel": 28,
-      "pokedexId": 168,
+      "name": "Makuhita",
+      "weight": 2,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 296,
       "tileTypes": ["tall_grass"]
     }
   ],

@@ -1,5 +1,5 @@
 /**
- * Aplica o mundo padrão (20 mapas, Fase 6.4-A) num banco que JÁ tem mapas.
+ * Aplica o mundo padrão (40 mapas, Fase 7.1 — Etapa B) num banco que JÁ tem mapas.
  *
  *   DATABASE_URL=... npm run world:seed
  *

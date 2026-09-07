@@ -4,7 +4,7 @@ import { count, eq } from "drizzle-orm";
 import { buildDefaultMaps } from "@/lib/default-world";
 
 /**
- * Semeia o mundo padrão (20 mapas, Fase 6.4-A) num banco vazio.
+ * Semeia o mundo padrão (40 mapas, Fase 7.1) num banco vazio.
  *
  * Banco com mapas? Este seed não toca em nada — use `npm run world:seed`
  * (scripts/world-seed.mts) para aplicar de forma idempotente num banco que

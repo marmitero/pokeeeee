@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "recife-da-tempestade",
+  "name": "Mapa 30: Recife da Tempestade",
+  "description": "Mar que nunca esteve calmo (nv 65–79). Águas bravas, Lutadores de cais e tudo que aguenta a correnteza.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Golduck",
+      "weight": 15,
+      "maxLevel": 76,
+      "minLevel": 65,
+      "pokedexId": 55,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Primeape",
+      "weight": 13,
+      "maxLevel": 78,
+      "minLevel": 67,
+      "pokedexId": 57,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Toxicroak",
+      "weight": 11,
+      "maxLevel": 78,
+      "minLevel": 67,
+      "pokedexId": 454,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Huntail",
+      "weight": 10,
+      "maxLevel": 78,
+      "minLevel": 67,
+      "pokedexId": 367,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Gorebyss",
+      "weight": 8,
+      "maxLevel": 79,
+      "minLevel": 69,
+      "pokedexId": 368,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Drifblim",
+      "weight": 7,
+      "maxLevel": 79,
+      "minLevel": 69,
+      "pokedexId": 426,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dodrio",
+      "weight": 6,
+      "maxLevel": 79,
+      "minLevel": 69,
+      "pokedexId": 85,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Omastar",
+      "weight": 5,
+      "maxLevel": 79,
+      "minLevel": 69,
+      "pokedexId": 139,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Kabutops",
+      "weight": 5,
+      "maxLevel": 79,
+      "minLevel": 69,
+      "pokedexId": 141,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Altaria",
+      "weight": 4,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 334,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Swanna",
+      "weight": 4,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 581,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Lucario",
+      "weight": 3,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 448,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gyarados",
+      "weight": 3,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 130,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Mantine",
+      "weight": 2,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 226,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Kyogre",
+      "weight": 2,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 382,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Rayquaza",
+      "weight": 2,
+      "maxLevel": 79,
+      "minLevel": 71,
+      "pokedexId": 384,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p30-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "jardim-da-lua",
+      "targetMapName": "Jardim da Lua",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Jardim da Lua"
+    },
+    {
+      "id": "p30-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "jardim-da-lua",
+      "targetMapName": "Jardim da Lua",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Jardim da Lua"
+    },
+    {
+      "id": "p30-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "duna-de-vidro",
+      "targetMapName": "Duna de Vidro",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Duna de Vidro"
+    },
+    {
+      "id": "p30-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "duna-de-vidro",
+      "targetMapName": "Duna de Vidro",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Duna de Vidro"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

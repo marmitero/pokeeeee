@@ -1,8 +1,8 @@
 {
   "format": "catchbound-world/1",
-  "slug": "planicies-douradas",
-  "name": "Mapa 9: Planícies Douradas",
-  "description": "Campos abertos de vento e pólen (nv 21–35). Cães, cavalos e bichos de campo correm soltos; os fortes bloqueiam a trilha.",
+  "slug": "lago-espelhado",
+  "name": "Mapa 28: Lago Espelhado",
+  "description": "Água tão lisa que reflete duas vezes (nv 61–75). Psíquicos aquáticos e medusas de água doce; o lago devolve o que você trouxe.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,182 +10,174 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Numel",
-      "weight": 14,
-      "maxLevel": 32,
-      "minLevel": 21,
-      "pokedexId": 322,
+      "name": "Bronzong",
+      "weight": 15,
+      "maxLevel": 72,
+      "minLevel": 61,
+      "pokedexId": 437,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Minccino",
-      "weight": 12,
-      "maxLevel": 34,
-      "minLevel": 23,
-      "pokedexId": 572,
+      "name": "Beheeyem",
+      "weight": 13,
+      "maxLevel": 74,
+      "minLevel": 63,
+      "pokedexId": 606,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Karrablast",
+      "name": "Slowbro",
       "weight": 11,
-      "maxLevel": 34,
-      "minLevel": 23,
-      "pokedexId": 588,
+      "maxLevel": 74,
+      "minLevel": 63,
+      "pokedexId": 80,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Hypno",
+      "weight": 10,
+      "maxLevel": 74,
+      "minLevel": 63,
+      "pokedexId": 97,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Vulpix",
-      "weight": 9,
-      "maxLevel": 34,
-      "minLevel": 23,
-      "pokedexId": 37,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Growlithe",
+      "name": "Xatu",
       "weight": 8,
-      "maxLevel": 35,
-      "minLevel": 25,
-      "pokedexId": 58,
+      "maxLevel": 75,
+      "minLevel": 65,
+      "pokedexId": 178,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Ponyta",
+      "name": "Gastrodon",
       "weight": 7,
-      "maxLevel": 35,
-      "minLevel": 25,
-      "pokedexId": 77,
-      "tileTypes": ["tall_grass"]
+      "maxLevel": 75,
+      "minLevel": 65,
+      "pokedexId": 423,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Slugma",
+      "name": "Simipour",
       "weight": 6,
-      "maxLevel": 35,
-      "minLevel": 25,
-      "pokedexId": 218,
-      "tileTypes": ["tall_grass"]
+      "maxLevel": 75,
+      "minLevel": 65,
+      "pokedexId": 516,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Cacnea",
+      "name": "Musharna",
       "weight": 5,
-      "maxLevel": 35,
-      "minLevel": 25,
-      "pokedexId": 331,
+      "maxLevel": 75,
+      "minLevel": 65,
+      "pokedexId": 518,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Glameow",
+      "name": "Slowking",
       "weight": 5,
-      "maxLevel": 35,
-      "minLevel": 25,
-      "pokedexId": 431,
-      "tileTypes": ["tall_grass"]
+      "maxLevel": 75,
+      "minLevel": 65,
+      "pokedexId": 199,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Pansage",
+      "name": "Grumpig",
       "weight": 4,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 511,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 326,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pansear",
+      "name": "Mr. Mime",
       "weight": 4,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 513,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 122,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Cottonee",
+      "name": "Swoobat",
       "weight": 3,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 546,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 528,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Petilil",
+      "name": "Celebi",
       "weight": 3,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 548,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 251,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Deerling",
-      "weight": 3,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 585,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Litwick",
+      "name": "Deoxys",
       "weight": 2,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 607,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 386,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Burmy",
+      "name": "Uxie",
       "weight": 2,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 412,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 480,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Darumaka",
+      "name": "Mesprit",
       "weight": 2,
-      "maxLevel": 35,
-      "minLevel": 27,
-      "pokedexId": 554,
+      "maxLevel": 75,
+      "minLevel": 67,
+      "pokedexId": 481,
       "tileTypes": ["tall_grass"]
     }
   ],
   "portals": [
     {
-      "id": "p9-south-1",
+      "id": "p28-south-1",
       "sourceX": 7,
       "sourceY": 15,
-      "targetMapSlug": "deserto-das-ruinas",
-      "targetMapName": "Deserto das Ruínas",
+      "targetMapSlug": "cratera-de-brasa",
+      "targetMapName": "Cratera de Brasa",
       "targetX": 7,
       "targetY": 1,
-      "label": "Sul → Deserto das Ruínas"
+      "label": "Sul → Cratera de Brasa"
     },
     {
-      "id": "p9-south-2",
+      "id": "p28-south-2",
       "sourceX": 8,
       "sourceY": 15,
-      "targetMapSlug": "deserto-das-ruinas",
-      "targetMapName": "Deserto das Ruínas",
+      "targetMapSlug": "cratera-de-brasa",
+      "targetMapName": "Cratera de Brasa",
       "targetX": 8,
       "targetY": 1,
-      "label": "Sul → Deserto das Ruínas"
+      "label": "Sul → Cratera de Brasa"
     },
     {
-      "id": "p9-north-1",
+      "id": "p28-north-1",
       "sourceX": 7,
       "sourceY": 0,
-      "targetMapSlug": "ilhas-glaciais",
-      "targetMapName": "Ilhas Glaciais",
+      "targetMapSlug": "jardim-da-lua",
+      "targetMapName": "Jardim da Lua",
       "targetX": 7,
       "targetY": 14,
-      "label": "Norte → Ilhas Glaciais"
+      "label": "Norte → Jardim da Lua"
     },
     {
-      "id": "p9-north-2",
+      "id": "p28-north-2",
       "sourceX": 8,
       "sourceY": 0,
-      "targetMapSlug": "ilhas-glaciais",
-      "targetMapName": "Ilhas Glaciais",
+      "targetMapSlug": "jardim-da-lua",
+      "targetMapName": "Jardim da Lua",
       "targetX": 8,
       "targetY": 14,
-      "label": "Norte → Ilhas Glaciais"
+      "label": "Norte → Jardim da Lua"
     }
   ],
   "npcs": [],
@@ -199,10 +191,10 @@
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
-    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "water", "water", "stone", "stone", "water", "water", "grass", "grass", "grass", "grass", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
-    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "water", "water", "stone", "stone", "water", "water", "grass", "grass", "grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
     ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],

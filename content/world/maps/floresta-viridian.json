@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "floresta-viridian",
   "name": "Mapa 2: Floresta de Viridian",
-  "description": "Mata fechada de insetos e plantas selvagens (nv 8–16). Ginásio da Misty (Água) e Loja intermediária.",
+  "description": "Mata fechada de insetos e plantas selvagens (nv 6–20). Ginásio da Misty (Água) e Loja intermediária.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -11,178 +11,138 @@
   "encounterTable": [
     {
       "name": "Caterpie",
-      "weight": 6,
-      "maxLevel": 16,
-      "minLevel": 12,
+      "weight": 14,
+      "maxLevel": 17,
+      "minLevel": 6,
       "pokedexId": 10,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Weedle",
-      "weight": 6,
-      "maxLevel": 16,
-      "minLevel": 12,
+      "weight": 12,
+      "maxLevel": 19,
+      "minLevel": 8,
       "pokedexId": 13,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Metapod",
-      "weight": 3,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 11,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Kakuna",
-      "weight": 3,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 14,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Pidgey",
-      "weight": 7,
-      "maxLevel": 16,
-      "minLevel": 12,
-      "pokedexId": 16,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Spearow",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 21,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Rattata",
-      "weight": 6,
-      "maxLevel": 16,
-      "minLevel": 12,
-      "pokedexId": 19,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Oddish",
-      "weight": 7,
-      "maxLevel": 16,
-      "minLevel": 12,
-      "pokedexId": 43,
+      "name": "Zubat",
+      "weight": 11,
+      "maxLevel": 19,
+      "minLevel": 8,
+      "pokedexId": 41,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Bellsprout",
-      "weight": 7,
-      "maxLevel": 16,
-      "minLevel": 12,
+      "weight": 9,
+      "maxLevel": 19,
+      "minLevel": 8,
       "pokedexId": 69,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Paras",
-      "weight": 3,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 46,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Venonat",
-      "weight": 3,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 48,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Chikorita",
-      "weight": 5,
-      "maxLevel": 16,
-      "minLevel": 12,
-      "pokedexId": 152,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Cyndaquil",
-      "weight": 5,
-      "maxLevel": 16,
-      "minLevel": 12,
-      "pokedexId": 155,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Totodile",
-      "weight": 5,
-      "maxLevel": 16,
-      "minLevel": 12,
-      "pokedexId": 158,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Sentret",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 161,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Hoothoot",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 163,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Ledyba",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 165,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Spinarak",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
+      "weight": 8,
+      "maxLevel": 20,
+      "minLevel": 10,
       "pokedexId": 167,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Hoppip",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
+      "weight": 7,
+      "maxLevel": 20,
+      "minLevel": 10,
       "pokedexId": 187,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pichu",
+      "name": "Poochyena",
+      "weight": 6,
+      "maxLevel": 20,
+      "minLevel": 10,
+      "pokedexId": 261,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Wurmple",
+      "weight": 5,
+      "maxLevel": 20,
+      "minLevel": 10,
+      "pokedexId": 265,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Seedot",
+      "weight": 5,
+      "maxLevel": 20,
+      "minLevel": 10,
+      "pokedexId": 273,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Shroomish",
+      "weight": 4,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 285,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nincada",
+      "weight": 4,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 290,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Starly",
       "weight": 3,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 172,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 396,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kricketot",
+      "weight": 3,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 401,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Budew",
+      "weight": 3,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 406,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Sewaddle",
+      "weight": 2,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 540,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Sunkern",
-      "weight": 3,
-      "maxLevel": 16,
-      "minLevel": 14,
+      "weight": 2,
+      "maxLevel": 20,
+      "minLevel": 12,
       "pokedexId": 191,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Mareep",
-      "weight": 4,
-      "maxLevel": 16,
-      "minLevel": 14,
-      "pokedexId": 179,
+      "name": "Paras",
+      "weight": 2,
+      "maxLevel": 20,
+      "minLevel": 12,
+      "pokedexId": 46,
       "tileTypes": ["tall_grass"]
     }
   ],

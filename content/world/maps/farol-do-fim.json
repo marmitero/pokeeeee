@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "farol-do-fim",
+  "name": "Mapa 35: Farol do Fim",
+  "description": "Farol no último pedaço de terra (nv 76–90). Fantasmas de marinheiro e os aquáticos que subiram do abismo.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Tentacruel",
+      "weight": 15,
+      "maxLevel": 87,
+      "minLevel": 76,
+      "pokedexId": 73,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Jellicent",
+      "weight": 13,
+      "maxLevel": 89,
+      "minLevel": 78,
+      "pokedexId": 593,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Nidoqueen",
+      "weight": 11,
+      "maxLevel": 89,
+      "minLevel": 78,
+      "pokedexId": 31,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Nidoking",
+      "weight": 10,
+      "maxLevel": 89,
+      "minLevel": 78,
+      "pokedexId": 34,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Poliwrath",
+      "weight": 8,
+      "maxLevel": 90,
+      "minLevel": 80,
+      "pokedexId": 62,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Feraligatr",
+      "weight": 7,
+      "maxLevel": 90,
+      "minLevel": 80,
+      "pokedexId": 160,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Politoed",
+      "weight": 6,
+      "maxLevel": 90,
+      "minLevel": 80,
+      "pokedexId": 186,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Swampert",
+      "weight": 5,
+      "maxLevel": 90,
+      "minLevel": 80,
+      "pokedexId": 260,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Ludicolo",
+      "weight": 5,
+      "maxLevel": 90,
+      "minLevel": 80,
+      "pokedexId": 272,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Dusknoir",
+      "weight": 4,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 477,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Samurott",
+      "weight": 4,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 503,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Seismitoad",
+      "weight": 3,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 537,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Chandelure",
+      "weight": 3,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 609,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tangrowth",
+      "weight": 2,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 465,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Regigigas",
+      "weight": 2,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 486,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Manaphy",
+      "weight": 2,
+      "maxLevel": 90,
+      "minLevel": 82,
+      "pokedexId": 490,
+      "tileTypes": ["tall_grass", "water"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p35-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "mata-noturna",
+      "targetMapName": "Mata Noturna",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Mata Noturna"
+    },
+    {
+      "id": "p35-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "mata-noturna",
+      "targetMapName": "Mata Noturna",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Mata Noturna"
+    },
+    {
+      "id": "p35-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "planalto-do-raio",
+      "targetMapName": "Planalto do Raio",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Planalto do Raio"
+    },
+    {
+      "id": "p35-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "planalto-do-raio",
+      "targetMapName": "Planalto do Raio",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Planalto do Raio"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "center", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

@@ -168,7 +168,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06)
 
 ### Conteúdo seedado
-**649 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh + 494–649 Unova, com learnset e linhas evolutivas completas — 6.4-E) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
+**649 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh + 494–649 Unova, com learnset e linhas evolutivas completas — 6.4-E) · 133 golpes · 6 variantes · **40 mapas temáticos (6.4-A → 7.1, cadeia 1↔40)** — as **649** espécies distribuídas, cada uma em exatamente um mapa · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
 
 ### Estado funcional real
 | Feature | Estado |
@@ -289,6 +289,13 @@ apaga. **Nada no arquivo usa id serial**: portal guarda `targetMapSlug`, NPC
 guarda `gymLeaderName`, ginásio mora dentro do arquivo do mapa; `shopId` fica
 porque é id lógico. Detalhes em `docs/MUNDO-COMO-CODIGO.md`.
 
+**Desde a 7.1 o elenco dos mapas é artefato gerado**: `world-layout.ts` (dados
+puros) + `world-distribute.ts` (algoritmo) → `src/lib/world-encounters.ts`
+commitado → `default-world.ts` renderiza. Ninguém digita `[id, peso]` à mão, e
+`npm run world:distribute -- --check` (agora também step do workflow `World
+activation`) falha se o arquivo gerado divergir do layout/catálogo. Ver
+`docs/FASE-7-MUNDO.md`.
+
 ### Papéis de acesso (Fase 1.1)
 `users.role` — `text NOT NULL DEFAULT 'player'`, com hierarquia `player (0) < moderator (1) < admin (2)`.
 
@@ -406,7 +413,13 @@ Só começa quando a Etapa A fechar (ou quando o mantenedor mandar). Cada lote d
 mapas leva junto a redistribuição das espécies daquela faixa, `world:export`,
 PR e aplicação em produção pelo workflow **World activation**.
 
-- [ ] **7.1 — Mapas 21–40** + encontros de Hoenn/Sinnoh nas bandas altas
+- [x] **7.1 — Mapas 21–40** + redistribuição das **649** espécies nos 40 mapas
+      ✅ 2026-09-07 (`docs/FASE-7-MUNDO.md`). Nasceu a infraestrutura que os
+      lotes seguintes reutilizam: `world-layout.ts` (dados puros dos 40 mapas),
+      `world-distribute.ts` (algoritmo determinístico) e
+      `world-encounters.ts` (**artefato gerado** commitado) — o elenco deixou de
+      ser digitado à mão em `default-world.ts`, que virou renderizador.
+      Comandos: `npm run world:distribute -- --report|--write|--check`.
 - [ ] **7.2 — Mapas 41–60**
 - [ ] **7.3 — Mapas 61–80**
 - [ ] **7.4 — Mapas 81–100** (fecha o mundo)
@@ -414,7 +427,9 @@ PR e aplicação em produção pelo workflow **World activation**.
 Invariantes de todo lote: **mapa 1 intocado** (contrato 6.2-C); bandas de nível
 crescentes e sem buraco; toda espécie em **exatamente um** mapa; linhas
 evolutivas na mesma região; pesos somando 100 por mapa; portais formando cadeia
-navegável a pé.
+navegável a pé. **Novo no 7.1**: `world:distribute:check` no workflow
+`World activation` — se o artefato gerado não bate com o layout, a ativação
+falha antes de escrever no banco.
 
 #### 🅲 ETAPA C — Povoar o mundo (sistemas que os 100 mapas exigem)
 
@@ -460,6 +475,57 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 7.1 — Mundo até 40 mapas: mapas 21–40 + redistribuição das 649 espécies (2026-09-07, Etapa B)
+
+**Pedido do mantenedor (roadmap de 2026-09-06):** terminar a Pokédex (fechada
+em 649 na 6.4-E/F) e construir o mundo até 100 mapas em lotes de 20. Esta é a
+**primeira metade do lote 7.1**: 20 mapas novos (21–40) **e** redistribuição de
+todas as 649 espécies pelos 40 mapas — os 20 mapas antigos foram reequilibrados
+porque o elenco deixou de ser curadoria manual.
+
+**Entregue**
+
+- `src/lib/world-layout.ts` (novo) — os 40 mapas como dados puros: identidade,
+  bioma, chão/retângulos da grade, Centro Pokémon, `legendaryHaven`, bandas de
+  nível (`WORLD_BANDS`), `WORLD_LEGENDARIES` (47 lendários/míticos até Unova),
+  `MAP1_PINNED`, `GYM_ACE_MIN_MAP`, `bandFor`/`descriptionFor`.
+- `src/lib/world-distribute.ts` (novo) — o algoritmo: score de progressão →
+  **alvo por rank** → cotas → varredura mapa-a-mapa com afinidade de bioma e
+  teto de desvio → passe de troca → pesos em agenda geométrica → faixas de
+  nível com **piso de evolução**. Determinístico (~0,9 s) e autoauditorável
+  (`validateDistribution`).
+- `src/lib/world-encounters.ts` (novo, **gerado**) — `[id, peso, nv mín, nv máx,
+  água]` das 644 espécies (as 5 do mapa 1 ficam pinadas em `default-world.ts`).
+- `scripts/world-distribute.mts` + `npm run world:distribute[:check]` — CLI com
+  `--report`, `--write`, `--check`.
+- `src/lib/default-world.ts` — reescrito como **renderizador**: 40 mapas a
+  partir do layout + artefato; grades dos mapas 1–3 verbatim; cadeia de portais
+  1→…→40 gerada em laço.
+- **Bandas reescaladas** (só o mapa 1 é travado): `lo = 6 + round((n−2)·80/38)`,
+  `hi = min(100, lo+14)` ⇒ M2 6–20 … M40 86–100. A escada antiga (+4/mapa em
+  20 mapas) não cabia em 40 mapas sem estourar o nível 100 do `levelSchema`.
+- `content/world/maps/` versiona **40** mapas; `content/world/shops/` **intacta**
+  (nenhum item novo, portanto nenhuma loja nova — NPC de loja em mapa novo
+  violaria o contrato do export).
+- `.github/workflows/world-activation.yml` (+ espelho `docs/`): "20 mapas" →
+  **40**, gate da API pública `maps.length == 40`, e um step novo de
+  `world:distribute:check`.
+
+**Números observados**: 644 distribuídas + 5 pinadas = **649 em exatamente um
+mapa**; cotas **16–17** por mapa; pesos somando **100** nos 40 mapas; coerência
+de bioma **80%** (tipo primário) / **89%** (qualquer tipo) — acima dos **72%**
+da curadoria à mão da 6.4-A; lendários com peso **máx 4** e mapa **mín 10**;
+0 espécie não colocada; drift médio de **1,26** mapa em relação ao alvo.
+
+**Decisões de conteúdo registradas** (ver `docs/FASE-7-MUNDO.md`): nenhum NPC de
+loja nos mapas novos; ginásios continuam só em 1–3 (Etapa C adiciona os
+outros); Centro Pokémon é **tile** `center`, não entidade nova; proxy
+troca/felicidade → nível médio da linha para o piso de evolução; mapa 40 é o fim
+da linha (só portal sul).
+
+**Sem migration e sem SQL companheiro**: nenhum dado novo de banco — só conteúdo
+de `game_maps` (jsonb) já existente.
 
 ### ✅ FASE 8.8 — Chat no jogo: global/local/whisper (decisão B — Pokédex completa em 649) (2026-09-07)
 
@@ -2527,6 +2593,66 @@ Números observados:
 
 Não validado aqui (é do mantenedor, em produção): vitrine com 649 carregando do CDN no navegador e evoluções ao vivo via GM (Snivy lv17, Pansage+Folha, item #16 do cabeçalho).
 
+### 4.33 Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 (2026-09-07, sandbox)
+
+```bash
+# 0. Banco local (a migration já estava aplicada; jogo usa DATABASE_URL do .env)
+npm run db:local
+export DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db
+
+# 1. Semente limpa num banco vazio (maps → gyms → shops), como na produção
+node -e '…TRUNCATE shop_items, gym_leaders, game_maps RESTART IDENTITY CASCADE…'
+npx tsx -e '…ensureDefaultMapsSeeded(); ensureGymSeeded(); ensureShopSeeded();'
+
+# 2. Gerador → artefato commitado
+npx tsx scripts/world-distribute.mts --report
+npx tsx scripts/world-distribute.mts --write
+npx tsx scripts/world-distribute.mts --check
+
+# 3. Aplicar no banco e versionar o espelho
+npm run world:seed && npm run world:export
+npm run world:import -- --dry-run     # round-trip: conteúdo do git == banco
+
+# 4. Qualidade
+npx tsc --noEmit && npm run lint
+npx vitest run src/lib/world-expansion.test.ts src/lib/world-distribute.test.ts
+npm run test && npm run test:integration
+npm run build
+```
+
+Saídas observadas:
+
+```
+--report → espécies distribuídas: 644 | mapa 1 pinado: 5 | total catálogo: 649
+           por mapa: min 16, max 17 | ajustes de peso: 20
+           bioma: 80% por tipo primário, 89% por qualquer tipo | não colocadas: 0
+--write  → [world:distribute] escreveu src/lib/world-encounters.ts (644 espécies em 39 mapas)
+--check  → [world:distribute] tabela em dia com o layout e a Pokédex ✓
+world:seed   → 20 criado(s), 20 atualizado(s), 40 mapa(s) no total
+world:export → 40 mapa(s), 3 ginásio(s), 32 item(ns) de loja → 15 criado(s),
+               19 atualizado(s), 9 igual(is), 0 removido(s)
+               (2ª rodada: 0 criado, 0 atualizado, 43 igual — idempotente)
+world:import --dry-run → mapas: 0 criado, 0 atualizado, 40 igual ·
+                         ginásios: 3 igual · itens: 32 igual
+npx tsc --noEmit → 0 erros · npm run lint → 0/0
+vitest (unit)          → Test Files 22 passed · Tests 308 passed
+world-expansion.test   → 12 guardas · world-distribute.test → 8 guardas
+npm run test:integration → Test Files 9 passed · Tests 112 passed
+npm run build → 15 rotas
+npm run check (lint + tsc + test + build, com DATABASE_URL) → ✅ verde
+git diff content/world/maps/vale-pallet.json → VAZIO (mapa 1 intacto vs HEAD)
+git status --porcelain content/world/shops   → VAZIO (lojas intocadas)
+```
+
+⚠️ **Armadilha nova achada no caminho**: `world:export` resolve NPC de ginásio
+por `gymId` e recusa líder morando em outro mapa. Numa base reconstruída com
+`world:import` (e não com `ensureGymSeeded`), os `gym_leaders.id` vêm em ordem
+alfabética (`Brock, Lance, Misty`) e o `gymId` fixo da semente (1/2/3) **quebra
+o export** com "NPC "gym-misty" aponta para o ginásio "Lance"". Não é bug do
+7.1 — é o contrato id → nome. Reproduza o banco com os seeds da aplicação
+(`ensureDefaultMapsSeeded` → `ensureGymSeeded` → `ensureShopSeeded`) ou com o
+`world:seed` sobre um banco já semeado, como em produção.
+
 ### 4.32 Fase 8.8 — Chat no jogo (global/local/whisper) + decisão B Pokédex completa 649 (2026-09-07)
 
 Ambiente do sandbox tinha resetado (`node_modules` ausente) — recuperado com `npm ci`, `cp .env.example .env`, `npm run db:local` (PID 2662) e `drizzle-kit migrate` 10 migrations ok (0000→0009).
@@ -2578,6 +2704,36 @@ Números observados:
 Não validado aqui (é do mantenedor, em produção): colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`), depois no navegador logar, abrir 💬, testar GLOBAL/LOCAL/PRIVADO com 2 contas, badge de não-lidas (item #17).
 
 ## 5. Qual a próxima etapa a ser aplicada
+
+### 🅱️ Etapa B (2026-09-07): 7.1 entregue no branch/PR — o que vem agora
+
+**Estado desta rodada:** 40 mapas + 649 espécies redistribuídas, `npm run check`
+(lint + tsc + 308 unit + build 15 rotas) e 112 de integração verdes;
+`content/world/` reexportado (40 mapas; `shops/` intactos; mapa 1 byte a byte
+igual). **Sem migration e sem SQL companheiro** — nada de schema mudou.
+
+**Antes de mergear (manual, do mantenedor):**
+
+1. Validar no navegador com o banco da rodada (ou em staging pelo workflow
+   `World activation` com `apply=false`, depois `apply=true`): mapa 1 inalterado;
+   subir a cadeia 3→4→…→40 e checar encontros coerentes (bioma, nível dentro da
+   banda, lendários só do 10 para frente, peso baixo).
+2. Ver `docs/FASE-7-MUNDO.md` (tabela de bandas/temas e decisões de conteúdo).
+
+⚠️ **Passo manual deste PR:** o app do GitHub do agente **não tem permissão
+`workflows`**, então `.github/workflows/world-activation.yml` (que gateda
+`/api/maps == 20`) **não** foi alterado no branch. O espelho `docs/world-
+activation.yml` está atualizado e há um patch pronto — aplicar
+`git apply docs/patches/world-activation-40-mapas.patch` (ou o `cp` do espelho)
+**antes** de rodar `World activation` com `apply=true`, senão o step "Verify
+public API" falha. Registrado em `docs/FASE-7-MUNDO.md`.
+
+**Próxima etapa: 7.2 — Mapas 41–60.** Com o gerador pronto, o lote é: (a) 20
+entradas novas em `WORLD_MAP_LAYOUT`, (b) reescalonar `WORLD_BANDS` para o mapa
+60 (as bandas estariam com ~1 nível de largura — decisão registrada em
+`docs/FASE-7-MUNDO.md` antes de codar), (c) `world:distribute --write` +
+`world:seed` + `world:export`, (d) testes, (e) workflow `World activation`
+(40 → 60 mapas).
 
 > As seções 5 das rodadas anteriores (Fases 5.1 → 6.4-D, ativação do mundo,
 > incidente do cadastro) estão preservadas no histórico abaixo e em §3/§4.
@@ -2706,7 +2862,8 @@ Ou seja: próxima conversa = **perguntar ao mantenedor: (a/b/c) para 6.4-F** e, 
 | 2026-09-06 | **Fase 6.4-D** — catálogo Sinnoh 387–493: 106 espécies novas (Pokédex 387 → **493**), 7 itens de evolução **reais** (colunas em `users`, vendidos na loja 3), **migration 0008** + `docs/supabase-production-0008-runtime.sql` (idempotente, testado 2×), 20 linhas cruzadas em Kanto/Johto/Hoenn, **sem** redistribuição no mundo | ✅ Concluída e validada no sandbox · ⬜ SQL `0008` em produção **antes do merge** + passada visual (#15) | 20/284 unit · 8/103 integração · `src/lib/pokedex-sinnoh.ts` · `drizzle/0008_sinnoh_evolution_items.sql` · §3/§4.30 |
 | 2026-09-07 | **Fase 6.4-E — Unova (494–649)**: 156 espécies novas (Pokédex 493 → **649**, teto do CDN animado), 9 evoluções por pedra reutilizando itens existentes, 6 proxies (troca→nível, felicidade→nível), **sem migration**, testes 297 unit / 103 integração, sem tocar em `content/world/maps/` | ✅ Concluída e validada no sandbox · ⬜ vitrine 649 + evoluções ao vivo em produção (#16) | 21/297 unit · 8/103 integração · `src/lib/pokedex-unova.ts` · **sem migration** · §3/§4.31 |
 | 2026-09-07 | **Decisão B — Pokédex completa em 649** + **Fase 8.8 — Chat no jogo (global/local/whisper)**: chat_messages + map_id + recipient_id, 3 índices, check canal, API /api/chat (global/local/whisper com afterId), ChatWidget HUD (💬 GLOBAL/LOCAL/PRIVADO, badge unread, /w atalho), migration 0009 + `docs/supabase-production-0009-runtime.sql` idempotente | ✅ Concluída e validada no sandbox · ⬜ chat no jogo em produção (#17) | 21/297 unit · 9/112 integração · `src/app/api/chat/route.ts` · `src/components/ChatWidget.tsx` · `drizzle/0009` · §3/§4.32 |
-| — | **Etapa B — Mundo até 100 mapas (7.1 21–40 + redistribuição Hoenn/Sinnoh/Unova)** | ⬜ Próxima | `AI_State.md` §2/§5 |
+| 2026-09-07 | **Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 espécies**: `world-layout.ts` (40 mapas como dados), `world-distribute.ts` (gerador determinístico: alvo por rank, varredura mapa-a-mapa, afinidade de bioma, teto de desvio, pesos em agenda geométrica, piso de nível de evolução), `world-encounters.ts` (artefato gerado commitado), `default-world.ts` virou renderizador, bandas reescaladas M2 6–20 → M40 86–100 (mapa 1 travado em 3–10), 40 JSONs em `content/world/maps/`, workflow `World activation` 20→40 + `world:distribute:check`, +20 guardas de teste | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-7-MUNDO.md` · §3/§4.33 · 22/308 unit · 9/112 integração · build 15 rotas |
+| — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "pantano-do-silencio",
+  "name": "Mapa 26: Pântano do Silêncio",
+  "description": "Água parada que engole som (nv 57–71). Venenos de água doce, larvas e o que rasteja entre as raízes.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Cofagrigus",
+      "weight": 15,
+      "maxLevel": 68,
+      "minLevel": 57,
+      "pokedexId": 563,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Venomoth",
+      "weight": 13,
+      "maxLevel": 70,
+      "minLevel": 59,
+      "pokedexId": 49,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Forretress",
+      "weight": 11,
+      "maxLevel": 70,
+      "minLevel": 59,
+      "pokedexId": 205,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Octillery",
+      "weight": 10,
+      "maxLevel": 70,
+      "minLevel": 59,
+      "pokedexId": 224,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Swalot",
+      "weight": 8,
+      "maxLevel": 71,
+      "minLevel": 61,
+      "pokedexId": 317,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Whiscash",
+      "weight": 7,
+      "maxLevel": 71,
+      "minLevel": 61,
+      "pokedexId": 340,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Floatzel",
+      "weight": 6,
+      "maxLevel": 71,
+      "minLevel": 61,
+      "pokedexId": 419,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Galvantula",
+      "weight": 5,
+      "maxLevel": 71,
+      "minLevel": 61,
+      "pokedexId": 596,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kingler",
+      "weight": 5,
+      "maxLevel": 71,
+      "minLevel": 61,
+      "pokedexId": 99,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Weezing",
+      "weight": 4,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 110,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Seaking",
+      "weight": 4,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 119,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Sharpedo",
+      "weight": 3,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 319,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Pelipper",
+      "weight": 3,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 279,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Vespiquen",
+      "weight": 2,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 416,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Beedrill",
+      "weight": 2,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 15,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Dustox",
+      "weight": 2,
+      "maxLevel": 71,
+      "minLevel": 63,
+      "pokedexId": 269,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p26-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "forja-abandonada",
+      "targetMapName": "Forja Abandonada",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Forja Abandonada"
+    },
+    {
+      "id": "p26-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "forja-abandonada",
+      "targetMapName": "Forja Abandonada",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Forja Abandonada"
+    },
+    {
+      "id": "p26-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "cratera-de-brasa",
+      "targetMapName": "Cratera de Brasa",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Cratera de Brasa"
+    },
+    {
+      "id": "p26-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "cratera-de-brasa",
+      "targetMapName": "Cratera de Brasa",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Cratera de Brasa"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "grass", "grass", "grass", "grass", "grass", "grass", "stone", "stone", "grass", "grass", "grass", "grass", "grass", "grass", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}

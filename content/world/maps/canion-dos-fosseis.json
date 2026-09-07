@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "canion-dos-fosseis",
   "name": "Mapa 16: Cânion dos Fósseis",
-  "description": "Estratos escavados pelo tempo (nv 66–76). Omanyte e Kabuto despertam; Golem, Nidoking e Nidoqueen dominam o leito; Centro Pokémon no acampamento.",
+  "description": "Estratos escavados pelo tempo (nv 36–50). Fósseis despertam nos degraus; Centro Pokémon no acampamento dos escavadores.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,91 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Omanyte",
+      "name": "Shuckle",
+      "weight": 14,
+      "maxLevel": 47,
+      "minLevel": 36,
+      "pokedexId": 213,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Yanma",
       "weight": 12,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 138,
+      "maxLevel": 49,
+      "minLevel": 38,
+      "pokedexId": 193,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Omastar",
+      "name": "Graveler",
+      "weight": 11,
+      "maxLevel": 49,
+      "minLevel": 38,
+      "pokedexId": 75,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gligar",
       "weight": 9,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 139,
+      "maxLevel": 49,
+      "minLevel": 38,
+      "pokedexId": 207,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Kabuto",
-      "weight": 12,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 140,
+      "name": "Farfetch'd",
+      "weight": 8,
+      "maxLevel": 50,
+      "minLevel": 40,
+      "pokedexId": 83,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Kabutops",
-      "weight": 9,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 141,
+      "name": "Onix",
+      "weight": 7,
+      "maxLevel": 50,
+      "minLevel": 40,
+      "pokedexId": 95,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Aerodactyl",
-      "weight": 14,
-      "maxLevel": 73,
-      "minLevel": 66,
+      "weight": 6,
+      "maxLevel": 50,
+      "minLevel": 40,
       "pokedexId": 142,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Golem",
-      "weight": 11,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 76,
+      "name": "Larvitar",
+      "weight": 5,
+      "maxLevel": 50,
+      "minLevel": 40,
+      "pokedexId": 246,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Nidoking",
-      "weight": 11,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 34,
+      "name": "Lunatone",
+      "weight": 5,
+      "maxLevel": 50,
+      "minLevel": 40,
+      "pokedexId": 337,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Nidoqueen",
-      "weight": 10,
-      "maxLevel": 75,
-      "minLevel": 68,
-      "pokedexId": 31,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Piloswine",
+      "name": "Solrock",
       "weight": 4,
-      "maxLevel": 76,
-      "minLevel": 72,
-      "pokedexId": 221,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 338,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Kingdra",
+      "name": "Lileep",
       "weight": 4,
-      "maxLevel": 76,
-      "minLevel": 72,
-      "pokedexId": 230,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 345,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Shuckle",
-      "weight": 4,
-      "maxLevel": 76,
-      "minLevel": 72,
-      "pokedexId": 213,
+      "name": "Anorith",
+      "weight": 3,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 347,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cranidos",
+      "weight": 3,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 408,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Shieldon",
+      "weight": 3,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 410,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mothim",
+      "weight": 2,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 414,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Archen",
+      "weight": 2,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 566,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Murkrow",
+      "weight": 2,
+      "maxLevel": 50,
+      "minLevel": 42,
+      "pokedexId": 198,
       "tileTypes": ["tall_grass"]
     }
   ],

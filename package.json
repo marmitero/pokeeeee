@@ -20,6 +20,8 @@
     "world:export": "tsx scripts/world-export.mts",
     "world:import": "tsx scripts/world-import.mts",
     "world:seed": "tsx scripts/world-seed.mts",
+    "world:distribute": "tsx scripts/world-distribute.mts",
+    "world:distribute:check": "tsx scripts/world-distribute.mts --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.mts",

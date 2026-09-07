@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "ilhas-glaciais",
   "name": "Mapa 10: Ilhas Glaciais",
-  "description": "Canais congelados (nv 42–52). Seel e Jynx nas margens; Lapras é raro e Articuno, lendário.",
+  "description": "Canais congelados entre ilhas (nv 23–37). Focas, focos de gelo e aves do frio; o primeiro lendário que a jornada mostra.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,108 +10,140 @@
   "encounterRate": 22,
   "encounterTable": [
     {
+      "name": "Psyduck",
+      "weight": 14,
+      "maxLevel": 34,
+      "minLevel": 23,
+      "pokedexId": 54,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Mankey",
+      "weight": 12,
+      "maxLevel": 36,
+      "minLevel": 25,
+      "pokedexId": 56,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Slowpoke",
+      "weight": 11,
+      "maxLevel": 36,
+      "minLevel": 25,
+      "pokedexId": 79,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
       "name": "Seel",
-      "weight": 13,
-      "maxLevel": 51,
-      "minLevel": 44,
+      "weight": 9,
+      "maxLevel": 36,
+      "minLevel": 25,
       "pokedexId": 86,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Dewgong",
-      "weight": 12,
-      "maxLevel": 51,
-      "minLevel": 44,
-      "pokedexId": 87,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Cloyster",
+      "name": "Shellder",
       "weight": 8,
-      "maxLevel": 52,
-      "minLevel": 46,
-      "pokedexId": 91,
+      "maxLevel": 37,
+      "minLevel": 27,
+      "pokedexId": 90,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Jynx",
-      "weight": 12,
-      "maxLevel": 51,
-      "minLevel": 44,
-      "pokedexId": 124,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Lapras",
+      "name": "Chinchou",
       "weight": 7,
-      "maxLevel": 52,
-      "minLevel": 46,
-      "pokedexId": 131,
+      "maxLevel": 37,
+      "minLevel": 27,
+      "pokedexId": 170,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Articuno",
+      "name": "Snorunt",
+      "weight": 6,
+      "maxLevel": 37,
+      "minLevel": 27,
+      "pokedexId": 361,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Buizel",
+      "weight": 5,
+      "maxLevel": 37,
+      "minLevel": 27,
+      "pokedexId": 418,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Shellos",
+      "weight": 5,
+      "maxLevel": 37,
+      "minLevel": 27,
+      "pokedexId": 422,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Finneon",
+      "weight": 4,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 456,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Frillish",
+      "weight": 4,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 592,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Wailmer",
+      "weight": 3,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 320,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Combee",
+      "weight": 3,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 415,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cubchoo",
+      "weight": 3,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 613,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Kabuto",
       "weight": 2,
-      "maxLevel": 52,
-      "minLevel": 44,
-      "pokedexId": 144,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Golduck",
-      "weight": 10,
-      "maxLevel": 51,
-      "minLevel": 44,
-      "pokedexId": 55,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 140,
       "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Slowbro",
-      "weight": 10,
-      "maxLevel": 51,
-      "minLevel": 44,
-      "pokedexId": 80,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Wartortle",
-      "weight": 10,
-      "maxLevel": 51,
-      "minLevel": 44,
-      "pokedexId": 8,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Sneasel",
-      "weight": 4,
-      "maxLevel": 52,
-      "minLevel": 48,
-      "pokedexId": 215,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Swinub",
-      "weight": 4,
-      "maxLevel": 52,
-      "minLevel": 48,
-      "pokedexId": 220,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Delibird",
-      "weight": 4,
-      "maxLevel": 52,
-      "minLevel": 48,
-      "pokedexId": 225,
-      "tileTypes": ["tall_grass"]
     },
     {
       "name": "Smoochum",
-      "weight": 4,
-      "maxLevel": 52,
-      "minLevel": 48,
+      "weight": 2,
+      "maxLevel": 37,
+      "minLevel": 29,
       "pokedexId": 238,
       "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Oshawott",
+      "weight": 2,
+      "maxLevel": 37,
+      "minLevel": 29,
+      "pokedexId": 501,
+      "tileTypes": ["tall_grass", "water"]
     }
   ],
   "portals": [

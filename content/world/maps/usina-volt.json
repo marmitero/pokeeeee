@@ -2,7 +2,7 @@
   "format": "catchbound-world/1",
   "slug": "usina-volt",
   "name": "Mapa 7: Usina de Volt",
-  "description": "Geradores zumbindo (nv 30–40). Magnemite e Voltorb sobrecarregam os corredores; Jolteon é raríssimo.",
+  "description": "Geradores que nunca desligam (nv 17–31). Corredores zumbindo de Elétricos, Aço e o veneno que escorre dos transformadores.",
   "width": 16,
   "height": 16,
   "creatorUsername": "GameMaster",
@@ -10,99 +10,139 @@
   "encounterRate": 22,
   "encounterTable": [
     {
+      "name": "Bronzor",
+      "weight": 14,
+      "maxLevel": 28,
+      "minLevel": 17,
+      "pokedexId": 436,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mareep",
+      "weight": 12,
+      "maxLevel": 30,
+      "minLevel": 19,
+      "pokedexId": 179,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Unown",
+      "weight": 11,
+      "maxLevel": 30,
+      "minLevel": 19,
+      "pokedexId": 201,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Stunky",
+      "weight": 9,
+      "maxLevel": 30,
+      "minLevel": 19,
+      "pokedexId": 434,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Magnemite",
-      "weight": 17,
-      "maxLevel": 37,
-      "minLevel": 30,
+      "weight": 8,
+      "maxLevel": 31,
+      "minLevel": 21,
       "pokedexId": 81,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Magneton",
-      "weight": 10,
-      "maxLevel": 39,
-      "minLevel": 32,
-      "pokedexId": 82,
+      "name": "Grimer",
+      "weight": 7,
+      "maxLevel": 31,
+      "minLevel": 21,
+      "pokedexId": 88,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Voltorb",
-      "weight": 17,
-      "maxLevel": 37,
-      "minLevel": 30,
+      "weight": 6,
+      "maxLevel": 31,
+      "minLevel": 21,
       "pokedexId": 100,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Electrode",
-      "weight": 10,
-      "maxLevel": 39,
-      "minLevel": 32,
-      "pokedexId": 101,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Raichu",
-      "weight": 7,
-      "maxLevel": 40,
-      "minLevel": 34,
-      "pokedexId": 26,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Jolteon",
+      "name": "Koffing",
       "weight": 5,
-      "maxLevel": 40,
-      "minLevel": 34,
-      "pokedexId": 135,
+      "maxLevel": 31,
+      "minLevel": 21,
+      "pokedexId": 109,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Electabuzz",
-      "weight": 6,
-      "maxLevel": 40,
-      "minLevel": 34,
-      "pokedexId": 125,
+      "name": "Munna",
+      "weight": 5,
+      "maxLevel": 31,
+      "minLevel": 21,
+      "pokedexId": 517,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Porygon",
-      "weight": 12,
-      "maxLevel": 39,
-      "minLevel": 32,
-      "pokedexId": 137,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Flaaffy",
+      "name": "Blitzle",
       "weight": 4,
-      "maxLevel": 40,
-      "minLevel": 36,
-      "pokedexId": 180,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 522,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Elekid",
+      "name": "Trubbish",
       "weight": 4,
-      "maxLevel": 40,
-      "minLevel": 36,
-      "pokedexId": 239,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 568,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Houndour",
-      "weight": 4,
-      "maxLevel": 40,
-      "minLevel": 36,
-      "pokedexId": 228,
+      "name": "Joltik",
+      "weight": 3,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 595,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Porygon2",
-      "weight": 4,
-      "maxLevel": 40,
-      "minLevel": 36,
-      "pokedexId": 233,
+      "name": "Tynamo",
+      "weight": 3,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 602,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Aron",
+      "weight": 3,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 304,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Meditite",
+      "weight": 2,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 307,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Croagunk",
+      "weight": 2,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 453,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Klink",
+      "weight": 2,
+      "maxLevel": 31,
+      "minLevel": 23,
+      "pokedexId": 599,
       "tileTypes": ["tall_grass"]
     }
   ],

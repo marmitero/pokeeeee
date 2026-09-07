@@ -1,0 +1,205 @@
+{
+  "format": "catchbound-world/1",
+  "slug": "tundra-ancestral",
+  "name": "Mapa 38: Tundra Ancestral",
+  "description": "Planície congelada sobre osso e permafrost (nv 82–96). Gelo antigo, terra dura e os Normal que nunca precisaram de sol.",
+  "width": 16,
+  "height": 16,
+  "creatorUsername": "GameMaster",
+  "isPublished": true,
+  "encounterRate": 22,
+  "encounterTable": [
+    {
+      "name": "Braviary",
+      "weight": 15,
+      "maxLevel": 93,
+      "minLevel": 82,
+      "pokedexId": 628,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Mamoswine",
+      "weight": 13,
+      "maxLevel": 95,
+      "minLevel": 84,
+      "pokedexId": 473,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Golem",
+      "weight": 11,
+      "maxLevel": 95,
+      "minLevel": 84,
+      "pokedexId": 76,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Exploud",
+      "weight": 10,
+      "maxLevel": 95,
+      "minLevel": 84,
+      "pokedexId": 295,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Flygon",
+      "weight": 8,
+      "maxLevel": 96,
+      "minLevel": 86,
+      "pokedexId": 330,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Walrein",
+      "weight": 7,
+      "maxLevel": 96,
+      "minLevel": 86,
+      "pokedexId": 365,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Staraptor",
+      "weight": 6,
+      "maxLevel": 96,
+      "minLevel": 86,
+      "pokedexId": 398,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Stoutland",
+      "weight": 5,
+      "maxLevel": 96,
+      "minLevel": 86,
+      "pokedexId": 508,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Krookodile",
+      "weight": 5,
+      "maxLevel": 96,
+      "minLevel": 86,
+      "pokedexId": 553,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Vanilluxe",
+      "weight": 4,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 584,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Snorlax",
+      "weight": 4,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 143,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Blissey",
+      "weight": 3,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 242,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Rhyperior",
+      "weight": 3,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 464,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Togekiss",
+      "weight": 2,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 468,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Porygon-Z",
+      "weight": 2,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 474,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Landorus",
+      "weight": 2,
+      "maxLevel": 96,
+      "minLevel": 88,
+      "pokedexId": 645,
+      "tileTypes": ["tall_grass"]
+    }
+  ],
+  "portals": [
+    {
+      "id": "p38-south-1",
+      "sourceX": 7,
+      "sourceY": 15,
+      "targetMapSlug": "ninho-do-dragao",
+      "targetMapName": "Ninho do Dragão",
+      "targetX": 7,
+      "targetY": 1,
+      "label": "Sul → Ninho do Dragão"
+    },
+    {
+      "id": "p38-south-2",
+      "sourceX": 8,
+      "sourceY": 15,
+      "targetMapSlug": "ninho-do-dragao",
+      "targetMapName": "Ninho do Dragão",
+      "targetX": 8,
+      "targetY": 1,
+      "label": "Sul → Ninho do Dragão"
+    },
+    {
+      "id": "p38-north-1",
+      "sourceX": 7,
+      "sourceY": 0,
+      "targetMapSlug": "santuario-submerso",
+      "targetMapName": "Santuário Submerso",
+      "targetX": 7,
+      "targetY": 14,
+      "label": "Norte → Santuário Submerso"
+    },
+    {
+      "id": "p38-north-2",
+      "sourceX": 8,
+      "sourceY": 0,
+      "targetMapSlug": "santuario-submerso",
+      "targetMapName": "Santuário Submerso",
+      "targetX": 8,
+      "targetY": 14,
+      "label": "Norte → Santuário Submerso"
+    }
+  ],
+  "npcs": [],
+  "gyms": [],
+  "encounterGrid": [],
+  "collisionGrid": [],
+  "tileGrid": [
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "sand", "tree"],
+    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "sand", "sand", "sand", "sand", "sand", "tree"],
+    ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"]
+  ]
+}
