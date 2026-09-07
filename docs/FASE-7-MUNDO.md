@@ -199,20 +199,38 @@ Os testes novos/reescritos:
 
 ### ⚠️ Passo manual antes de ativar (permissão de workflow)
 
-O agente não tem permissão `workflows` no app do GitHub, então **este PR não
-mexe em `.github/workflows/world-activation.yml`** — mas o arquivo ainda gateda
-`/api/maps` em **20** mapas e o conteúdo versionado agora tem **40**. Sem o
-ajuste, a ativação falha no step "Verify public API".
+O app do GitHub usado pelo agente **não tem permissão `workflows`**: qualquer
+commit que toque em `.github/workflows/` — inclusive apagar um arquivo lá — é
+rejeitado no push (`refusing to allow a GitHub App to create or update workflow
+… without workflows permission`). Por isso o workflow real **não** foi atualizado
+neste branch, e ele ainda gateda **20** mapas enquanto o conteúdo versionado tem
+**40**: sem o ajuste, a ativação morre no step "Verify public API"
+(`esperava 20 mapas, veio 40`).
 
-Como o espelho `docs/world-activation.yml` **está** no PR (já atualizado para
-40 + o step novo de `world:distribute:check`), basta o mantenedor aplicar e
-commitar no branch do PR:
+⚠️ **Atenção a um engano que já aconteceu:** `docs/patches/*.patch` é um *diff*,
+não um workflow. Colar o conteúdo num arquivo novo em `.github/workflows/`
+(ainda por cima sem `.yml`) não registra nada — o GitHub só lê
+`.github/workflows/*.yml`, e o `world-activation.yml` de verdade continuou o
+mesmo. O caminho é **aplicar** o patch sobre o arquivo existente.
 
 ```bash
-git apply docs/patches/world-activation-40-mapas.patch   # idêntico ao espelho docs/
-# ou: cp docs/world-activation.yml .github/workflows/world-activation.yml
-git add .github/workflows/world-activation.yml && git commit -m "ci(7.1): World activation 20 → 40 mapas + gate world:distribute:check"
+git checkout <branch-do-PR>
+git apply docs/patches/world-activation-40-fix.patch   # atualiza o workflow p/ 40,
+                                                        # remove o arquivo sem
+                                                        # extensão criado por engano
+                                                        # e remove o patch obsoleto
+# conferir (as duas linhas abaixo devem sair vazias / com o nome novo):
+diff .github/workflows/world-activation.yml docs/world-activation.yml
+gh workflow list | grep "World activation"             # → "World activation (maps 1-40 + rebalance)"
+git add -A && git commit -m "ci(7.1): World activation 20 → 40 + gate world:distribute:check" && git push
 ```
+
+O resultado é exatamente o espelho `docs/world-activation.yml`, já validado
+aqui: YAML parseia (`js-yaml`), 14 steps, `if [ "$n" != "40" ]` no gate da API
+pública e o step novo `npm run world:distribute:check`, que recusa a ativação se
+o artefato gerado estiver defasado do layout. Não pode usar o patch? Então
+`cp docs/world-activation.yml .github/workflows/world-activation.yml` + apagar
+`.github/workflows/world-activation-40-mapas` dá no mesmo.
 
 Depois disso o fluxo normal vale: `World activation` → `staging apply=false` →
 `production apply=false` → `production apply=true`.
