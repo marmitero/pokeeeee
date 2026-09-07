@@ -161,7 +161,134 @@ no layout, regenere a documentação com o mesmo `--report`.)*
 - **Mapa 40 é o fim da linha** (só portal sul), e o `world:export` é quem grava
   os `targetMapId` resolvidos por slug.
 
-### Validação (rodada 2026-09-07, sandbox com Postgres local)
+### Validação (rodada 2026-09-07, **sandbox do agente** — não é tarefa do mantenedor)
+
+```
+npx tsc --noEmit                      → limpo
+npm run lint                          → limpo
+npm run test                          → 22 arquivos, 308 testes
+npm run test:integration              → 9 arquivos, 112 testes
+npm run build                         → 15 rotas
+
+npm run world:distribute -- --report  → 644 distribuídas + 5 pinadas = 649
+                                        por mapa: min 16, max 17
+                                        bioma: 80% tipo primário / 89% qualquer tipo
+                                        lendários: peso máx 4, mapa mín 10
+npm run world:distribute:check        → tabela em dia com o layout e a Pokédex ✓
+npm run world:seed                    → 20 criado(s), 20 atualizado(s), 40 mapa(s)
+npm run world:export                  → 40 mapa(s), 3 ginásio(s), 32 item(ns) de loja
+                                        15 criado(s), 19 atualizado(s), 9 igual(is), 0 removido(s)
+npm run world:import -- --dry-run     → 40 igual / 3 igual / 32 igual (round-trip estável)
+git diff content/world/maps/vale-pallet.json → VAZIO (mapa 1 intacto)
+git status --porcelain content/world/shops   → VAZIO
+```
+
+Os testes novos/reescritos:
+
+- `src/lib/world-expansion.test.ts` (12 guardas) — lê os **JSONs versionados** e
+  confere: 40 mapas numerados sem buraco, mapa 1 verbatim, 649 espécies × 1,
+  pesos 100, `tileTypes` que existem na grade, evolução monotônica, lendários
+  ≥M10 e ≤20, banda citada na descrição = banda real, cadeia de portais,
+  **smoke do pipeline de encontro** (1.000 sorteios/mapa por `pickWeighted` +
+  `rollEncounterLevel` reais) e a identidade **semente em código ↔ conteúdo
+  versionado**;
+- `src/lib/world-distribute.test.ts` (8 guardas) — determinismo, artefato
+  commitado == regerado, cotas, tetos de peso, janelas de lendários, piso de
+  nível de evolução e o piso de coerência de bioma (70%), acima do qual a
+  curadoria à mão de 6.4-A estava (72%).
+
+### Como ativar — 100% online (GitHub + Vercel + Supabase, sem terminal)
+
+**Regra da casa:** o mantenedor não tem o projeto na máquina. Nenhum passo dele
+é comando de shell — é arquivo no GitHub, botão no Actions, deploy na Vercel e,
+quando precisa de SQL, um `SELECT` colado no Editor do Supabase. Os comandos que
+aparecem nesta doc e no `AI_State.md` §4 são os que **o agente** roda no sandbox
+dele, para produzir e provar a mudança; servem como evidência, não como tarefa.
+
+#### A. Ajustar o workflow `World activation` (2 cliques no GitHub)
+
+O app do GitHub usado pelo agente **não tem permissão `workflows`**, então nada
+que ele commite em `.github/workflows/` passa — `git push` é rejeitado com
+`refusing to allow a GitHub App to create or update workflow … without
+'workflows' permission`. Quem aplica é o mantenedor, pela interface.
+
+O arquivo `.github/workflows/world-activation.yml` ainda gateda **20** mapas, e
+o conteúdo versionado tem **40**. Sem este ajuste o run morre no step
+**Verify public API** com `esperava 20 mapas, veio 40`.
+
+- **Opção A — o mínimo funcional (1 linha).** Abra
+  `https://github.com/marmitero/pokeeeee/edit/arena/01a07c70-pokeeeee/.github/workflows/world-activation.yml`,
+  ache `if [ "$n" != "20" ]; then`, troque `20` por `40`, e na mensagem logo
+  abaixo `esperava 20 mapas` por `esperava 40 mapas`. Commit no branch do PR.
+  (Os outros "20" do arquivo são comentário/nome de step — cosméticos.)
+- **Opção B — a versão completa (recomendada).** Substitua o arquivo inteiro
+  pelo espelho já atualizado: abra
+  `https://github.com/marmitero/pokeeeee/blob/arena/01a07c70-pokeeeee/docs/world-activation.yml`,
+  copie o conteúdo (botão **Copy raw file**) e cole sobre o workflow na mesma
+  tela de edição. Isso traz junto o step novo **Check — tabela de encontros
+  gerada bate com o layout** (`npm run world:distribute:check`), que recusa a
+  ativação se o artefato gerado estiver defasado do layout, e renomeia o workflow
+  para "maps 1-40". Dica: apertar `.` no GitHub abre o editor de código no
+  navegador e cola arquivo grande sem dor.
+- **Faxina (1 clique):** delete
+  `.github/workflows/world-activation-40-mapas` — o arquivo criado por engano na
+  tentativa anterior (colar um `.patch` como se fosse workflow; sem `.yml` o
+  GitHub nem o registra). Só o mantenedor consegue: apagar qualquer coisa em
+  `.github/` também é bloqueado para o agente. Os `docs/patches/*` este PR já
+  removeu — patch de git não tem uso num fluxo sem terminal.
+- **Conferir sem terminal:** aba **Actions** → lista de workflows deve mostrar
+  `World activation (maps 1-40 + rebalance)`; e na PR, os checks verdes de novo.
+
+#### B. Mergear o PR #14
+
+Confira os checks do PR (Lint, Typecheck, Unit, Integration, Build, Vercel) e
+use **Create a merge commit** (é o padrão do repo — `main` histórico é merge
+commit de PR). Nenhuma migration neste PR: **nada a colar no SQL Editor antes do
+merge** (diferente de 0008/0009).
+
+#### C. Deploy na Vercel
+
+O merge em `main` dispara o build de produção sozinho. Em
+`vercel.com → Catchbound → Deployments`, aguarde `Ready` e abra
+`https://catchbound.vercel.app/api/health` → `{"ok":true,...}`.
+
+#### D. Ativar o mundo (o passo que escreve no banco)
+
+GitHub → **Actions** → `World activation (maps 1-40 + rebalance)` → **Run
+workflow**, branch `main`, na ordem já consagrada da 6.4-A:
+
+| Run | inputs | o que esperar no log |
+|---|---|---|
+| 1 | `target=staging`, `apply=false` | `world:import --dry-run` com `40 mapa(s)` e `db:rebalance --dry-run` — nada escrito |
+| 2 | `target=production`, `apply=false` | idem, contra produção; sem escrita |
+| 3 | `target=production`, `apply=true` (digitar `APLICAR-production`) | `world:seed` → `20 criado(s), 20 atualizado(s), 40 mapa(s)`; `world:export` → **Espelho OK** (ou artefato `world-diff-*`); `mapas servidos por /api/maps: 40` |
+
+Se aparecer artefato **world-diff-\***: significa que o banco tinha edição do
+Editor que o git não conhece. Baixe o `.patch` na página do run e mande para o
+agente versionar em PR — não rode `world:import` por cima de mão beijada.
+
+#### E. Conferir no banco (Supabase SQL Editor)
+
+Abra `https://github.com/marmitero/pokeeeee/blob/main/docs/world-conferencia.sql`,
+**Copy** e cole no SQL Editor do projeto de produção → Run. É `SELECT` puro e
+devolve uma única tabela com 11 checagens (`valor` deve ser igual a `alvo`):
+40 mapas, 40 publicados, 649 entradas, 649 espécies distintas, 0 mapa com peso
+≠ 100, 0 mapa 2–40 com menos de 14 espécies, 0 lendário antes do mapa 10, 0
+lendário com peso > 20, 0 nível fora de 1..100, e o mapa 1 verbatim
+(`22/22/22/18/16` e `3-8/3-8/3-8/4-9/4-10`).
+
+#### F. Passada no navegador (o que só o olho vê)
+
+Logado em `catchbound.vercel.app`: conferir o **mapa 1** (Vale Pallet com os 3
+iniciais + Pikachu + Eevee, Brock, loja); depois mapa 3 → norte e seguir a
+cadeia de portais até o **40**, olhando se o elenco casa com o bioma e com o
+nível da faixa. Para pular trecho, use **/admin → FERRAMENTAS GM → teleportar
+para mapa** (ex.: mapa 10 = primeiro com lendário; 20 = Santuário Celeste;
+40 = Coroa do Mundo). Vale checar também: Centro Pokémon apenas nos mapas com
+`center` (4, 8, 13, 20, 24, 29, 39, 40) e a lista lateral de mapas interligados
+com 40 itens.
+
+### Validação (rodada 2026-09-07, **sandbox do agente** — não é tarefa do mantenedor)
 
 ```
 npx tsc --noEmit                      → limpo
