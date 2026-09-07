@@ -214,6 +214,14 @@
       "type": "healer",
       "name": "Curandeira de Santuário Celeste",
       "dialog": "Sua equipe foi curada! Volte sempre!"
+    },
+    {
+      "id": "boss-santuario-celeste",
+      "x": 9,
+      "y": 8,
+      "type": "boss",
+      "name": "Arena Boss do Santuário",
+      "dialog": "Um lendário desce à arena toda semana… poucos saem de pé!"
     }
   ],
   "gyms": [

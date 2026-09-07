@@ -1,6 +1,6 @@
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { battles, gameMaps, gymLeaders, userBadges, userPokemon, users } from "@/db/schema";
+import { battles, bossFights, gameMaps, gymLeaders, userBadges, userPokemon, users } from "@/db/schema";
 import {
   computeDelugeStats,
   getPokemonSpecies,
@@ -26,6 +26,16 @@ import {
 import { applyXp, battleXpGain, xpToNextLevel, MAX_LEVEL } from "@/lib/engine/xp";
 import { rollStoneDrop } from "@/lib/engine/drops";
 import { EVOLUTION_ITEM_LABEL } from "@/lib/evolution-items";
+import {
+  BOSS_DAILY_ATTEMPTS,
+  BOSS_LEGENDARY_CHANCE,
+  bossFor,
+  bossMoneyForLevel,
+  dayIdOf,
+  isBossArena,
+  weekIdOf,
+  type BossArena,
+} from "@/lib/boss-rotation";
 import { applyEvolution } from "@/lib/engine/evolution";
 import { BALL_LABEL, captureChance, rollCapture, type BallKey } from "@/lib/engine/capture";
 import { badRequest, forbidden, notFound } from "@/lib/api";
@@ -50,6 +60,8 @@ export interface BattleState {
   /** Restante do time do líder (ginásio). */
   gymQueue: Array<{ pokedexId: number; level: number; variant: DelugeVariant }>;
   gymLeaderId: number | null;
+  /** Linha de `boss_fights` (arena) — null fora da Arena Boss. */
+  bossFightId: number | null;
 }
 
 export interface BattleView {
@@ -58,7 +70,17 @@ export interface BattleView {
   status: string;
   state: BattleState;
   /** Recompensas concedidas no último turno (para a UI exibir). */
-  rewards?: { xp?: number; levelsGained?: number; money?: number; badge?: string; stone?: string };
+  rewards?: {
+    xp?: number;
+    levelsGained?: number;
+    money?: number;
+    badge?: string;
+    stone?: string;
+    /** Vitória no boss: há uma pedra à escolha para retirar (`claim_stone`). */
+    bossStoneChoice?: boolean;
+    /** Nome do lendário nv 5 ganho no 1/1200 (quando acontece). */
+    bossLegendary?: string;
+  };
   party?: unknown[];
   user?: unknown;
 }
@@ -153,6 +175,7 @@ export async function startWildBattle(
     ],
     gymQueue: [],
     gymLeaderId: null,
+    bossFightId: null,
   };
 
   const [battle] = await db
@@ -225,6 +248,7 @@ export async function startGymBattle(
       variant: m.variant ?? ("Normal" as DelugeVariant),
     })),
     gymLeaderId: leader.id,
+    bossFightId: null,
   };
 
   const [battle] = await db
@@ -240,6 +264,103 @@ export async function startGymBattle(
     .returning();
 
   return view(battle);
+}
+
+/**
+ * Batalha da Arena Boss (Etapa C, 8.3).
+ *
+ * Regras (espec do mantenedor): 2 tentativas por dia por arena; vitória trava
+ * a semana naquela arena; derrota pode tentar de novo. O boss (espécie + nv
+ * 80–100) vem de `bossFor` — determinístico, calculado aqui, nunca do cliente.
+ * A tentativa é registrada no início (fugir/desconectar não devolve).
+ */
+export async function startBossBattle(
+  userId: number,
+  arenaMapId: number
+): Promise<BattleView> {
+  if (!isBossArena(arenaMapId)) {
+    throw badRequest("Arena Boss inexistente.");
+  }
+  const arena = arenaMapId as BossArena;
+  const now = new Date();
+  const weekId = weekIdOf(now);
+  const day = dayIdOf(now);
+  const boss = bossFor(arena, now);
+
+  const active = await loadActivePokemon(userId);
+  const opponent = sideFromSpecies(boss.pokedexId, boss.level, "Normal");
+
+  // Transação com lock nas linhas do jogador: dois cliques simultâneos não
+  // furam o limite diário (o segundo espera o primeiro e reconta).
+  const battle = await db.transaction(async (tx) => {
+    const mine = await tx
+      .select()
+      .from(bossFights)
+      .where(
+        and(
+          eq(bossFights.userId, userId),
+          eq(bossFights.arenaMapId, arena),
+          eq(bossFights.weekId, weekId)
+        )
+      )
+      .for("update");
+
+    if (mine.some((f) => f.status === "WON")) {
+      throw badRequest("Você já venceu esta arena nesta semana. Volte segunda-feira!");
+    }
+    const today = mine.filter((f) => f.day === day);
+    if (today.length >= BOSS_DAILY_ATTEMPTS) {
+      throw badRequest(
+        `Você já enfrentou este lendário ${BOSS_DAILY_ATTEMPTS} vezes hoje. Volte amanhã!`
+      );
+    }
+
+    const [fight] = await tx
+      .insert(bossFights)
+      .values({
+        userId,
+        arenaMapId: arena,
+        weekId,
+        day,
+        status: "ACTIVE",
+        bossPokedexId: boss.pokedexId,
+        bossLevel: boss.level,
+      })
+      .returning();
+
+    const state: BattleState = {
+      player: sideFromUserPokemon(active),
+      opponent,
+      turn: 1,
+      log: [
+        `⚔️ A Arena Boss ruge! Um ${opponent.name} selvagem (LV. ${boss.level}) desce à arena!`,
+        "Vença para ganhar Pk$, uma pedra de evolução à sua escolha e uma chance no lendário!",
+      ],
+      gymQueue: [],
+      gymLeaderId: null,
+      bossFightId: fight!.id,
+    };
+
+    const [created] = await tx
+      .insert(battles)
+      .values({
+        userId,
+        kind: "boss",
+        mapId: arena,
+        activePokemonId: active.id,
+        state: state as unknown as Record<string, unknown>,
+        status: "ACTIVE",
+      })
+      .returning();
+    return created!;
+  });
+
+  return view(battle);
+}
+
+/** Sorteio do lendário nv 5 (1/1200). `rand` injetável para teste. */
+export function rollBossLegendary(rand: () => number = Math.random): boolean {
+  return rand() < BOSS_LEGENDARY_CHANCE;
 }
 
 // ─── Turno ────────────────────────────────────────────────────────────────
@@ -364,6 +485,15 @@ async function resolveFaint(
     if (state.player.hp > 0) return { log, status: "ACTIVE", continue: true };
 
     log = pushLog(log, `${state.player.displayName} desmaiou!`);
+
+    if (state.bossFightId !== null) {
+      await db
+        .update(bossFights)
+        .set({ status: "LOST", updatedAt: new Date() })
+        .where(and(eq(bossFights.id, state.bossFightId), eq(bossFights.userId, userId)));
+      log = pushLog(log, "O lendário te derrotou… a arena espera sua volta.");
+      return { log, status: "LOST", continue: false };
+    }
 
     if (state.gymLeaderId !== null) {
       log = pushLog(log, "Você perdeu a batalha de ginásio.");
@@ -503,6 +633,47 @@ async function resolveFaint(
     return { log, status: "WON", continue: false };
   }
 
+  // ── Arena Boss: vitória definitiva ───────────────────────────────────────
+  if (state.bossFightId !== null) {
+    const money = bossMoneyForLevel(state.opponent.level);
+    const gotLegendary = rollBossLegendary();
+
+    await db.transaction(async (tx) => {
+      await tx
+        .update(bossFights)
+        .set({
+          status: "WON",
+          legendaryGranted: gotLegendary,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(bossFights.id, state.bossFightId!), eq(bossFights.userId, userId)));
+      await tx
+        .update(users)
+        .set({
+          money: sql`${users.money} + ${money}`,
+          wins: sql`${users.wins} + 1`,
+        })
+        .where(eq(users.id, userId));
+    });
+
+    rewards.money = money;
+    rewards.bossStoneChoice = true;
+    log = pushLog(
+      log,
+      `🏆 VITÓRIA NA ARENA! +${money} Pk$ — e uma pedra de evolução à sua escolha te espera!`
+    );
+
+    if (gotLegendary) {
+      const granted = await grantBossLegendary(userId, state.opponent.pokedexId);
+      rewards.bossLegendary = granted;
+      log = pushLog(
+        log,
+        `✨✨✨ MILAGRE DE 1 EM 1200! O ${state.opponent.name} se juntou a você (NV. 5)! ✨✨✨`
+      );
+    }
+    return { log, status: "WON", continue: false };
+  }
+
   // ── Selvagem: vitória ──────────────────────────────────────────────────
   const money = wildWinMoney(state.opponent.level);
 
@@ -540,6 +711,44 @@ function speciesOf(pokedexId: number) {
   return getPokemonSpecies(pokedexId);
 }
 
+/**
+ * Concede o lendário nv 5 do 1/1200 (Etapa C, 8.3). Sempre Normal nv 5, com
+ * os golpes do nível; vai para o time se houver vaga, senão para o PC.
+ * Retorna o nome da espécie para o log.
+ */
+export async function grantBossLegendary(userId: number, pokedexId: number): Promise<string> {
+  const species = getPokemonSpecies(pokedexId);
+  const stats = computeDelugeStats(species, 5, "Normal");
+  const side = sideFromSpecies(pokedexId, 5, "Normal");
+
+  const party = await db
+    .select({ id: userPokemon.id })
+    .from(userPokemon)
+    .where(and(eq(userPokemon.userId, userId), isNotNull(userPokemon.partySlot)));
+
+  await db.insert(userPokemon).values({
+    userId,
+    pokedexId: species.id,
+    name: species.name,
+    variant: "Normal",
+    isPremiumSkin: false,
+    level: 5,
+    xp: 0,
+    xpToNextLevel: xpToNextLevel(5),
+    hp: stats.hp,
+    maxHp: stats.maxHp,
+    attack: stats.attack,
+    defense: stats.defense,
+    spAttack: stats.spAttack,
+    spDefense: stats.spDefense,
+    speed: stats.speed,
+    ...moveNamesForDb(side),
+    partySlot: party.length < 6 ? party.length + 1 : null,
+    isStarter: false,
+  });
+  return species.name;
+}
+
 // ─── Captura ──────────────────────────────────────────────────────────────
 
 export async function attemptCatch(
@@ -551,6 +760,9 @@ export async function attemptCatch(
 
   if (state.gymLeaderId !== null) {
     throw badRequest("Não é possível capturar o Pokémon de um líder de ginásio.");
+  }
+  if (state.bossFightId !== null) {
+    throw badRequest("O lendário da Arena não se captura — vença para ter sua chance de 1 em 1200!");
   }
 
   const [user] = await db.select().from(users).where(eq(users.id, userId));
@@ -690,6 +902,9 @@ export async function flee(userId: number, battleId: number): Promise<BattleView
 
   if (state.gymLeaderId !== null) {
     throw badRequest("Não dá para fugir de uma batalha de ginásio.");
+  }
+  if (state.bossFightId !== null) {
+    throw badRequest("Não dá para fugir da Arena Boss — é vencer ou cair!");
   }
 
   state.log = pushLog(state.log, "Você fugiu em segurança.");

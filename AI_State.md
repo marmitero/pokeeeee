@@ -479,14 +479,13 @@ Etapa B assim que o primeiro lote de mapas existir.
       (Coralina→Magnus, mapas 5→40, times da tabela da própria cidade no topo
       da banda), escada de pré-requisito 0→10, recompensas 1.500→30.000 —
       total **11 ginásios**. Elite 4 continua futura.
-- [ ] **8.3 — Arenas de bosses lendários** (ESPEC DO MANTENEDOR 2026-09-07,
-      substitui o desenho antigo): NPC "Arena Boss" nos mapas **20 e 40**,
-      cada arena com seu **lendário semanal** (2 diferentes/semana, rotação
-      sem repetição até esgotar os 47); boss **nv 80–100**; **2 tentativas por
-      dia por arena**; vitória trava a semana naquela arena (derrota pode
-      tentar de novo); prêmio = XP + dinheiro + **1 pedra à escolha** +
-      **1/1200 de chance do lendário nv 5**. Exige migration
-      (`boss_fights` + `battles.kind='boss'`) + SQL companheiro.
+- [x] **8.3 — Arenas de bosses lendários** ✅ 2026-09-07 (ESPEC DO MANTENEDOR):
+      NPC "Arena Boss" 👹 nos mapas **20 e 40**, lendário semanal por arena
+      (offset 23, sem repetição na semana), **nv 80–100**; **2 tentativas/dia/
+      arena** (lock `FOR UPDATE`); vitória trava a semana; prêmio = XP + Pk$
+      (15.000+100×nv) + **1 pedra à escolha** + **1/1200 o lendário nv 5**.
+      Migration **0010** (`boss_fights` + `kind='boss'`) + companheiro idempotente
+      validado 2×. Captura/fuga bloqueadas. Docs: `docs/FASE-8-ARENA-BOSS.md`.
 - [ ] **8.4 — Status de batalha** (era a 6.5): veneno/queimadura/paralisia no
       motor, colunas `status`/`statusTurns` em `user_pokemon` (**migration**),
       Antídoto e Queimadura-cura voltam à loja. Vira pré-requisito de ginásio
@@ -516,6 +515,30 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 8.3 — Arena Boss: lendário semanal nv 80–100 nos mapas 20 e 40, 2 tentativas/dia, pedra à escolha + 1/1200 (2026-09-07, Etapa C, entrega B)
+
+Motor `startBossBattle` (tentativa registrada no início, `FOR UPDATE`),
+vitória `WON` (XP + Pk$ + `bossStoneChoice` + rolagem do lendário nv 5),
+derrota `LOST` com retry, captura/fuga bloqueadas. Rotas `/api/battle`
+(`start_boss`) e `/api/boss` (GET status + `claim_stone` 1×/semana/arena).
+`BossModal.tsx` (intro/luta/resultado + `StonePicker` das 21 pedras), NPC tipo
+`"boss"` 👹 nos mapas 20/40, migration **0010** + companheiro
+`docs/supabase-production-0010-runtime.sql` **validado idempotente 2×** em clone
+`TEMPLATE` (conferência `1·1·3·true·1·11` nas duas). Testes: 7 rotação + 8
+integração (vitória simulada via `boss_fights → WON`); suíte **323 unit + 128
+integração** verde. Entrega A+B no mesmo PR #15. Detalhe:
+`docs/FASE-8-ARENA-BOSS.md`.
+
+**Pós-merge (ordem):** ① merge do PR → ② rodar o companheiro **0010** no
+Supabase SQL Editor (production) → ③ aguardar deploy Vercel (`Ready`) → ④
+Actions → `World activation` em `main` (`production`/`apply=true`, digitar
+`APLICAR-production`) — leva os NPCs boss ao jsonb dos mapas 20/40 → ⑤
+navegador: teleportar (GM) aos mapas 20/40 → NPC 👹 → status do lendário semanal
+→ iniciar (2 tentativas) → vitrine/batalha sem regressão.
+
+> Etapas 7.2–7.4 (mundo até 100 mapas) estão 🧊 congeladas por decisão do
+> mantenedor de 2026-09-07 — manter 40 mapas por enquanto.
 
 ### ✅ FASE 8.1+8.2 — Cidades a cada 5 mapas: 8 lojas + 8 ginásios + cura, pedras 100k–200k, drop nv 40+ e venda de itens (2026-09-07, Etapa C, entrega A)
 

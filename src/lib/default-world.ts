@@ -61,7 +61,7 @@ export interface DefaultNpcSpec {
   id: string;
   x: number;
   y: number;
-  type: "shop" | "gym" | "healer";
+  type: "shop" | "gym" | "healer" | "boss";
   name: string;
   shopId?: number;
   gymId?: number;
@@ -95,6 +95,21 @@ export const DEFAULT_LEGENDARIES: ReadonlySet<number> = WORLD_LEGENDARIES;
  * diante. Os nomes de ginásio repetem o `name` do seed (fonte da verdade do
  * time é `GYM_TEAMS`).
  */
+/**
+ * Arenas Boss da Etapa C (8.3): uma no Santuário Celeste (meio da jornada),
+ * outra na Coroa do Mundo (fim). Cada uma tem seu lendário semanal.
+ */
+export const BOSS_NPCS: Readonly<Record<number, { x: number; y: number; name: string; dialog: string }>> = {
+  20: {
+    x: 9, y: 8, name: "Arena Boss do Santuário",
+    dialog: "Um lendário desce à arena toda semana… poucos saem de pé!",
+  },
+  40: {
+    x: 6, y: 8, name: "Arena Boss da Coroa",
+    dialog: "A arena final! O lendário mais temido do mundo te espera!",
+  },
+};
+
 export const CITY_NPCS: Readonly<Record<number, {
   shopId: number; gymId: number;
   shopName: string; shopDialog: string;
@@ -391,6 +406,17 @@ export function buildDefaultMaps(): DefaultMapData[] {
       { id: `shop-${m.slug}`, x: shopX, y: 7, type: "shop", name: city.shopName, shopId: city.shopId, dialog: city.shopDialog },
       { id: `gym-${m.slug}`, x: 9, y: 7, type: "gym", name: city.gymName, gymId: city.gymId, dialog: city.gymDialog },
       { id: `healer-${m.slug}`, x: healerX, y: healerY, type: "healer", name: `Curandeira de ${m.shortName}`, dialog: "Sua equipe foi curada! Volte sempre!" },
+    );
+  }
+
+  // ── Etapa C (8.3): Arenas Boss (mapas 20 e 40) ─────────────────────────────
+  // O lendário semanal é calculado em runtime (`bossFor`); o NPC é só a porta
+  // de entrada. Posições na trilha de pedra: (9,8) no 20, (6,8) no 40.
+  for (const m of maps) {
+    const boss = BOSS_NPCS[m.order];
+    if (!boss) continue;
+    m.npcs.push(
+      { id: `boss-${m.slug}`, x: boss.x, y: boss.y, type: "boss", name: boss.name, dialog: boss.dialog },
     );
   }
 

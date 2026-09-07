@@ -19,6 +19,7 @@ import { PvpArena } from "@/components/PvpArena";
 import { SpritePackModal } from "@/components/SpritePackModal";
 import { PokemonBox, BoxPokemon } from "@/components/PokemonBox";
 import { ShopModal } from "@/components/ShopModal";
+import { BossModal } from "@/components/BossModal";
 import { GymModal } from "@/components/GymModal";
 import { ChatWidget } from "@/components/ChatWidget";
 import {
@@ -76,7 +77,7 @@ interface NpcDef {
   id: string;
   x: number;
   y: number;
-  type: "shop" | "gym" | "healer" | "info";
+  type: "shop" | "gym" | "healer" | "info" | "boss";
   name: string;
   shopId?: number;
   gymId?: number;
@@ -192,6 +193,7 @@ export default function DelugeRPGPage() {
   const [showBox, setShowBox] = useState(false);
   const [shopCtx, setShopCtx] = useState<{ shopId: number; shopName: string; dialog: string } | null>(null);
   const [gymCtx, setGymCtx] = useState<{ gymLeaderId: number } | null>(null);
+  const [bossCtx, setBossCtx] = useState<{ arenaMapId: number; arenaName: string } | null>(null);
   // Fase 2: a batalha é criada e resolvida no servidor; aqui só guardamos o id.
   const [battleState, setBattleState] = useState<{ active: boolean; battleId: number | null }>({
     active: false,
@@ -203,7 +205,7 @@ export default function DelugeRPGPage() {
   const [audioEnabled, setAudioEnabled] = useState(true);
 
   const anyModalOpen =
-    showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx ||
+    showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || !!bossCtx ||
     battleState.active || pvpLobby || pvpRoom !== null;
 
   // O Editor de Mundos mexe no mundo compartilhado: só para administradores.
@@ -354,8 +356,14 @@ export default function DelugeRPGPage() {
       setGymCtx({ gymLeaderId: npc.gymId });
       return;
     }
+    if (npc.type === "boss") {
+      if (!isLoggedIn) { showBanner("⚠️ Faça login para entrar na Arena Boss!"); return; }
+      if (currentMapId !== 20 && currentMapId !== 40) { showBanner("⚠️ Arena Boss inválida."); return; }
+      setBossCtx({ arenaMapId: currentMapId, arenaName: npc.name });
+      return;
+    }
     showBanner(`💬 ${npc.name}: "${npc.dialog}"`);
-  }, [handleHealParty, isLoggedIn, showBanner]);
+  }, [handleHealParty, isLoggedIn, showBanner, currentMapId]);
 
   // ── Movement ──────────────────────────────────────────────────────────
   /**
@@ -795,7 +803,7 @@ export default function DelugeRPGPage() {
                     {/* NPC icons */}
                     {!isPlayer && npc && (
                       <span className="z-5 text-sm" title={npc.name}>
-                        {npc.type === "shop" ? "🏪" : npc.type === "gym" ? "🏟️" : npc.type === "healer" ? "✚" : "💬"}
+                        {npc.type === "shop" ? "🏪" : npc.type === "gym" ? "🏟️" : npc.type === "healer" ? "✚" : npc.type === "boss" ? "👹" : "💬"}
                       </span>
                     )}
 
@@ -836,6 +844,7 @@ export default function DelugeRPGPage() {
               <div>✚ Centro → Cura Equipe</div>
               <div>🏪 NPC → Loja de Itens</div>
               <div>🏟️ NPC → Líder de Ginásio</div>
+              <div>👹 NPC → Arena Boss</div>
               <div>[E] → Abrir PC Box</div>
             </div>
           </div>
@@ -904,6 +913,18 @@ export default function DelugeRPGPage() {
             setUserBadges(badges);
           }}
           onClose={() => setGymCtx(null)}
+        />
+      )}
+
+      {/* BOSS */}
+      {bossCtx && (
+        <BossModal
+          arenaMapId={bossCtx.arenaMapId}
+          arenaName={bossCtx.arenaName}
+          onBattleResult={(updatedUser) => {
+            if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
+          }}
+          onClose={() => setBossCtx(null)}
         />
       )}
 

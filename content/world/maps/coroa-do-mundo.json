@@ -186,6 +186,14 @@
       "type": "healer",
       "name": "Curandeira de Coroa do Mundo",
       "dialog": "Sua equipe foi curada! Volte sempre!"
+    },
+    {
+      "id": "boss-coroa-do-mundo",
+      "x": 6,
+      "y": 8,
+      "type": "boss",
+      "name": "Arena Boss da Coroa",
+      "dialog": "A arena final! O lendário mais temido do mundo te espera!"
     }
   ],
   "gyms": [

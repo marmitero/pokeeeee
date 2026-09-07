@@ -389,7 +389,7 @@ export const pvpBattles = pgTable("pvp_battles", {
 export const battles = pgTable("battles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  kind: text("kind").notNull(),                 // "wild" | "gym"
+  kind: text("kind").notNull(),                 // "wild" | "gym" | "boss"
   mapId: integer("map_id").references(() => gameMaps.id, { onDelete: "restrict" }),                     // batalha selvagem
   gymLeaderId: integer("gym_leader_id").references(() => gymLeaders.id, { onDelete: "restrict" }),        // batalha de ginásio
   activePokemonId: integer("active_pokemon_id").references(() => userPokemon.id, { onDelete: "set null" }),
@@ -400,9 +400,46 @@ export const battles = pgTable("battles", {
   updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => [
   index("battles_user_status_idx").on(table.userId, table.status),
-  check("battles_kind_check", sql`${table.kind} IN ('wild', 'gym')`),
+  check("battles_kind_check", sql`${table.kind} IN ('wild', 'gym', 'boss')`),
   check("battles_status_check", sql`${table.status} IN ('ACTIVE', 'WON', 'LOST', 'FLED', 'CAUGHT')`),
   check("battles_opponent_index_check", sql`${table.opponentIndex} >= 0`),
+]);
+
+// ─── ARENA BOSS (Etapa C, 8.3) ──────────────────────────────────────────────
+
+/**
+ * Tentativas da Arena Boss.
+ *
+ * Duas arenas (mapas 20 e 40), cada uma com seu lendário semanal
+ * (`src/lib/boss-rotation.ts` — determinístico, sem tabela). Uma linha por
+ * tentativa: o limite é 2 por dia por arena, e a vitória trava a semana
+ * naquela arena (derrota pode tentar de novo).
+ *
+ * - `weekId`/`day` são texto UTC (`YYYY-Www` / `YYYY-MM-DD`), calculados pelo
+ *   servidor — o cliente nunca os informa;
+ * - `stoneClaimed` marca a retirada da pedra à escolha (prêmio da vitória);
+ * - `legendaryGranted` marca o 1/1200 (o lendário nv 5 foi entregue);
+ * - `bossPokedexId`/`bossLevel` são o retrato do boss enfrentado (auditoria).
+ */
+export const bossFights = pgTable("boss_fights", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  arenaMapId: integer("arena_map_id").notNull(),
+  weekId: text("week_id").notNull(),
+  day: text("day").notNull(),
+  status: text("status").notNull().default("ACTIVE"),
+  stoneClaimed: boolean("stone_claimed").notNull().default(false),
+  legendaryGranted: boolean("legendary_granted").notNull().default(false),
+  bossPokedexId: integer("boss_pokedex_id").notNull(),
+  bossLevel: integer("boss_level").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => [
+  index("boss_fights_user_arena_week_idx").on(table.userId, table.arenaMapId, table.weekId),
+  index("boss_fights_user_arena_day_idx").on(table.userId, table.arenaMapId, table.day),
+  check("boss_fights_arena_check", sql`${table.arenaMapId} IN (20, 40)`),
+  check("boss_fights_status_check", sql`${table.status} IN ('ACTIVE', 'WON', 'LOST')`),
+  check("boss_fights_level_check", sql`${table.bossLevel} BETWEEN 80 AND 100`),
 ]);
 
 // ─── RATE LIMIT (Fase 5) ──────────────────────────────────────────────────

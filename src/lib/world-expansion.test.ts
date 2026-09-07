@@ -289,6 +289,26 @@ describe("mundo até o mapa 40 (7.1 — Etapa B)", () => {
     }
   });
 
+  it("Etapa C: mapas 20 e 40 têm NPC de Arena Boss sobre tile ocupável", () => {
+    const byNumber = new Map(maps.map((m) => [mapNumber(m), m]));
+    const WALKABLE = new Set(["grass", "tall_grass", "stone", "sand", "flower", "center", "bridge", "portal"]);
+    for (const n of [20, 40]) {
+      const m = byNumber.get(n)!;
+      const boss = (m.npcs ?? []).filter((x) => x.type === "boss");
+      expect(boss, `mapa ${n}: sem Arena Boss`).toHaveLength(1);
+      const tile = (m.tileGrid as string[][])[boss[0]!.y]![boss[0]!.x];
+      expect(WALKABLE.has(tile), `mapa ${n}: boss sobre tile ${tile}`).toBe(true);
+    }
+    for (const m of maps) {
+      const n = mapNumber(m);
+      if (n === 20 || n === 40) continue;
+      expect(
+        (m.npcs ?? []).filter((x) => x.type === "boss"),
+        `mapa ${n}: boss fora das arenas`
+      ).toHaveLength(0);
+    }
+  });
+
   it(`a cadeia de portais liga 1→2→3→…→${WORLD_MAP_COUNT} nas duas direções`, () => {
     // 1→2 (norte do 1), 2→3 (leste do 2) e 3→4→…→40 (corredor norte/sul).
     const byNumber = new Map(maps.map((m) => [mapNumber(m), m]));
