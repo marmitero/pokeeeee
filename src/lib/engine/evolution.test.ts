@@ -37,7 +37,7 @@ describe("integridade dos dados de evolução", () => {
         } else if (rule.trigger === "item") {
           expect(rule.itemId, `${species.name}: gatilho de item sem itemId`).toBeDefined();
           expect(rule.itemId!).toBeGreaterThanOrEqual(1);
-          expect(rule.itemId!).toBeLessThanOrEqual(14);
+          expect(rule.itemId!).toBeLessThanOrEqual(21); // 14 (6.4-B) + 7 de Sinnoh (6.4-D)
         } else {
           throw new Error(`${species.name}: gatilho "special" não implementado`);
         }

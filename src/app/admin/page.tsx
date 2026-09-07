@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Shield, Trash2, Crown, MessageSquare, Wrench } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { DELUGE_VARIANTS, POKEDEX } from "@/lib/pokedex";
+import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES } from "@/lib/evolution-items";
 
 /**
  * Painel administrativo (Fase 5 + ferramentas GM de teste).
@@ -91,6 +92,11 @@ const GM_ITEM_LABEL: Record<string, string> = {
   superPotions: "Super Poção",
   maxPotions: "Max Poção",
   revives: "Revive",
+  // 6.4-D: itens de evolução (pedras da 6.4-B + itens de Sinnoh) — derivados
+  // do catálogo para o GM poder testar qualquer linha sem passar pela loja.
+  ...Object.fromEntries(
+    EVOLUTION_ITEM_VALUES.map((key) => [key, `${EVOLUTION_ITEM_EMOJI[key]} ${EVOLUTION_ITEM_LABEL[key]}`])
+  ),
 };
 
 const GM_GYMS = [

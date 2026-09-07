@@ -341,7 +341,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [{ speciesId: 82, trigger: "level", level: 30 }],
       "Flutua usando ondas de rádio; solda-se a painéis de aço."),
     sp(82, "Magneton", ["Electric", "Steel"], [50, 60, 95, 120, 70, 70], 60,
-      [[1, "ThunderShock"], [1, "MetalClaw"], [10, "Spark"], [16, "MagnetBomb"], [24, "ShockWave"], [32, "Discharge"], [40, "Thunderbolt"], [48, "Thunder"], [56, "FlashCannon"]], undefined,
+      [[1, "ThunderShock"], [1, "MetalClaw"], [10, "Spark"], [16, "MagnetBomb"], [24, "ShockWave"], [32, "Discharge"], [40, "Thunderbolt"], [48, "Thunder"], [56, "FlashCannon"]], [{ speciesId: 462, trigger: "item", itemId: EVOLUTION_ITEM_IDS.thunderStone }], // 6.4-D: Magnezone (campo magnético → Pedra de Trovão, como em SwSh)
       "Três Magnemite ligados; o campo magnético atrapalha bússolas."),
     sp(83, "Farfetch'd", ["Normal", "Flying"], [52, 90, 55, 58, 62, 60], 45,
       [[1, "Peck"], [1, "Scratch"], [12, "WingAttack"], [20, "Slash"], [28, "AerialAce"], [36, "AirSlash"], [44, "NightSlash"]], undefined,
@@ -424,7 +424,7 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [[1, "MachPunch"], [20, "FirePunch"], [20, "IcePunch"], [20, "ThunderPunch"], [30, "BrickBreak"], [38, "SkyUppercut"], [48, "DynamicPunch"]], undefined,
       "Boxeador nato: os punhos cortam o ar como lâminas de três dedos."),
     sp(108, "Lickitung", ["Normal"], [90, 55, 75, 60, 75, 30], 45,
-      [[1, "Tackle"], [1, "Lick"], [13, "Headbutt"], [21, "BodySlam"], [32, "TakeDown"]], undefined,
+      [[1, "Tackle"], [1, "Lick"], [13, "Headbutt"], [21, "BodySlam"], [32, "TakeDown"]], [{ speciesId: 463, trigger: "level", level: 33 }], // 6.4-D: Lickilicky (conhecer Rolamento → nível canônico do golpe)
       "A língua de dois metros paralisa; a saliva derrete qualquer sujeira."),
     sp(109, "Koffing", ["Poison"], [40, 65, 95, 60, 45, 35], 190,
       [[1, "Tackle"], [1, "Acid"], [12, "Sludge"], [32, "SludgeBomb"], [42, "Thunderbolt"]],
@@ -438,14 +438,14 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [{ speciesId: 112, trigger: "level", level: 42 }],
       "Cerca de blindagem: investe e não desvia de nada, nem lembra por quê."),
     sp(112, "Rhydon", ["Ground", "Rock"], [105, 130, 120, 45, 45, 40], 60,
-      [[1, "Tackle"], [1, "MudSlap"], [10, "RockThrow"], [18, "Headbutt"], [26, "RockSlide"], [34, "Dig"], [44, "Earthquake"], [54, "StoneEdge"], [62, "IronTail"]], undefined,
+      [[1, "Tackle"], [1, "MudSlap"], [10, "RockThrow"], [18, "Headbutt"], [26, "RockSlide"], [34, "Dig"], [44, "Earthquake"], [54, "StoneEdge"], [62, "IronTail"]], [{ speciesId: 464, trigger: "item", itemId: EVOLUTION_ITEM_IDS.protector }], // 6.4-D: Rhyperior
       "A carapaça suporta erupções; o chifre derruba arranha-céus."),
     sp(113, "Chansey", ["Normal"], [250, 5, 5, 35, 105, 50], 30,
       [[1, "Tackle"], [1, "QuickAttack"], [16, "BodySlam"], [28, "TakeDown"], [40, "DazzlingGleam"], [52, "HyperBeam"]],
       [{ speciesId: 242, trigger: "item", itemId: EVOLUTION_ITEM_IDS.ovalStone }],
       "Botovos do dia; quem come um ovo ganha bondade infinita, dizem."),
     sp(114, "Tangela", ["Grass"], [65, 55, 115, 100, 40, 60], 45,
-      [[1, "Absorb"], [1, "VineWhip"], [10, "MegaDrain"], [18, "AncientPower"], [28, "SeedBomb"], [40, "EnergyBall"], [52, "SolarBeam"]], undefined,
+      [[1, "Absorb"], [1, "VineWhip"], [10, "MegaDrain"], [18, "AncientPower"], [28, "SeedBomb"], [40, "EnergyBall"], [52, "SolarBeam"]], [{ speciesId: 465, trigger: "level", level: 33 }], // 6.4-D: Tangrowth (conhecer Poder Antigo → nível canônico do golpe)
       "Os cipós crescem de volta na hora; o corpo real nunca foi visto."),
     sp(115, "Kangaskhan", ["Normal"], [105, 95, 80, 40, 80, 90], 45,
       [[1, "Tackle"], [1, "QuickAttack"], [12, "Bite"], [20, "Headbutt"], [28, "BodySlam"], [40, "Crunch"], [52, "Earthquake"]], undefined,
@@ -478,10 +478,10 @@ export function gen1Rest(M: AllMoves): PokemonSpeciesData[] {
       [[1, "Lick"], [1, "PowderSnow"], [12, "Confusion"], [20, "IcePunch"], [28, "Psybeam"], [40, "IceBeam"], [50, "Blizzard"], [60, "Psychic"]], undefined,
       "A dança hipnótica em língua estranha arrasta quem assiste."),
     sp(125, "Electabuzz", ["Electric"], [65, 83, 57, 95, 85, 105], 45,
-      [[1, "ThunderShock"], [1, "QuickAttack"], [12, "ShockWave"], [20, "ThunderPunch"], [30, "Discharge"], [40, "Thunderbolt"], [50, "Thunder"], [58, "CrossChop"]], undefined,
+      [[1, "ThunderShock"], [1, "QuickAttack"], [12, "ShockWave"], [20, "ThunderPunch"], [30, "Discharge"], [40, "Thunderbolt"], [50, "Thunder"], [58, "CrossChop"]], [{ speciesId: 466, trigger: "item", itemId: EVOLUTION_ITEM_IDS.electirizer }], // 6.4-D: Electivire
       "Quanto maior a tempestade, mais animado fica para lutar."),
     sp(126, "Magmar", ["Fire"], [65, 95, 57, 100, 85, 93], 45,
-      [[1, "Ember"], [1, "Scratch"], [18, "FirePunch"], [26, "Flamethrower"], [36, "CrossChop"], [46, "FireBlast"], [56, "Thunderbolt"]], undefined,
+      [[1, "Ember"], [1, "Scratch"], [18, "FirePunch"], [26, "Flamethrower"], [36, "CrossChop"], [46, "FireBlast"], [56, "Thunderbolt"]], [{ speciesId: 467, trigger: "item", itemId: EVOLUTION_ITEM_IDS.magmarizer }], // 6.4-D: Magmortar
       "Vive em crateras; o corpo queima a dois mil graus constantes."),
     sp(127, "Pinsir", ["Bug"], [65, 125, 100, 55, 70, 85], 45,
       [[1, "Tackle"], [8, "ViceGrip"], [12, "FuryCutter"], [20, "BrickBreak"], [30, "XScissor"], [40, "Slash"], [50, "Submission"]], undefined,

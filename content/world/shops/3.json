@@ -14,6 +14,17 @@
       "stock": 4
     },
     {
+      "itemKey": "dubiousDisc",
+      "name": "Disco Dúbio",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 5500,
+      "sellPrice": 2750,
+      "iconEmoji": "💽",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
       "itemKey": "duskStone",
       "name": "Pedra do Entardecer",
       "description": "Usado fora de batalha para evoluir certas espécies.",
@@ -21,6 +32,28 @@
       "buyPrice": 5000,
       "sellPrice": 2500,
       "iconEmoji": "🌆",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "electirizer",
+      "name": "Eletrizador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 4500,
+      "sellPrice": 2250,
+      "iconEmoji": "🔋",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "magmarizer",
+      "name": "Magmatizador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 4500,
+      "sellPrice": 2250,
+      "iconEmoji": "🌋",
       "isPremium": false,
       "stock": 4
     },
@@ -56,6 +89,50 @@
       "iconEmoji": "🥚",
       "isPremium": false,
       "stock": 4
+    },
+    {
+      "itemKey": "protector",
+      "name": "Protetor",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 4500,
+      "sellPrice": 2250,
+      "iconEmoji": "🪖",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "razorClaw",
+      "name": "Garra Afiada",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 4500,
+      "sellPrice": 2250,
+      "iconEmoji": "🪝",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "razorFang",
+      "name": "Presa Afiada",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 4500,
+      "sellPrice": 2250,
+      "iconEmoji": "🦷",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "reaperCloth",
+      "name": "Manto do Ceifador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 5500,
+      "sellPrice": 2750,
+      "iconEmoji": "🕯️",
+      "isPremium": false,
+      "stock": 3
     },
     {
       "itemKey": "revives",

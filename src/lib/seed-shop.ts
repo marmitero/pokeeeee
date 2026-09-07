@@ -57,6 +57,18 @@ export async function ensureShopSeeded() {
     { shopId: 3, itemKey: "duskStone", buyPrice: 5000, stock: 4 },
     { shopId: 3, itemKey: "dawnStone", buyPrice: 5000, stock: 4 },
     { shopId: 3, itemKey: "ovalStone", buyPrice: 6000, stock: 4 },
+    // ─── Fase 6.4-D: itens de Sinnoh (segundas evoluções de linhas antigas) ──
+    // Todos na loja avançada, na faixa dos cascos raros da 6.4-B (3000) até as
+    // pedras tardias (5000–6000): quem evolui aqui é uma forma já final de
+    // Kanto/Johto/Hoenn (Rhydon, Electabuzz, Magmar, Sneasel, Gligar, Porygon2,
+    // Dusclops), então o preço acompanha a raridade da linha.
+    { shopId: 3, itemKey: "protector", buyPrice: 4500, stock: 4 },
+    { shopId: 3, itemKey: "electirizer", buyPrice: 4500, stock: 4 },
+    { shopId: 3, itemKey: "magmarizer", buyPrice: 4500, stock: 4 },
+    { shopId: 3, itemKey: "razorClaw", buyPrice: 4500, stock: 4 },
+    { shopId: 3, itemKey: "razorFang", buyPrice: 4500, stock: 4 },
+    { shopId: 3, itemKey: "dubiousDisc", buyPrice: 5500, stock: 3 },
+    { shopId: 3, itemKey: "reaperCloth", buyPrice: 5500, stock: 3 },
   ];
 
   for (const spec of evolutionShopItems) {

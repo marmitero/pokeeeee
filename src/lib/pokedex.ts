@@ -2,6 +2,7 @@ import { EVOLUTION_ITEM_IDS } from "./evolution-items";
 import { gen1Rest } from "./pokedex-gen1";
 import { johtoRest } from "./pokedex-johto";
 import { hoennRest } from "./pokedex-hoenn";
+import { sinnohRest } from "./pokedex-sinnoh";
 
 export type DelugeVariant =
   | "Normal"
@@ -1957,12 +1958,17 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
     ],
     // Fase 6.4-B: com as pedras na loja, a decisão é do jogador. Espeon/Umbreon
     // usam Pedra do Sol/Lua como proxy para felicidade (mecânica futura da 6.5).
+    // Fase 6.4-D: Leafeon (Pedra de Folha) e Glaceon (Pedra do Amanhecer como
+    // proxy da Pedra de Gelo, que não existe no catálogo) — a Rocha Musgosa e
+    // a Rocha Gelada do cânone são lugares, e o mundo ainda não tem esse gancho.
     evolvesTo: [
       { speciesId: 134, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone },
       { speciesId: 135, trigger: "item", itemId: EVOLUTION_ITEM_IDS.thunderStone },
       { speciesId: 136, trigger: "item", itemId: EVOLUTION_ITEM_IDS.fireStone },
       { speciesId: 196, trigger: "item", itemId: EVOLUTION_ITEM_IDS.sunStone },
       { speciesId: 197, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone },
+      { speciesId: 470, trigger: "item", itemId: EVOLUTION_ITEM_IDS.leafStone },
+      { speciesId: 471, trigger: "item", itemId: EVOLUTION_ITEM_IDS.dawnStone },
     ],
     frontSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/133.gif",
     backSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/133.gif",
@@ -2160,11 +2166,14 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
 // dados derivados de PokeAPI e learnsets do catálogo de golpes existente.
 // Fase 6.4-C: Hoenn (252–386, exceto 282/384 já presentes) fecha a terceira
 // geração — só catálogo; a redistribuição no mundo fica para o lote de mapas.
+// Fase 6.4-D: Sinnoh (387–493, exceto 448 já presente) — só catálogo, com os
+// 7 itens de evolução novos (migration 0008) e proxies documentados no módulo.
 const POKEDEX_DATA: PokemonSpeciesData[] = [
   ...POKEDEX_BASE,
   ...gen1Rest(ALL_MOVES),
   ...johtoRest(ALL_MOVES),
   ...hoennRest(ALL_MOVES),
+  ...sinnohRest(ALL_MOVES),
 ];
 
 /** Golpe padrão usado quando o nome gravado no banco não existe mais no catálogo. */

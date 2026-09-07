@@ -127,6 +127,15 @@ export const users = pgTable("users", {
   duskStone: integer("dusk_stone").notNull().default(0),
   dawnStone: integer("dawn_stone").notNull().default(0),
   ovalStone: integer("oval_stone").notNull().default(0),
+  // inventory – evolution items (Fase 6.4-D: itens de Sinnoh; no cânone são
+  // "segurados numa troca", aqui são de uso direto como os cascos da 6.4-B)
+  protector: integer("protector").notNull().default(0),
+  electirizer: integer("electirizer").notNull().default(0),
+  magmarizer: integer("magmarizer").notNull().default(0),
+  razorClaw: integer("razor_claw").notNull().default(0),
+  razorFang: integer("razor_fang").notNull().default(0),
+  dubiousDisc: integer("dubious_disc").notNull().default(0),
+  reaperCloth: integer("reaper_cloth").notNull().default(0),
   // progress
   currentMapId: integer("current_map_id").notNull().default(1),
   playerX: integer("player_x").notNull().default(8),
@@ -151,7 +160,7 @@ export const users = pgTable("users", {
 }, (table) => [
   check("users_role_check", sql`${table.role} IN ('player', 'moderator', 'admin')`),
   check("users_money_nonnegative", sql`${table.money} >= 0`),
-  check("users_inventory_nonnegative", sql`${table.pokeballs} >= 0 AND ${table.greatballs} >= 0 AND ${table.ultraballs} >= 0 AND ${table.masterballs} >= 0 AND ${table.potions} >= 0 AND ${table.superPotions} >= 0 AND ${table.maxPotions} >= 0 AND ${table.revives} >= 0 AND ${table.fireStone} >= 0 AND ${table.waterStone} >= 0 AND ${table.thunderStone} >= 0 AND ${table.leafStone} >= 0 AND ${table.moonStone} >= 0 AND ${table.sunStone} >= 0 AND ${table.shinyStone} >= 0 AND ${table.metalCoat} >= 0 AND ${table.kingsRock} >= 0 AND ${table.dragonScale} >= 0 AND ${table.upgrade} >= 0 AND ${table.duskStone} >= 0 AND ${table.dawnStone} >= 0 AND ${table.ovalStone} >= 0`),
+  check("users_inventory_nonnegative", sql`${table.pokeballs} >= 0 AND ${table.greatballs} >= 0 AND ${table.ultraballs} >= 0 AND ${table.masterballs} >= 0 AND ${table.potions} >= 0 AND ${table.superPotions} >= 0 AND ${table.maxPotions} >= 0 AND ${table.revives} >= 0 AND ${table.fireStone} >= 0 AND ${table.waterStone} >= 0 AND ${table.thunderStone} >= 0 AND ${table.leafStone} >= 0 AND ${table.moonStone} >= 0 AND ${table.sunStone} >= 0 AND ${table.shinyStone} >= 0 AND ${table.metalCoat} >= 0 AND ${table.kingsRock} >= 0 AND ${table.dragonScale} >= 0 AND ${table.upgrade} >= 0 AND ${table.duskStone} >= 0 AND ${table.dawnStone} >= 0 AND ${table.ovalStone} >= 0 AND ${table.protector} >= 0 AND ${table.electirizer} >= 0 AND ${table.magmarizer} >= 0 AND ${table.razorClaw} >= 0 AND ${table.razorFang} >= 0 AND ${table.dubiousDisc} >= 0 AND ${table.reaperCloth} >= 0`),
   check("users_progress_nonnegative", sql`${table.wins} >= 0 AND ${table.losses} >= 0 AND ${table.elo} >= 0`),
   check("users_position_check", sql`${table.playerX} BETWEEN 0 AND 63 AND ${table.playerY} BETWEEN 0 AND 63`),
 ]);

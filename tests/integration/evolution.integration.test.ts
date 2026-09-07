@@ -294,3 +294,94 @@ describe("evolução por item (6.4-B)", () => {
     expect(depois.pokedexId).toBe(25);
   });
 });
+
+/**
+ * Itens de evolução de Sinnoh (Fase 6.4-D) — ponta a ponta pelas rotas reais.
+ *
+ * Prova o que a migration 0008 + `INVENTORY_KEYS` + loja + `/api/pokemon/manage`
+ * têm que entregar juntos: o item novo é vendido pela loja 3 (coluna nova
+ * creditada), aparece no usuário devolvido pela API e evolui a linha certa
+ * (Rhydon + Protetor → Rhyperior), sendo consumido em transação.
+ */
+describe("itens de evolução de Sinnoh (6.4-D)", () => {
+  it("a loja 3 vende os 7 itens novos e a compra credita a coluna nova", async () => {
+    const username = "sinnoh-shop-1";
+    const { c } = await registerVerified(username);
+
+    const lista = await c.call("/api/shop?shopId=3", { method: "GET" });
+    expect(lista.status).toBe(200);
+    const items = (lista.body as { items: Array<{ id: number; itemKey: string; buyPrice: number }> }).items;
+    const chaves = items.map((i) => i.itemKey);
+    for (const key of ["protector", "electirizer", "magmarizer", "razorClaw", "razorFang", "dubiousDisc", "reaperCloth"]) {
+      expect(chaves, `loja 3 sem ${key}`).toContain(key);
+    }
+
+    const protetor = items.find((i) => i.itemKey === "protector")!;
+    const [antes] = await db.select().from(users).where(eq(users.username, username));
+    await db.update(users).set({ money: protetor.buyPrice + 100 }).where(eq(users.id, antes.id));
+
+    const compra = await c.call("/api/shop", {
+      body: { action: "buy", itemId: protetor.id, quantity: 1 },
+    });
+    expect(compra.status).toBe(200);
+    const body = compra.body as { user: { protector: number; money: number } };
+    expect(body.user.protector).toBe(1);
+    expect(body.user.money).toBe(100);
+
+    const [depois] = await db.select().from(users).where(eq(users.id, antes.id));
+    expect(depois.protector).toBe(1);
+  });
+
+  it("Rhydon + Protetor via /api/pokemon/manage vira Rhyperior e consome o item", async () => {
+    const username = "sinnoh-evo-1";
+    const { c } = await registerVerified(username);
+    await setStarter(username, 112, 50, 0); // Rhydon
+
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [poke] = await db.select().from(userPokemon).where(eq(userPokemon.userId, user.id));
+    await db.update(users).set({ protector: 1 }).where(eq(users.id, user.id));
+
+    const r = await c.call("/api/pokemon/manage", {
+      body: { action: "use_item", pokemonId: poke.id, item: "protector" },
+    });
+    expect(r.status).toBe(200);
+    const body = r.body as {
+      user: { protector: number };
+      party: Array<{ id: number; pokedexId: number; name: string; types?: string[] }>;
+      message: string;
+    };
+    expect(body.user.protector).toBe(0);
+    expect(body.message).toContain("evoluiu para Rhyperior");
+    expect(body.party.find((p) => p.id === poke.id)?.pokedexId).toBe(464);
+
+    const depois = await starterRow(username);
+    expect(depois.pokedexId).toBe(464);
+    expect(depois.name).toBe("Rhyperior");
+    expect(depois.level).toBe(50);
+
+    // Segundo uso sem item → 400, e nada muda.
+    const semItem = await c.call("/api/pokemon/manage", {
+      body: { action: "use_item", pokemonId: poke.id, item: "protector" },
+    });
+    expect(semItem.status).toBe(400);
+  });
+
+  it("item de Sinnoh na espécie errada devolve 400 e NÃO consome (Pikachu + Eletrizador)", async () => {
+    const username = "sinnoh-evo-2";
+    const { c } = await registerVerified(username);
+    await setStarter(username, 25, 5, 0);
+
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [poke] = await db.select().from(userPokemon).where(eq(userPokemon.userId, user.id));
+    await db.update(users).set({ electirizer: 1 }).where(eq(users.id, user.id));
+
+    const mal = await c.call("/api/pokemon/manage", {
+      body: { action: "use_item", pokemonId: poke.id, item: "electirizer" },
+    });
+    expect(mal.status).toBe(400);
+    expect((mal.body as { error?: string }).error).toContain("não evolui");
+
+    const [depoisUser] = await db.select().from(users).where(eq(users.id, user.id));
+    expect(depoisUser.electirizer).toBe(1);
+  });
+});

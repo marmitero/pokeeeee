@@ -21,36 +21,41 @@
 >
 > **Nunca** apague o histórico de etapas — apenas acrescente.
 
-> ## 📌 PENDÊNCIAS DE VALIDAÇÃO MANUAL (aguardando o mantenedor)
+> ## 📌 PENDÊNCIAS DE VALIDAÇÃO MANUAL
 >
-> Itens verificados **no servidor/motor** mas **nunca abertos num navegador**.
-> Nenhum deles bloqueia o trabalho seguinte, mas precisam de uma passada visual.
+> **2026-09-06 — o mantenedor validou em produção (catchbound.vercel.app) TODOS
+> os itens #1–#14 abaixo** (vitrine de sprites, Ferramentas GM, evoluções por
+> nível e por pedra, batalha, captura, ginásio, editor de camadas, e-mail real,
+> chat — que hoje existe **só no painel admin e na arena PvP** — e o restante).
+> Ficam aqui como registro do que foi conferido; a única pendência aberta é a
+> **#15 (Sinnoh, 6.4-D)**, que depende do merge + `docs/supabase-production-0008-runtime.sql`.
 >
-> | # | O que testar | Como | Origem |
-> |---|---|---|---|
-> | 1 | **Batalha selvagem**: pisar na grama alta, ver o sprite do oponente, as barras de HP, o log com "É super efetivo!", os 4 golpes com tipo/poder, e o botão FUGIR | Login → andar até a grama alta (WASD) | Fase 2 |
-> | 2 | **Captura na tela**: arremessar Pokébola e ver a mensagem de escape com a % de chance | idem, botão 🔴 | Fase 2 |
-> | 3 | **Ginásio**: falar com o Brock (🏟️), ver a tela de introdução com os sprites corretos (Geodude/Onix, **não** Bulbasaur), lutar e ver a insígnia no HUD | Mapa 1, NPC 🏟️ | Fases 2 e 3 |
-> | 4 | **Chat global**: abrir o PVP, ver as mensagens reais carregadas (não as fake) e enviar uma | Botão PVP | Fase 3 |
-> | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 |
-> | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 |
-| 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B |
-| 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C |
-| 10 | **Evolução (6.3)**: subir um Charmander até 16 (ou usar um save acima do limiar) e ver o log `★ … evoluiu para Charmeleon!` e o nome novo no PC Box | Login → batalhar até cruzar nível 16 | Fase 6.3 |
-| 11 | **Vitrine de sprites (6.3-A + 6.4-B + 6.4-C)**: abrir o Pacote de Sprites e conferir que lista as 387 espécies × 6 variantes (2322 sprites) sem quebrados — em especial os Hoenn novos (Treecko/Torchic/Mudkip, Metagross, Deoxys) | Botão de sprites no HUD | Fase 6.3-A/6.4-B/6.4-C |
-| 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 |
->
-| 12 | **Cadastro com e-mail real em produção (pós-incidente 2026-09-06)**: após colar `docs/supabase-production-0006-runtime.sql`, `/api/health` → `emailVerification:"ok"`, criar conta → tela de código → e-mail chega → entrar | catchbound.vercel.app | Incidente §4.27 |
-| 14 | **Hoenn em produção (6.4-C)**: após o merge, abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!`. Encontros de Hoenn **ainda não existem no mundo** (por decisão do mantenedor) — use as Ferramentas GM para obter as espécies | catchbound.vercel.app | Fase 6.4-C/§4.29 |
-| 13 | **Pedras de evolução em produção (6.4-B)**: após colar `docs/supabase-production-0007-runtime.sql`, abrir as lojas 1–3 e ver os 15 itens, comprar uma Pedra de Trovão, usar no Pikachu no Pokémon Box e ver `★ … evoluiu para Raichu!` | catchbound.vercel.app | Fase 6.4-B/§4.28 |
+> | # | O que testar | Como | Origem | Status |
+> |---|---|---|---|---|
+> | 1 | **Batalha selvagem**: pisar na grama alta, ver o sprite do oponente, as barras de HP, o log com "É super efetivo!", os 4 golpes com tipo/poder, e o botão FUGIR | Login → andar até a grama alta (WASD) | Fase 2 | ✅ 2026-09-06 |
+> | 2 | **Captura na tela**: arremessar Pokébola e ver a mensagem de escape com a % de chance | idem, botão 🔴 | Fase 2 | ✅ 2026-09-06 |
+> | 3 | **Ginásio**: falar com o Brock (🏟️), ver a tela de introdução com os sprites corretos (Geodude/Onix, **não** Bulbasaur), lutar e ver a insígnia no HUD | Mapa 1, NPC 🏟️ | Fases 2 e 3 | ✅ 2026-09-06 |
+> | 4 | **Chat global**: abrir o PVP, ver as mensagens reais carregadas (não as fake) e enviar uma | Botão PVP | Fase 3 | ✅ 2026-09-06 (funciona; só admin + arena PvP — ver Etapa C) |
+> | 5 | **Editor de Mundos**: confirmar que o botão EDITOR some para jogador comum e aparece para admin | Logar como admin e como jogador | Fase 1.1 | ✅ 2026-09-06 |
+> | 6 | **Mapas com cadeado**: confirmar que só os mapas ligados por portal são clicáveis | Sidebar "MAPAS INTERLIGADOS" | Fase 3 | ✅ 2026-09-06 |
+> | 7 | **Painel admin**: abrir `/admin`, ver a lista de equipe, promover alguém e remover uma mensagem do chat | Botão ADMIN no HUD (só aparece para staff) | Fase 5 | ✅ 2026-09-06 |
+> | 8 | **Editor de camadas (6.2-B)**: abrir o EDITOR como admin, alternar TERRENO/ENCONTROS/COLISÃO, liberar uma célula de água e marcá-la como área de caça, salvar e andar na água no jogo | Botão EDITOR (admin) | Fase 6.2-B | ✅ 2026-09-06 |
+> | 9 | **Balanceamento 6.2-C na prática**: batalha inicial com vantagem termina em ~2 golpes, sem vantagem em ~7; subir do nível 5 exige ~3 vitórias; Brock 12/14 no diálogo do ginásio | Login → grama alta → ginásio | Fase 6.2-C | ✅ 2026-09-06 |
+> | 10 | **Evolução (6.3)**: subir um Charmander até 16 (ou usar um save acima do limiar) e ver o log `★ … evoluiu para Charmeleon!` e o nome novo no PC Box | Login → batalhar até cruzar nível 16 | Fase 6.3 | ✅ 2026-09-06 |
+> | 11 | **Vitrine de sprites (6.3-A + 6.4-B + 6.4-C)**: abrir o Pacote de Sprites e conferir que lista as 387 espécies × 6 variantes (2322 sprites) sem quebrados — em especial os Hoenn novos (Treecko/Torchic/Mudkip, Metagross, Deoxys) | Botão de sprites no HUD | Fase 6.3-A/6.4-B/6.4-C | ✅ 2026-09-06 |
+> | 12 | **Cadastro com e-mail real em produção (pós-incidente 2026-09-06)**: após colar `docs/supabase-production-0006-runtime.sql`, `/api/health` → `emailVerification:"ok"`, criar conta → tela de código → e-mail chega → entrar | catchbound.vercel.app | Incidente §4.27 | ✅ 2026-09-06 |
+> | 13 | **Pedras de evolução em produção (6.4-B)**: após colar `docs/supabase-production-0007-runtime.sql`, abrir as lojas 1–3 e ver os 15 itens, comprar uma Pedra de Trovão, usar no Pikachu no Pokémon Box e ver `★ … evoluiu para Raichu!` | catchbound.vercel.app | Fase 6.4-B/§4.28 | ✅ 2026-09-06 |
+> | 14 | **Hoenn em produção (6.4-C)**: abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!` | catchbound.vercel.app | Fase 6.4-C/§4.29 | ✅ 2026-09-06 |
+> | 15 | **Sinnoh em produção (6.4-D)**: **antes do merge** colar `docs/supabase-production-0008-runtime.sql` no SQL Editor (conferência: `sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9`); após o deploy, abrir a loja 3 (Pico Celeste) e ver os 7 itens novos (🪖 Protetor, 🔋 Eletrizador, 🌋 Magmatizador, 🪝 Garra Afiada, 🦷 Presa Afiada, 💽 Disco Dúbio, 🕯️ Manto do Ceifador); via GM dar um Rhydon + 1 Protetor, usar no Pokémon Box → `★ Rhydon evoluiu para Rhyperior!`; dar um Riolu lv19 e vencer uma batalha → Lucario; vitrine de sprites com 493 espécies (2958 sprites). Encontros de Sinnoh **ainda não existem no mundo** (decisão do mantenedor) — use as Ferramentas GM | catchbound.vercel.app | Fase 6.4-D/§4.30 | ⏳ aguarda merge |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
-> **Dica (2026-09-06):** para os itens #9–#11 e a cadeia de mapas, o painel
-> admin (admin-only) tem **Ferramentas GM** — subir nível, dar Pokémon,
-> dar item/dinheiro, curar, teleportar e dar insígnia (§3/§4.24).
+> **Dica (2026-09-06):** para espécies que não aparecem no mundo (Hoenn, Sinnoh)
+> e para itens, o painel admin (admin-only) tem **Ferramentas GM** — subir
+> nível, dar Pokémon, dar item/dinheiro, curar, teleportar e dar insígnia
+> (§3/§4.24). O select de "dar item" lista os 21 itens de evolução.
 >
-> Quando validar, marcar cada linha com ✅/❌ e registrar o resultado na seção 4.
+> Quando validar, marcar a linha com ✅/❌ e registrar o resultado na seção 4.
 
 > ## 💾 RECUPERAÇÃO (ler se o ambiente resetou)
 >
@@ -138,7 +143,7 @@ src/
 │   └── api/                  # 10 rotas: auth, maps, maps/[id], pokemon/{catch,heal,manage}, gym, shop, pvp, health
 ├── components/               # AuthModal, BattleArenaModal, GymModal, PokemonBox, ShopModal, SpritePackModal, WorldMapEditor
 ├── db/                       # schema.ts (11 tabelas) + index.ts (Pool global)
-└── lib/                      # pokedex (+ pokedex-gen1/-johto/-hoenn), tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D), gm (comandos GM do painel)
+└── lib/                      # pokedex (+ pokedex-gen1/-johto/-hoenn/-sinnoh), tiles, sound, battle, seed-maps, seed-gym, seed-shop, world-content (6.2-D), gm (comandos GM do painel)
 content/world/                # mundo versionado: maps/<slug>.json (com ginásios) + shops/<shopId>.json (6.2-D)
 scripts/world-export.mts      # banco → content/world/     (npm run world:export)
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
@@ -148,7 +153,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 `users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06)
 
 ### Conteúdo seedado
-387 espécies (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + Lucario, com learnset e linhas evolutivas) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · 26 itens de loja (11 base + 15 de evolução) · 10 tipos de tile
+**493 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh, com learnset e linhas evolutivas completas — 6.4-D) · 133 golpes · 6 variantes · **20 mapas temáticos (6.4-A, cadeia 3↔20)** · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
 
 ### Estado funcional real
 | Feature | Estado |
@@ -168,7 +173,7 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
-| Pacote de Sprites | ✅ Funciona (vitrine) — 387 espécies × 6 variantes (2322 sprites) |
+| Pacote de Sprites | ✅ Funciona (vitrine) — 493 espécies × 6 variantes (2958 sprites) |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -296,6 +301,7 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
 - [x] **FASE 6.4-A — Mundo até o mapa 20: 17 mapas temáticos novos + 156 espécies redistribuídas (bandas 8–16 → 82–95)** ✅ 2026-09-06
 - [x] **FASE 6.4-B — Johto (152–251) + pedras de evolução por item** ✅ 2026-09-06 (PR #10, produção validada)
 - [x] **FASE 6.4-C — Catálogo Hoenn (252–386): 254 → 387 espécies (só catálogo, sem redistribuir no mundo)** ✅ 2026-09-06
+- [x] **FASE 6.4-D — Catálogo Sinnoh (387–493): 387 → 493 espécies + 7 itens de evolução novos na loja + migration 0008** ✅ 2026-09-06
 - [x] **Ferramentas GM no painel admin** — agilizar a validação manual (subir nível, dar Pokémon/item/dinheiro, curar, teleportar, dar insígnia) ✅ 2026-09-06
 
 - [x] **FASE 0 — Higiene** ✅ 2026-08-25 (commit `fca7f6a`)
@@ -368,10 +374,10 @@ a distribuição acontece só na Etapa B.
 - [x] **6.4-A** — mundo até o mapa 20 + 156 espécies redistribuídas ✅ 2026-09-06
 - [x] **6.4-B** — Johto (152–251) + pedras de evolução ✅ 2026-09-06
 - [x] **6.4-C** — Hoenn (252–386) — Pokédex **387** ✅ 2026-09-06
-- [ ] **6.4-D — Sinnoh (387–493)**: +107 espécies → **494**. Sprites animados
-      Gen V existem para toda a faixa. Introduz itens de evolução que ainda não
-      temos (Protetor, Eletrizador, Magmatizador, Garra Afiada, Escama Suja) —
-      cada item novo = coluna nova em `users` = **migration + SQL companheiro**.
+- [x] **6.4-D** — Sinnoh (387–493) — Pokédex **493** (Lucario 448 já existia,
+      por isso +106) + 7 itens de evolução novos (Protetor, Eletrizador,
+      Magmatizador, Garra Afiada, Presa Afiada, Disco Dúbio, Manto do Ceifador)
+      vendidos na loja 3 + **migration 0008** + `docs/supabase-production-0008-runtime.sql` ✅ 2026-09-06
 - [ ] **6.4-E — Unova (494–649)**: +156 espécies → **650**. É o **teto do CDN
       animado** (`black-white/animated` vai até o id 649) — a partir daqui a
       direção de arte precisa de decisão (ver 6.4-F).
@@ -427,6 +433,15 @@ Etapa B assim que o primeiro lote de mapas existir.
       ramificação, recompensa e travas de progresso. É o maior item da etapa.
 - [ ] **8.7 — Treinadores de rota** (NPCs de batalha não-ginásio), reusando o
       motor de ginásio.
+- [ ] **8.8 — Chat dentro do jogo** (pedido do mantenedor em 2026-09-06, após
+      validar a produção): hoje o chat só existe no **painel admin** e na
+      **arena PvP** (`chat_messages` + `GET/POST /api/pvp`, polling 5 s). Falta
+      um chat **no mundo**, para os jogadores conversarem enquanto exploram —
+      "**bonito e não poluente**": recolhível/compacto no canto do HUD, sem
+      cobrir o mapa nem a batalha, estética Press Start 2P/CRT do jogo, com
+      badge de não-lidas quando fechado. Reusa a tabela e a moderação que já
+      existem (remover mensagem, rate limit); não precisa de migration. Pode
+      ganhar canais (global / mapa) quando o mundo crescer.
 
 #### 🅳 ETAPA D — Antes de divulgar (bloqueia monetização)
 
@@ -443,6 +458,80 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 6.4-D — Catálogo Sinnoh (387–493): Pokédex 387 → 493 + 7 itens de evolução + migration 0008 (2026-09-06)
+
+**Pedido do mantenedor:** *"Prossiga para a próxima etapa (6.4-D – Sinnoh).
+Adicione os itens de evolução ao jogo e disponibilize-os na loja para compra.
+Crie a migration 0008 com as tabelas."* — ou seja, Sinnoh **inteiro** e os
+itens novos como **inventário real** (coluna em `users`, comprável), não como
+proxy de pedra.
+
+Como na 6.4-C, a fase é **só catálogo + itens**: as espécies entram na Pokédex,
+na vitrine de sprites, no motor de evolução e nas Ferramentas GM, mas **não**
+entram nas tabelas de encontro dos 20 mapas (`content/world/maps/*` intocado;
+contrato do mapa 1 preservado). A distribuição acontece na Etapa B.
+
+**O que entrou**
+
+| Item | Detalhe |
+|---|---|
+| `src/lib/pokedex-sinnoh.ts` (novo) | `sinnohRest(ALL_MOVES)` — **106 espécies novas** (387–493 exceto 448 Lucario, que já existia). Sprites Gen V animados, descrições em PT, mesmo formato dos arquivos Johto/Hoenn. Cabeçalho documenta cada proxy adotado |
+| `src/lib/pokedex.ts` | `...sinnohRest(ALL_MOVES)`; **Pokédex 387 → 493** (151+100+135+107); Eevee ganhou Leafeon (Pedra de Folha) e Glaceon (Pedra do Amanhecer — proxy da Pedra de Gelo) |
+| `src/lib/pokedex-gen1.ts` / `-johto.ts` / `-hoenn.ts` | **20 linhas cruzadas** para evoluções de Sinnoh de espécies antigas, cada uma marcada `// 6.4-D:` (ver tabela abaixo) |
+| `src/lib/evolution-items.ts` | 14 → **21 itens**: ids 15–21 `protector` 🪖 Protetor, `electirizer` 🔋 Eletrizador, `magmarizer` 🌋 Magmatizador, `razorClaw` 🪝 Garra Afiada, `razorFang` 🦷 Presa Afiada, `dubiousDisc` 💽 Disco Dúbio, `reaperCloth` 🕯️ Manto do Ceifador |
+| `src/db/schema.ts` + **`drizzle/0008_sinnoh_evolution_items.sql`** | 7 colunas `integer NOT NULL DEFAULT 0` em `users` (`protector, electirizer, magmarizer, razor_claw, razor_fang, dubious_disc, reaper_cloth`) + check `users_inventory_nonnegative` recriada com as 29 colunas de inventário |
+| **`docs/supabase-production-0008-runtime.sql`** (novo) | companheiro de produção: `ADD COLUMN IF NOT EXISTS` ×7, pré-condição (falha alto se faltar a 0007), check, grants ao `catchbound_runtime`/`catchbound_backup`, registro no journal do Drizzle (hash sha256 real + `when`), bloco de conferência. **Testado 2× num banco que simula produção (0000–0007 + papel runtime): idempotente** |
+| `src/lib/seed-shop.ts` + `content/world/shops/3.json` | loja 3 (Pico Celeste) vende os 7 itens: 4500 Pk$ (Protetor/Eletrizador/Magmatizador/Garra/Presa, estoque 4) e 5500 Pk$ (Disco Dúbio/Manto, estoque 3). O JSON foi regenerado por `world:export` (ordem por `itemKey`) |
+| `src/app/page.tsx`, `src/components/PokemonBox.tsx`, `src/app/admin/page.tsx` | inventário tipado como `Record<EvolutionItemKey, number>` (o Box já iterava `EVOLUTION_ITEM_VALUES`, então os 7 botões novos aparecem sozinhos); `GM_ITEM_LABEL` do painel agora deriva dos 21 itens (antes só listava os 14) |
+| `src/lib/pokedex-sinnoh.test.ts` (novo) | 18 testes de contrato (faixa, tipos/stats canônicos amostrados, curva ≤50 em níveis ≤7, linhas evolutivas, 1 espécie por item novo, lendários sem evolução) |
+| testes atualizados | `pokedex-gen1.test.ts` (493, Eevee 7 pedras), `pokedex-hoenn.test.ts` (≥387), `engine/evolution.test.ts` (itemId ≤21), `world-expansion.test.ts` (254 de 493), `tests/integration/evolution.integration.test.ts` (+3: loja 3 lista e vende os 7 itens, Rhydon+Protetor→Rhyperior pela rota real, item na espécie errada → 400 sem consumir) |
+
+**Fonte dos dados:** `PokeAPI/pokeapi` `data/v2/csv` (sparse clone, como na
+6.4-C). Tipos, status-base e `capture_rate` canônicos — conferidos
+explicitamente desta vez (a 6.4-C teve um susto com coluna errada). Learnsets
+derivados dos 133 golpes existentes com a receita 6.4-B/6.4-C (STAB cedo,
+nada acima de poder 50 nos níveis ≤7, golpe forte do tipo primário nos 4
+últimos slots).
+
+**Evolução dirigida por dados — os 7 itens novos (1 linha cada, testado)**
+
+| Item | Linha |
+|---|---|
+| Protetor | Rhydon 112 → Rhyperior 464 |
+| Eletrizador | Electabuzz 125 → Electivire 466 |
+| Magmatizador | Magmar 126 → Magmortar 467 |
+| Garra Afiada | Sneasel 215 → Weavile 461 |
+| Presa Afiada | Gligar 207 → Gliscor 472 |
+| Disco Dúbio | Porygon2 233 → Porygon-Z 474 |
+| Manto do Ceifador | Dusclops 356 → Dusknoir 477 |
+
+**Proxies declarados (mesma convenção das fases anteriores):**
+- pedras existentes: Roselia→Roserade e Togetic→Togekiss (Pedra Brilhante),
+  Murkrow→Honchkrow e Misdreavus→Mismagius (Pedra do Entardecer), Magneton→
+  Magnezone e Nosepass→Probopass (Pedra de Trovão — campo magnético), Kirlia→
+  Gallade e Snorunt→Froslass (Pedra do Amanhecer, mantendo Gardevoir lv30 /
+  Glalie lv42), Eevee→Glaceon (Pedra do Amanhecer, no lugar da Pedra de Gelo);
+- golpe conhecido → nível: Aipom→Ambipom 32, Lickitung→Lickilicky 33, Tangela→
+  Tangrowth 33, Yanma→Yanmega 33, Piloswine→Mamoswine 45, Bonsly→Sudowoodo 17,
+  Mime Jr.→Mr. Mime 18;
+- felicidade/especial → nível: Budew 16, Buneary 22, Chingling 18, Munchlax 30,
+  Riolu→Lucario 20, Happiny→Chansey 20, Mantyke→Mantine 30;
+- Burmy→Wormadam lv20 (Mothim fica standalone — não há gênero); Rotom só na
+  forma base; lendários 480–493 sem evolução.
+
+**Validação (sandbox, banco local 0000→0008):** `npm run check` verde
+(lint 0 · tsc 0 · **284 unit**), `npm run test:integration` **103 verdes**
+(inclui os 3 novos), `npm run build` verde, e o fluxo completo pela API real
+com o `next dev` (cadastro → GM dá Rhydon + Protetor → `use_item` →
+`★ Rhydon evoluiu para Rhyperior!` → compra de Manto do Ceifador na loja 3).
+Detalhes em §4.30.
+
+**Pendência de produção (item #15 do cabeçalho):** colar
+`docs/supabase-production-0008-runtime.sql` no SQL Editor **antes** do merge,
+depois conferir loja 3 e a evolução por Protetor em `catchbound.vercel.app`.
+
+---
 
 ### ✅ FASE 6.4-C — Catálogo Hoenn (252–386): Pokédex 254 → 387 (2026-09-06)
 
@@ -2236,6 +2325,77 @@ Não validado aqui (é do mantenedor, em produção, nunca em preview): a vitrin
 de sprites com os Hoenn carregando de fato do CDN, e uma evolução Hoenn ao vivo
 (GM → dar Treecko → subir para 16).
 
+### 4.30 Fase 6.4-D — catálogo Sinnoh + 7 itens de evolução + migration 0008 (2026-09-06)
+
+Ambiente do sandbox tinha resetado (`node_modules` ausente) — recuperado com
+`npm ci`, `cp .env.example .env`, `npm run db:local` e `drizzle-kit migrate`.
+
+```bash
+# 1. dados canônicos (raw.githubusercontent.com é bloqueado; github.com passa)
+git clone --depth 1 --filter=blob:none --sparse https://github.com/PokeAPI/pokeapi.git /tmp/pokeapi
+cd /tmp/pokeapi && git sparse-checkout set data/v2/csv
+node /tmp/extract.mjs            # → /tmp/sinnoh.json (107 espécies, capture_rate conferido)
+
+# 2. geração do catálogo (script descartável, saída versionada)
+npx tsx /tmp/gen-sinnoh.mts > src/lib/pokedex-sinnoh.ts
+→ 106 espécies · 39 gatilhos de nível · 0 gatilhos de item internos (todos os itens ficam nas gerações antigas)
+
+# 3. schema → migration 0008 (gerada pelo drizzle-kit, não escrita à mão)
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/app_db" npx drizzle-kit generate --name sinnoh_evolution_items
+→ drizzle/0008_sinnoh_evolution_items.sql  (7 ADD COLUMN + DROP/ADD CONSTRAINT)
+DATABASE_URL="..." npx drizzle-kit migrate
+→ 9 migrations aplicadas · users tem as 7 colunas · check inclui reaper_cloth
+
+# 4. SQL companheiro de produção, testado num banco "prodsim" (0000–0007 + papel catchbound_runtime)
+node -e '…aplica docs/supabase-production-0008-runtime.sql 2 vezes…'
+→ rodada 1: sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9
+→ rodada 2: idêntico (idempotente; journal não duplicou)
+
+# 5. unit + lint + typecheck
+npx vitest run
+→ Test Files 20 passed · Tests 284 passed
+npm run lint && npm run typecheck
+→ 0 erros
+
+# 6. integração (app_db_test recriado por drizzle-kit push)
+DATABASE_URL="..." npm run test:integration
+→ Test Files 8 passed · Tests 103 passed   (evolution: 8, com os 3 novos de Sinnoh)
+
+# 7. build
+DATABASE_URL="..." npm run build
+→ 15 rotas, exit 0
+
+# 8. loja como código
+DATABASE_URL="..." npm run world:import        # popula app_db com content/world
+ensureShopSeeded()                             # seeda os 7 itens na loja 3
+DATABASE_URL="..." npm run world:export
+→ loja 3 atualizado (14 item(ns)) — content/world/shops/3.json regenerado, mapas "igual"
+
+# 9. fluxo real com `next dev` (API de verdade, cookies de sessão)
+POST /api/auth register → verify_email (devCode) → login
+POST /api/admin gm_give_pokemon {112, lv50} · gm_give_item {protector, 1}
+POST /api/pokemon/manage use_item {protector}
+→ "★ Rhydon evoluiu para Rhyperior! Aprendeu: Disparo de Lama, Arremesso de Rocha, Clava de Osso, Poder Antigo." · protector 1 → 0 · party: Charmander#4, Rhyperior#464
+GET  /api/shop?shopId=3 → 14 itens (🪖 Protetor 4500 · 🔋 Eletrizador 4500 · 🌋 Magmatizador 4500 · 🪝 Garra Afiada 4500 · 🦷 Presa Afiada 4500 · 💽 Disco Dúbio 5500 · 🕯️ Manto do Ceifador 5500)
+POST /api/shop buy {reaperCloth} → "Comprou 1x Manto do Ceifador por 5500 Pk$!" · reaperCloth 1 · money 9000 → 3500
+```
+
+Números observados:
+- `POKEDEX.length` = **493** (151 Kanto + 100 Johto + 135 Hoenn + 107 Sinnoh), 0 duplicatas, 0 descrições genéricas;
+- gatilhos no catálogo inteiro: **183 por nível + 50 por item**; cada item de Sinnoh tem **exatamente 1** espécie dona;
+- vitrine de sprites: 493 × 6 = **2958** sprites;
+- mundo: continua cobrindo **254** espécies em 20 mapas — `content/world/maps/*` byte-a-byte intocado (só `shops/3.json` mudou);
+- migrations: **0000–0008** (journal idx 8, `when 1788741054279`, sha256 `5f30de13…ca7d65` — os mesmos gravados no SQL companheiro).
+
+Um tropeço de processo, sem efeito no resultado: a 0008 foi gerada duas vezes
+(a primeira antes de fechar o catálogo). A primeira foi removida por completo —
+arquivo, snapshot e entrada do journal — e o `app_db` recriado do zero antes de
+gerar de novo, para o `when`/hash do companheiro corresponderem ao arquivo final.
+
+Não validado aqui (é do mantenedor, em produção): o SQL companheiro no Supabase
+real, a loja 3 e a evolução por Protetor em `catchbound.vercel.app`, e os
+sprites Sinnoh carregando do CDN no navegador (item #15 do cabeçalho).
+
 ## 5. Qual a próxima etapa a ser aplicada
 
 > As seções 5 das rodadas anteriores (Fases 5.1 → 6.4-B, ativação do mundo,
@@ -2245,59 +2405,65 @@ de sprites com os Hoenn carregando de fato do CDN, e uma evolução Hoenn ao viv
 
 ```
 GET https://catchbound.vercel.app/api/health → {"ok":true,"emailVerification":"ok"}
-GET https://catchbound.vercel.app/api/maps   → mundo 1–20 respondendo (mapa 1 = Vale Pallet, Brock + loja)
 ```
-Migrations **0006 e 0007 já aplicadas** em produção pelo mantenedor; PRs #9 e
-#10 mergeados e validados. **Nada bloqueando.**
+Migrations **0006 e 0007 já aplicadas** em produção; PRs #9–#11 mergeados e
+**todas as pendências #1–#14 validadas pelo mantenedor** em produção.
 
-### ⚠️ Este merge NÃO tem passo de banco
+### ⚠️ Este merge TEM passo de banco (migration 0008)
 
-A 6.4-C é puramente de conteúdo: nenhuma coluna, tabela ou item novo. Depois do
-merge, a Vercel sobe sozinha e as 387 espécies aparecem. **Não** há SQL para
-colar no Supabase, e **não** é preciso rodar `world:seed` (as tabelas de
-encontro não mudaram).
+A 6.4-D cria 7 colunas em `users`. Ordem obrigatória:
 
-### Passos do mantenedor após o merge
+1. **Antes do merge/deploy:** colar `docs/supabase-production-0008-runtime.sql`
+   inteiro no SQL Editor do Supabase (produção) e executar. Conferência
+   esperada: `sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9`.
+   É idempotente e aborta com mensagem clara se a 0007 não estiver aplicada.
+2. Mergear o PR da 6.4-D; a Vercel sobe sozinha.
+3. **Não** é preciso `world:seed`/`World activation`: os mapas não mudaram e a
+   loja 3 seeda os 7 itens sozinha no primeiro acesso (`ensureShopSeeded`).
+   Se preferir espelhar o `content/world/shops/3.json` explicitamente, o
+   workflow **World activation** faz isso sem efeito colateral (mapas "igual").
 
-1. abrir `catchbound.vercel.app` (produção, nunca preview) e a **vitrine de
-   sprites**: deve mostrar 387 espécies × 6 variantes, com os Hoenn no fim da
-   lista carregando do CDN Gen V;
-2. `/admin` → **Ferramentas GM** → "dar Pokémon" um Treecko → "subir nível" 16
-   → conferir `★ … evoluiu para Grovyle!` (Hoenn ainda não aparece na grama —
-   é assim de propósito nesta fase);
-3. (opcional) comprar uma Pedra d'Água e usar num Lombre/Clamperl.
+### Passos do mantenedor após o merge (item #15 do cabeçalho)
 
-### PRÓXIMA ETAPA: 6.4-D — Sinnoh (387–493)
+1. `catchbound.vercel.app` (produção, nunca preview) → loja 3 (Pico Celeste):
+   os 7 itens novos listados com emoji, nome e preço;
+2. `/admin` → **Ferramentas GM** → dar Rhydon (112) + dar item Protetor →
+   Pokémon Box → botão 🪖 Protetor → `★ Rhydon evoluiu para Rhyperior!`;
+3. GM → dar Riolu (447) lv19 → vencer uma batalha → `★ Riolu evoluiu para Lucario!`;
+4. vitrine de sprites com 493 espécies (Sinnoh no fim, carregando do CDN Gen V).
 
-**O rumo foi decidido pelo mantenedor em 2026-09-06** (não há mais decisão em
-aberto sobre "espécies ou status"): primeiro **terminar todos os Pokémon**,
-depois **o mundo até 100 mapas** com lojas, arenas de bosses lendários,
-ginásios, arena PvP e NPCs de missão. O roadmap inteiro, em 4 etapas (A–D),
-está na **§2** deste arquivo — leia lá antes de planejar.
+### PRÓXIMA ETAPA: 6.4-E — Unova (494–649)
 
-Concretamente, a próxima entrega é a **6.4-D — Sinnoh (387–493)**: +107
-espécies, Pokédex **387 → 494**, no mesmo padrão da 6.4-C:
+Segue a **Etapa A** do roadmap (§2): +156 espécies, Pokédex **493 → 649**, no
+mesmo padrão da 6.4-C/6.4-D:
 
-- espécies em `src/lib/pokedex-sinnoh.ts`, dados da PokeAPI
-  (`git clone --sparse` — `raw.githubusercontent.com` é bloqueado no sandbox);
+- espécies em `src/lib/pokedex-unova.ts`, dados da PokeAPI (`git clone
+  --sparse`; `raw.githubusercontent.com` é bloqueado no sandbox);
 - linhas evolutivas completas, learnsets derivados dos 133 golpes existentes,
-  curva da 6.2-C respeitada (nada acima de poder 50 nos níveis 1 e 7);
-- **sem tocar em `content/world/`** — encontros só na Etapa B;
-- testes de contrato próprios (`pokedex-sinnoh.test.ts`) + contagens de
-  `pokedex-gen1.test.ts` e `world-expansion.test.ts` atualizadas.
+  curva da 6.2-C respeitada (nada acima de poder 50 nos níveis ≤7);
+- **sem tocar em `content/world/maps/`** — encontros só na Etapa B;
+- testes de contrato próprios (`pokedex-unova.test.ts`) + contagens de
+  `pokedex-gen1.test.ts`, `pokedex-hoenn.test.ts`, `pokedex-sinnoh.test.ts`
+  e `world-expansion.test.ts` atualizadas.
 
-⚠️ **Diferença importante em relação à 6.4-C:** Sinnoh traz itens de evolução
-que o jogo **ainda não tem** (Protetor, Eletrizador, Magmatizador, Garra
-Afiada, Escama Suja, Pedra do Entardecer/Amanhecer já existem). Cada item novo
-é uma **coluna nova em `users`** → **migration 0008 + SQL companheiro**
-(`docs/supabase-production-0008-runtime.sql`, com grants/RLS, pela regra do
-incidente de 2026-09-06) → vira **pré-requisito do merge**, aplicado à mão no
-SQL Editor do Supabase antes do deploy. Alternativa mais barata, se o
-mantenedor preferir adiar o passo de banco: mapear essas linhas para as pedras
-que já existem (proxy declarado, como Feebas → Pedra Brilhante na 6.4-C).
+⚠️ **Pontos de atenção da Unova:**
+- É o **teto do CDN animado** (`black-white/animated` vai até o id 649). A
+  partir de 650 é decisão de arte/produto (6.4-F na §2) — levar ao mantenedor
+  antes de qualquer Kalos.
+- Itens de evolução novos que a Unova exige: **Pedra de Gelo não existe** em
+  Gen V (Vanillite/Cubchoo evoluem por nível). Linhas de troca com item:
+  Karrablast↔Shelmet (troca mútua — sem equivalente; proxy por nível),
+  Boldore/Gurdurr (troca → nível). Pedras já existentes cobrem Pansage/Pansear/
+  Panpour (Folha/Fogo/Água), Munna (Lua), Cottonee/Petilil (Sol), Minccino
+  (Brilhante), Lampent (Entardecer), Eelektrik (Trovão). Ou seja: **a Unova
+  provavelmente não precisa de migration** — confirmar no CSV antes de decidir.
+- Formas (Darmanitan Zen, Basculin, Deerling/Sawsbuck, Kyurem, Keldeo,
+  Meloetta, Genesect) só na forma base, como Rotom/Burmy na 6.4-D.
 
-**Teto do CDN:** os GIFs animados Gen V vão até o **id 649**. Sinnoh (493) e
-Unova (649) cabem; de 650 em diante é decisão de arte (6.4-F na §2).
+**Depois da Etapa A:** Etapa B (mundo até 100 mapas, com a redistribuição das
+espécies de Hoenn/Sinnoh/Unova nas bandas altas) e, em paralelo à B, o **chat
+no jogo (8.8)** pedido pelo mantenedor — chat bonito e não poluente no HUD do
+mundo, hoje só existe no painel admin e na arena PvP.
 
 **Antes de começar:** reler este arquivo inteiro (regra do protocolo) e
 `docs/PROMPT-NOVA-CONVERSA.md`.
@@ -2353,7 +2519,9 @@ Unova (649) cabem; de 650 em diante é decisão de arte (6.4-F na §2).
 | 2026-09-06 | **Fase 6.4-B** — catálogo Johto (98 espécies novas; Pokédex 156 → 254) + pedras/evolução por item (14 itens, schema 0007, lojas 1–3, `/api/pokemon/manage`) + redistribuição das 98 no mundo | ✅ Concluída e validada no sandbox · commit `2e2c1dc` · **PR #10** · ⬜ SQL `0007` em produção + passada visual | 18/257 unit · 8/100 integração · `docs/supabase-production-0007-runtime.sql` · §3/§4.28 |
 | 2026-09-06 | **Fase 6.4-C** — catálogo Hoenn 252–386: 133 espécies novas (Pokédex 254 → **387**), evolução por nível/pedra dirigida por dados, **sem** redistribuição no mundo (decisão do mantenedor: mapas primeiro) | ✅ Concluída e validada no sandbox · ⬜ passada visual em produção | 19/266 unit · 8/100 integração · `src/lib/pokedex-hoenn.ts` · **sem migration** · §3/§4.29 |
 | 2026-09-06 | **Roadmap redefinido pelo mantenedor** — Etapa A (todos os Pokémon) → Etapa B (mundo até 100 mapas) → Etapa C (lojas, bosses lendários, ginásios, status, PvP ranqueado, NPCs de missão) → Etapa D (rebranding/legal/premium). A ordem antiga 6.5→6.6→6.7 foi absorvida na Etapa C | ✅ Registrado | `AI_State.md` §2 |
-| — | **Fase 6.4-D — Sinnoh (387–493)**, Pokédex 387 → 494 (atenção: itens de evolução novos ⇒ migration 0008 + SQL companheiro) | ⬜ Próxima | `AI_State.md` §2/§5 |
+| 2026-09-06 | **Validação de produção pelo mantenedor** — pendências #1–#14 do cabeçalho (sprites, GM, evoluções por nível e pedra, batalha, captura, ginásio, editor, e-mail real, chat, mapas, admin) conferidas em `catchbound.vercel.app` | ✅ Todas OK · chat só existe no admin e na arena PvP → pedido de **chat no jogo** registrado como 8.8 (Etapa C) | cabeçalho + §2 |
+| 2026-09-06 | **Fase 6.4-D** — catálogo Sinnoh 387–493: 106 espécies novas (Pokédex 387 → **493**), 7 itens de evolução **reais** (colunas em `users`, vendidos na loja 3), **migration 0008** + `docs/supabase-production-0008-runtime.sql` (idempotente, testado 2×), 20 linhas cruzadas em Kanto/Johto/Hoenn, **sem** redistribuição no mundo | ✅ Concluída e validada no sandbox · ⬜ SQL `0008` em produção **antes do merge** + passada visual (#15) | 20/284 unit · 8/103 integração · `src/lib/pokedex-sinnoh.ts` · `drizzle/0008_sinnoh_evolution_items.sql` · §3/§4.30 |
+| — | **Fase 6.4-E — Unova (494–649)**, Pokédex 493 → 649 (teto do CDN animado; provavelmente sem migration — confirmar no CSV) | ⬜ Próxima | `AI_State.md` §2/§5 |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
 > Commits originais por fase (`fca7f6a`, `f22672f`, `9ea787d`) foram perdidos e

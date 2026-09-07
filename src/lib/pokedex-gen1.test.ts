@@ -13,15 +13,15 @@ import { TYPE_NAMES, isKnownType } from "./engine/types";
  * introduza tipo/golpe inválido sem o CI perceber.
  */
 
-/** Kanto (1–151) + Johto (152–251) + Hoenn (252–386) + Lucario. */
+/** Kanto (1–151) + Johto (152–251) + Hoenn (252–386) + Sinnoh (387–493). */
 const ESPERADAS = [
   ...Array.from({ length: 151 }, (_, i) => i + 1), // 1–151
   ...Array.from({ length: 100 }, (_, i) => 152 + i), // 152–251
   ...Array.from({ length: 135 }, (_, i) => 252 + i), // 252–386 (inclui 282/384)
-  448, // Lucario
+  ...Array.from({ length: 107 }, (_, i) => 387 + i), // 387–493 (inclui 448 Lucario)
 ];
 
-describe("catálogo Kanto + Johto + Hoenn (6.3-A/6.4-B/6.4-C)", () => {
+describe("catálogo Kanto + Johto + Hoenn + Sinnoh (6.3-A/6.4-B/6.4-C/6.4-D)", () => {
   it("contém exatamente as espécies esperadas, sem duplicata", () => {
     const ids = POKEDEX.map((s) => s.id).sort((a, b) => a - b);
     const esperadas = [...ESPERADAS].sort((a, b) => a - b);
@@ -30,8 +30,8 @@ describe("catálogo Kanto + Johto + Hoenn (6.3-A/6.4-B/6.4-C)", () => {
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("são 387 espécies — 151 de Kanto + 100 de Johto + 135 de Hoenn + Lucario", () => {
-    expect(POKEDEX).toHaveLength(387);
+  it("são 493 espécies — 151 de Kanto + 100 de Johto + 135 de Hoenn + 107 de Sinnoh", () => {
+    expect(POKEDEX).toHaveLength(493);
   });
 
   it("toda espécie usa os três sprites do CDN no padrão Gen V animado", () => {
@@ -186,7 +186,7 @@ describe("linhas evolutivas de Kanto", () => {
     }
   });
 
-  it("Eevee ramifica com as cinco pedras, e as formas existem sem evoluir", () => {
+  it("Eevee ramifica com as sete pedras (5 da 6.4-B + Leafeon/Glaceon da 6.4-D), e as formas existem sem evoluir", () => {
     const eevee = getPokemonSpecies(133);
     expect(eevee.evolvesTo).toEqual([
       { speciesId: 134, trigger: "item", itemId: EVOLUTION_ITEM_IDS.waterStone },
@@ -194,9 +194,11 @@ describe("linhas evolutivas de Kanto", () => {
       { speciesId: 136, trigger: "item", itemId: EVOLUTION_ITEM_IDS.fireStone },
       { speciesId: 196, trigger: "item", itemId: EVOLUTION_ITEM_IDS.sunStone },
       { speciesId: 197, trigger: "item", itemId: EVOLUTION_ITEM_IDS.moonStone },
+      { speciesId: 470, trigger: "item", itemId: EVOLUTION_ITEM_IDS.leafStone },
+      { speciesId: 471, trigger: "item", itemId: EVOLUTION_ITEM_IDS.dawnStone },
     ]);
 
-    for (const id of [134, 135, 136, 196, 197]) {
+    for (const id of [134, 135, 136, 196, 197, 470, 471]) {
       expect(() => getPokemonSpecies(id)).not.toThrow();
       expect(getPokemonSpecies(id).evolvesTo).toBeUndefined();
     }

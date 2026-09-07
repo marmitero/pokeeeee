@@ -11,6 +11,11 @@
  * ou um "casco" raro). O sistema de tempo/felicidade/troca da série original
  * ainda não existe aqui — linhas como Togepi→Togetic e Eevee→Espeon/Umbreon
  * usam pedra como proxy enquanto a 6.5 não traz o estado de felicidade.
+ *
+ * Fase 6.4-D (Sinnoh): +7 itens (ids 15–21). No cânone eles são "segurados
+ * durante uma troca"; aqui viram item de uso direto, como a Rocha do Rei e o
+ * Revestimento de Metal já eram desde a 6.4-B. Cada item novo é uma coluna
+ * nova em `users` (migration 0008) e entra na loja pelo `seed-shop.ts`.
  */
 export const EVOLUTION_ITEM_IDS = {
   fireStone: 1,
@@ -27,6 +32,14 @@ export const EVOLUTION_ITEM_IDS = {
   duskStone: 12,
   dawnStone: 13,
   ovalStone: 14,
+  // ─── 6.4-D — Sinnoh ───
+  protector: 15,
+  electirizer: 16,
+  magmarizer: 17,
+  razorClaw: 18,
+  razorFang: 19,
+  dubiousDisc: 20,
+  reaperCloth: 21,
 } as const;
 
 export type EvolutionItemKey = keyof typeof EVOLUTION_ITEM_IDS;
@@ -50,6 +63,13 @@ export const EVOLUTION_ITEM_LABEL: Record<EvolutionItemKey, string> = {
   duskStone: "Pedra do Entardecer",
   dawnStone: "Pedra do Amanhecer",
   ovalStone: "Pedra Oval",
+  protector: "Protetor",
+  electirizer: "Eletrizador",
+  magmarizer: "Magmatizador",
+  razorClaw: "Garra Afiada",
+  razorFang: "Presa Afiada",
+  dubiousDisc: "Disco Dúbio",
+  reaperCloth: "Manto do Ceifador",
 };
 
 export const EVOLUTION_ITEM_EMOJI: Record<EvolutionItemKey, string> = {
@@ -67,6 +87,13 @@ export const EVOLUTION_ITEM_EMOJI: Record<EvolutionItemKey, string> = {
   duskStone: "🌆",
   dawnStone: "🌅",
   ovalStone: "🥚",
+  protector: "🪖",
+  electirizer: "🔋",
+  magmarizer: "🌋",
+  razorClaw: "🪝",
+  razorFang: "🦷",
+  dubiousDisc: "💽",
+  reaperCloth: "🕯️",
 };
 
 /** ID do motor de evolução a partir da chave do inventário/loja. */
