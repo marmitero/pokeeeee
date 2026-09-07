@@ -44,11 +44,11 @@ describe("catálogo Sinnoh (6.4-D)", () => {
     expect(sinnoh.map((s) => s.id)).toEqual(SINNOH_NOVAS);
   });
 
-  it("as 107 espécies de Sinnoh estão todas na Pokédex final (493)", () => {
+  it("as 107 espécies de Sinnoh estão todas na Pokédex final (≥493)", () => {
     for (let id = 387; id <= 493; id++) {
       expect(() => getPokemonSpecies(id), `#${id} ausente`).not.toThrow();
     }
-    expect(POKEDEX).toHaveLength(493);
+    expect(POKEDEX.length).toBeGreaterThanOrEqual(493);
   });
 
   it("tipos, status-base e catchRate são plausíveis (e a coluna certa do CSV)", () => {

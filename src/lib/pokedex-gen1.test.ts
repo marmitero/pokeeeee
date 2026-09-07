@@ -13,15 +13,16 @@ import { TYPE_NAMES, isKnownType } from "./engine/types";
  * introduza tipo/golpe inválido sem o CI perceber.
  */
 
-/** Kanto (1–151) + Johto (152–251) + Hoenn (252–386) + Sinnoh (387–493). */
+/** Kanto (1–151) + Johto (152–251) + Hoenn (252–386) + Sinnoh (387–493) + Unova (494–649). */
 const ESPERADAS = [
   ...Array.from({ length: 151 }, (_, i) => i + 1), // 1–151
   ...Array.from({ length: 100 }, (_, i) => 152 + i), // 152–251
   ...Array.from({ length: 135 }, (_, i) => 252 + i), // 252–386 (inclui 282/384)
   ...Array.from({ length: 107 }, (_, i) => 387 + i), // 387–493 (inclui 448 Lucario)
+  ...Array.from({ length: 156 }, (_, i) => 494 + i), // 494–649 Unova
 ];
 
-describe("catálogo Kanto + Johto + Hoenn + Sinnoh (6.3-A/6.4-B/6.4-C/6.4-D)", () => {
+describe("catálogo Kanto + Johto + Hoenn + Sinnoh + Unova (6.3-A/6.4-B/6.4-C/6.4-D/6.4-E)", () => {
   it("contém exatamente as espécies esperadas, sem duplicata", () => {
     const ids = POKEDEX.map((s) => s.id).sort((a, b) => a - b);
     const esperadas = [...ESPERADAS].sort((a, b) => a - b);
@@ -30,8 +31,8 @@ describe("catálogo Kanto + Johto + Hoenn + Sinnoh (6.3-A/6.4-B/6.4-C/6.4-D)", (
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it("são 493 espécies — 151 de Kanto + 100 de Johto + 135 de Hoenn + 107 de Sinnoh", () => {
-    expect(POKEDEX).toHaveLength(493);
+  it("são 649 espécies — 151 de Kanto + 100 de Johto + 135 de Hoenn + 107 de Sinnoh + 156 de Unova", () => {
+    expect(POKEDEX).toHaveLength(649);
   });
 
   it("toda espécie usa os três sprites do CDN no padrão Gen V animado", () => {
