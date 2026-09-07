@@ -2739,12 +2739,16 @@ list` seguiu mostrando "maps 1-20") e o arquivo real não mudou. O certo é
 git apply docs/patches/world-activation-40-fix.patch
 diff .github/workflows/world-activation.yml docs/world-activation.yml   # vazio
 gh workflow list | grep "World activation"   # → maps 1-40 + rebalance
+git rm docs/patches/world-activation-40-fix.patch
 git add -A && git commit -m "ci(7.1): World activation 20 → 40" && git push
 ```
 
 O patch (verificado com `git apply --check` no head do branch) atualiza o
-workflow com o conteúdo do espelho `docs/world-activation.yml`, apaga o arquivo
-sem extensão criado por engano e remove o patch obsoleto. Resultado esperado:
+workflow com o conteúdo do espelho `docs/world-activation.yml` e apaga o arquivo
+sem extensão criado por engano. Ele foi regerado uma vez: a primeira versão
+também deletava `docs/patches/world-activation-40-mapas.patch`, que já tinha
+sumido do branch — `git apply` falhava com "No such file or directory". Regenerar
+patch + commitar a alteração de `.github/` no mesmo commit é a receita segura. Resultado esperado:
 14 steps, gate `if [ "$n" != "40" ]`, step novo `npm run world:distribute:check`.
 
 **Próxima etapa: 7.2 — Mapas 41–60.** Com o gerador pronto, o lote é: (a) 20

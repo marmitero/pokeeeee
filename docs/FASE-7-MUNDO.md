@@ -215,15 +215,18 @@ mesmo. O caminho é **aplicar** o patch sobre o arquivo existente.
 
 ```bash
 git checkout <branch-do-PR>
-git apply docs/patches/world-activation-40-fix.patch   # atualiza o workflow p/ 40,
-                                                        # remove o arquivo sem
-                                                        # extensão criado por engano
-                                                        # e remove o patch obsoleto
-# conferir (as duas linhas abaixo devem sair vazias / com o nome novo):
+git apply docs/patches/world-activation-40-fix.patch   # atualiza o workflow p/ 40 e
+                                                        # apaga o arquivo sem extensão
+                                                        # criado por engano
+# conferir (a primeira deve sair vazia; a segunda traz o nome novo):
 diff .github/workflows/world-activation.yml docs/world-activation.yml
 gh workflow list | grep "World activation"             # → "World activation (maps 1-40 + rebalance)"
+git rm docs/patches/world-activation-40-fix.patch      # autoeliminação: o patch não
 git add -A && git commit -m "ci(7.1): World activation 20 → 40 + gate world:distribute:check" && git push
 ```
+
+(Se preferir não usar o patch: `cp docs/world-activation.yml .github/workflows/world-activation.yml`
++ `git rm .github/workflows/world-activation-40-mapas` dá no mesmo.)
 
 O resultado é exatamente o espelho `docs/world-activation.yml`, já validado
 aqui: YAML parseia (`js-yaml`), 14 steps, `if [ "$n" != "40" ]` no gate da API
