@@ -10,6 +10,7 @@ import { POST as adminPost } from "@/app/api/admin/route";
 import { POST as pvpPost, GET as pvpGet } from "@/app/api/pvp/route";
 import { POST as chatPost, GET as chatGet } from "@/app/api/chat/route";
 import { GET as maintenanceGet } from "@/app/api/maintenance/route";
+import { POST as bossPost, GET as bossGet } from "@/app/api/boss/route";
 
 export type Ctx = { params: Promise<{ id: string }> };
 export type Handler = (req: Request, ctx: Ctx) => Promise<Response> | Response;
@@ -28,4 +29,5 @@ export const ROUTES: Record<string, Record<string, Handler>> = {
   "/api/pvp": { POST: pvpPost, GET: pvpGet },
   "/api/chat": { POST: chatPost, GET: chatGet },
   "/api/maintenance": { GET: maintenanceGet },
+  "/api/boss": { POST: bossPost, GET: bossGet },
 };

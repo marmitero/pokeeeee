@@ -10,16 +10,24 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Slaking",
+      "name": "Pidgeot",
       "weight": 15,
       "maxLevel": 97,
       "minLevel": 86,
+      "pokedexId": 18,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Slaking",
+      "weight": 13,
+      "maxLevel": 99,
+      "minLevel": 88,
       "pokedexId": 289,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Aggron",
-      "weight": 13,
+      "weight": 11,
       "maxLevel": 99,
       "minLevel": 88,
       "pokedexId": 306,
@@ -27,7 +35,7 @@
     },
     {
       "name": "Salamence",
-      "weight": 11,
+      "weight": 10,
       "maxLevel": 99,
       "minLevel": 88,
       "pokedexId": 373,
@@ -35,15 +43,15 @@
     },
     {
       "name": "Garchomp",
-      "weight": 10,
-      "maxLevel": 99,
-      "minLevel": 88,
+      "weight": 8,
+      "maxLevel": 100,
+      "minLevel": 90,
       "pokedexId": 445,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Haxorus",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 100,
       "minLevel": 90,
       "pokedexId": 612,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Hydreigon",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 100,
       "minLevel": 90,
       "pokedexId": 635,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Klinklang",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 100,
       "minLevel": 90,
       "pokedexId": 601,
@@ -74,27 +82,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Volcarona",
-      "weight": 5,
-      "maxLevel": 100,
-      "minLevel": 90,
-      "pokedexId": 637,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Metagross",
-      "weight": 4,
-      "maxLevel": 100,
-      "minLevel": 92,
-      "pokedexId": 376,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Arceus",
       "weight": 4,
       "maxLevel": 100,
       "minLevel": 92,
       "pokedexId": 493,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cobalion",
+      "weight": 4,
+      "maxLevel": 100,
+      "minLevel": 92,
+      "pokedexId": 638,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -160,8 +160,74 @@
       "label": "Sul → Santuário Submerso"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-coroa-do-mundo",
+      "x": 5,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja da Coroa",
+      "shopId": 11,
+      "dialog": "O estoque mais raro do mundo, digno de um Soberano!"
+    },
+    {
+      "id": "gym-coroa-do-mundo",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Magnus",
+      "gymLeaderName": "Magnus",
+      "dialog": "Sou Magnus, Soberano da Coroa do Mundo. Prove que merece o topo!"
+    },
+    {
+      "id": "healer-coroa-do-mundo",
+      "x": 9,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Coroa do Mundo",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    },
+    {
+      "id": "boss-coroa-do-mundo",
+      "x": 6,
+      "y": 8,
+      "type": "boss",
+      "name": "Arena Boss da Coroa",
+      "dialog": "A arena final! O lendário mais temido do mundo te espera!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Magnus",
+      "title": "Soberano da Coroa",
+      "badgeName": "Insígnia Coroa",
+      "badgeEmoji": "👑",
+      "specialty": "Dragon",
+      "requiredBadges": 10,
+      "rewardMoney": 30000,
+      "shopId": 11,
+      "npcDialog": "Sou Magnus, Soberano da Coroa do Mundo. Dragões de todas as eras me obedecem. Prove que merece o topo!",
+      "defeatDialog": "O topo ainda não é seu… a coroa pesa para os fracos.",
+      "winDialog": "INCRÍVEL! Você conquistou a Coroa do Mundo! A Insígnia Coroa é sua — você é uma lenda!",
+      "team": [
+        {
+          "level": 95,
+          "variant": "Normal",
+          "pokedexId": 373
+        },
+        {
+          "level": 97,
+          "variant": "Normal",
+          "pokedexId": 445
+        },
+        {
+          "level": 100,
+          "variant": "Normal",
+          "pokedexId": 635
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [

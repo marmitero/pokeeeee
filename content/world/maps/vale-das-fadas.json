@@ -26,19 +26,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Tropius",
+      "name": "Carnivine",
       "weight": 11,
       "maxLevel": 44,
       "minLevel": 33,
-      "pokedexId": 357,
+      "pokedexId": 455,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Carnivine",
+      "name": "Cacnea",
       "weight": 9,
       "maxLevel": 44,
       "minLevel": 33,
-      "pokedexId": 455,
+      "pokedexId": 331,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -66,14 +66,6 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Volbeat",
-      "weight": 5,
-      "maxLevel": 45,
-      "minLevel": 35,
-      "pokedexId": 313,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Snover",
       "weight": 5,
       "maxLevel": 45,
@@ -83,9 +75,9 @@
     },
     {
       "name": "Exeggcute",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 45,
-      "minLevel": 37,
+      "minLevel": 35,
       "pokedexId": 102,
       "tileTypes": ["tall_grass"]
     },
@@ -95,6 +87,14 @@
       "maxLevel": 45,
       "minLevel": 37,
       "pokedexId": 108,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Porygon",
+      "weight": 4,
+      "maxLevel": 45,
+      "minLevel": 37,
+      "pokedexId": 137,
       "tileTypes": ["tall_grass"]
     },
     {

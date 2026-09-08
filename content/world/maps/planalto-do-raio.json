@@ -26,16 +26,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pidgeot",
-      "weight": 11,
-      "maxLevel": 91,
-      "minLevel": 80,
-      "pokedexId": 18,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Ampharos",
-      "weight": 10,
+      "weight": 11,
       "maxLevel": 91,
       "minLevel": 80,
       "pokedexId": 181,
@@ -43,10 +35,18 @@
     },
     {
       "name": "Jumpluff",
+      "weight": 10,
+      "maxLevel": 91,
+      "minLevel": 80,
+      "pokedexId": 189,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Staraptor",
       "weight": 8,
       "maxLevel": 92,
       "minLevel": 82,
-      "pokedexId": 189,
+      "pokedexId": 398,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -58,8 +58,16 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Unfezant",
+      "name": "Gallade",
       "weight": 6,
+      "maxLevel": 92,
+      "minLevel": 82,
+      "pokedexId": 475,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Unfezant",
+      "weight": 5,
       "maxLevel": 92,
       "minLevel": 82,
       "pokedexId": 521,
@@ -75,50 +83,42 @@
     },
     {
       "name": "Steelix",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 92,
-      "minLevel": 82,
+      "minLevel": 84,
       "pokedexId": 208,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Magnezone",
+      "name": "Gardevoir",
       "weight": 4,
+      "maxLevel": 92,
+      "minLevel": 84,
+      "pokedexId": 282,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Magnezone",
+      "weight": 3,
       "maxLevel": 92,
       "minLevel": 84,
       "pokedexId": 462,
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Togekiss",
+      "weight": 3,
+      "maxLevel": 92,
+      "minLevel": 84,
+      "pokedexId": 468,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Eelektross",
-      "weight": 4,
-      "maxLevel": 92,
-      "minLevel": 84,
-      "pokedexId": 604,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Jirachi",
-      "weight": 3,
-      "maxLevel": 92,
-      "minLevel": 84,
-      "pokedexId": 385,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Dialga",
-      "weight": 3,
-      "maxLevel": 92,
-      "minLevel": 84,
-      "pokedexId": 483,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Cobalion",
       "weight": 2,
       "maxLevel": 92,
       "minLevel": 84,
-      "pokedexId": 638,
+      "pokedexId": 604,
       "tileTypes": ["tall_grass"]
     },
     {

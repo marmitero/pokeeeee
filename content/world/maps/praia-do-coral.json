@@ -34,43 +34,35 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Seadra",
+      "name": "Lanturn",
       "weight": 10,
       "maxLevel": 66,
       "minLevel": 55,
-      "pokedexId": 117,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Lanturn",
-      "weight": 8,
-      "maxLevel": 67,
-      "minLevel": 57,
       "pokedexId": 171,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Azumarill",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 67,
       "minLevel": 57,
       "pokedexId": 184,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Lumineon",
-      "weight": 6,
+      "name": "Octillery",
+      "weight": 7,
       "maxLevel": 67,
       "minLevel": 57,
-      "pokedexId": 457,
+      "pokedexId": 224,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Crustle",
-      "weight": 5,
+      "name": "Masquerain",
+      "weight": 6,
       "maxLevel": 67,
       "minLevel": 57,
-      "pokedexId": 558,
+      "pokedexId": 284,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -83,9 +75,9 @@
     },
     {
       "name": "Croconaw",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 67,
-      "minLevel": 59,
+      "minLevel": 57,
       "pokedexId": 159,
       "tileTypes": ["tall_grass", "water"]
     },
@@ -99,7 +91,7 @@
     },
     {
       "name": "Prinplup",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 67,
       "minLevel": 59,
       "pokedexId": 394,
@@ -111,6 +103,14 @@
       "maxLevel": 67,
       "minLevel": 59,
       "pokedexId": 502,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Relicanth",
+      "weight": 3,
+      "maxLevel": 67,
+      "minLevel": 59,
+      "pokedexId": 369,
       "tileTypes": ["tall_grass", "water"]
     },
     {

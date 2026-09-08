@@ -187,6 +187,13 @@ export const shopActionSchema = z.discriminatedUnion("action", [
     itemId: idSchema,
     quantity: quantitySchema.default(1),
   }),
+  // Etapa C (8.1): venda de itens — `sellPrice` existia desde a Fase 3 como
+  // coluna morta; agora é o valor de recompra.
+  z.object({
+    action: z.literal("sell"),
+    itemId: idSchema,
+    quantity: quantitySchema.default(1),
+  }),
 ]);
 
 export const shopQuerySchema = z.object({
@@ -324,7 +331,7 @@ const npcSchema = z.object({
   id: z.string().trim().min(1).max(64),
   x: z.coerce.number().int().min(0).max(63),
   y: z.coerce.number().int().min(0).max(63),
-  type: z.enum(["shop", "gym", "healer", "info"]),
+  type: z.enum(["shop", "gym", "healer", "info", "boss"]),
   name: z.string().trim().min(1).max(60),
   shopId: idSchema.optional(),
   gymId: idSchema.optional(),
@@ -380,6 +387,8 @@ export const battleActionSchema = z.discriminatedUnion("action", [
     playerY: battleCoordSchema,
   }),
   z.object({ action: z.literal("start_gym"), gymLeaderId: idSchema }),
+  // Etapa C (8.3): Arena Boss — o boss semanal é calculado no servidor.
+  z.object({ action: z.literal("start_boss"), arenaMapId: z.coerce.number().int() }),
   z.object({
     action: z.literal("attack"),
     battleId: idSchema,
@@ -399,6 +408,24 @@ export const battleActionSchema = z.discriminatedUnion("action", [
 ]);
 
 export const battleQuerySchema = z.object({ battleId: idSchema });
+
+// ─── /api/boss (Etapa C, 8.3) ─────────────────────────────────────────────────
+
+export const bossArenaSchema = z.coerce
+  .number()
+  .int()
+  .refine((n) => n === 20 || n === 40, "Arena Boss inexistente.");
+
+export const bossQuerySchema = z.object({ arenaMapId: bossArenaSchema });
+
+export const bossClaimSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("claim_stone"),
+    arenaMapId: bossArenaSchema,
+    // Qualquer uma das 21 pedras/itens de evolução.
+    item: z.enum(EVOLUTION_ITEM_VALUES),
+  }),
+]);
 
 // ─── /api/chat (Fase 8.8) ─────────────────────────────────────────────────
 

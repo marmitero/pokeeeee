@@ -34,43 +34,43 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Haunter",
+      "name": "Breloom",
       "weight": 10,
       "maxLevel": 61,
       "minLevel": 50,
-      "pokedexId": 93,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Breloom",
-      "weight": 8,
-      "maxLevel": 62,
-      "minLevel": 52,
       "pokedexId": 286,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Parasect",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 62,
       "minLevel": 52,
       "pokedexId": 47,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Masquerain",
-      "weight": 6,
-      "maxLevel": 62,
-      "minLevel": 52,
-      "pokedexId": 284,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Cherrim",
-      "weight": 5,
+      "weight": 7,
       "maxLevel": 62,
       "minLevel": 52,
       "pokedexId": 421,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Pinsir",
+      "weight": 6,
+      "maxLevel": 62,
+      "minLevel": 52,
+      "pokedexId": 127,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Ivysaur",
+      "weight": 5,
+      "maxLevel": 62,
+      "minLevel": 52,
+      "pokedexId": 2,
       "tileTypes": ["tall_grass"]
     },
     {

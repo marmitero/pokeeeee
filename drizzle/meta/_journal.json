@@ -71,6 +71,13 @@
       "when": 1788782655373,
       "tag": "0009_chat_local_whisper",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788820214973,
+      "tag": "0010_boss_arena",
+      "breakpoints": true
     }
   ]
 }

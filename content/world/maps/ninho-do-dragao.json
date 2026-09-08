@@ -18,24 +18,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Exeggutor",
-      "weight": 13,
-      "maxLevel": 93,
-      "minLevel": 82,
-      "pokedexId": 103,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Leafeon",
-      "weight": 11,
-      "maxLevel": 93,
-      "minLevel": 82,
-      "pokedexId": 470,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Venusaur",
-      "weight": 10,
+      "weight": 13,
       "maxLevel": 93,
       "minLevel": 82,
       "pokedexId": 3,
@@ -43,23 +27,23 @@
     },
     {
       "name": "Vileplume",
-      "weight": 8,
-      "maxLevel": 94,
-      "minLevel": 84,
+      "weight": 11,
+      "maxLevel": 93,
+      "minLevel": 82,
       "pokedexId": 45,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Victreebel",
-      "weight": 7,
-      "maxLevel": 94,
-      "minLevel": 84,
+      "weight": 10,
+      "maxLevel": 93,
+      "minLevel": 82,
       "pokedexId": 71,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Meganium",
-      "weight": 6,
+      "weight": 8,
       "maxLevel": 94,
       "minLevel": 84,
       "pokedexId": 154,
@@ -67,7 +51,7 @@
     },
     {
       "name": "Typhlosion",
-      "weight": 5,
+      "weight": 7,
       "maxLevel": 94,
       "minLevel": 84,
       "pokedexId": 157,
@@ -75,7 +59,7 @@
     },
     {
       "name": "Bellossom",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 94,
       "minLevel": 84,
       "pokedexId": 182,
@@ -83,23 +67,23 @@
     },
     {
       "name": "Sceptile",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 94,
-      "minLevel": 86,
+      "minLevel": 84,
       "pokedexId": 254,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Blaziken",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 94,
-      "minLevel": 86,
+      "minLevel": 84,
       "pokedexId": 257,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Torterra",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 94,
       "minLevel": 86,
       "pokedexId": 389,
@@ -107,7 +91,7 @@
     },
     {
       "name": "Infernape",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 94,
       "minLevel": 86,
       "pokedexId": 392,
@@ -115,7 +99,7 @@
     },
     {
       "name": "Serperior",
-      "weight": 2,
+      "weight": 3,
       "maxLevel": 94,
       "minLevel": 86,
       "pokedexId": 497,
@@ -123,10 +107,18 @@
     },
     {
       "name": "Emboar",
-      "weight": 2,
+      "weight": 3,
       "maxLevel": 94,
       "minLevel": 86,
       "pokedexId": 500,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Tangrowth",
+      "weight": 2,
+      "maxLevel": 94,
+      "minLevel": 86,
+      "pokedexId": 465,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -135,6 +127,14 @@
       "maxLevel": 94,
       "minLevel": 86,
       "pokedexId": 6,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Volcarona",
+      "weight": 2,
+      "maxLevel": 94,
+      "minLevel": 86,
+      "pokedexId": 637,
       "tileTypes": ["tall_grass"]
     }
   ],

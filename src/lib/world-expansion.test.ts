@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseMapFile, type WorldMapFile } from "./world-content";
 import { POKEDEX, getPokemonSpecies } from "./pokedex";
-import { buildDefaultMaps } from "./default-world";
+import { buildDefaultMaps, CITY_NPCS } from "./default-world";
 import { encounterPoolAt, hasEncounterAt, pickWeighted, rollEncounterLevel } from "./map-rules";
 import {
   bandFor,
@@ -76,7 +76,7 @@ function mapNumber(file: LoadedMap): number {
 /** Slugs do mundo, na ordem da jornada — derivados do layout (fonte única). */
 const EXPECTED_SLUGS = WORLD_MAP_LAYOUT.map((l) => l.slug);
 
-/** Espécies dos três ginásios: o desafio não pode virar commons de mapa cedo. */
+/** Espécies dos 11 ginásios: o desafio não pode virar commons de mapa cedo. */
 const GYM_ACES = new Set(Object.keys(GYM_ACE_MIN_MAP).map(Number));
 
 describe("mundo até o mapa 40 (7.1 — Etapa B)", () => {
@@ -240,13 +240,73 @@ describe("mundo até o mapa 40 (7.1 — Etapa B)", () => {
   it("ases de ginásio não são commons de mapa anterior ao próprio ginásio", () => {
     // Brock mora no mapa 1 (74/95 nv 12/14), Misty no 2 (120/121 nv 18/21),
     // Lance no 3 (148/149 nv 38/45). Aparecer como selvagem ANTES seria queimar
-    // o desafio — Gyarados/Dragonite só bem depois.
+    // o desafio — Gyarados/Dragonite só bem depois. Etapa C: os 22 membros
+    // dos 8 times das cidades entram na mesma regra (28 ases no total).
     for (const [id, min] of Object.entries(GYM_ACE_MIN_MAP)) {
       const at = orderBySpecies.get(Number(id));
       expect(at, `#${id} fora das tabelas`).toBeDefined();
       expect(at!, `#${id} em mapa ${at} < ${min}`).toBeGreaterThanOrEqual(min);
     }
-    expect(GYM_ACES.size).toBe(6);
+    expect(GYM_ACES.size).toBe(28);
+  });
+
+  it("Etapa C: cidades (5→40 de 5 em 5) têm loja + ginásio + cura sobre tiles ocupáveis", () => {
+    // Loja 4 e ginásio 4 no mapa 5 … loja 11 e ginásio 11 no mapa 40.
+    const byNumber = new Map(maps.map((m) => [mapNumber(m), m]));
+    const WALKABLE = new Set(["grass", "tall_grass", "stone", "sand", "flower", "center", "bridge", "portal"]);
+    for (let n = 5; n <= WORLD_MAP_COUNT; n += 5) {
+      const m = byNumber.get(n)!;
+      const npcs = m.npcs ?? [];
+      const shop = npcs.filter((x) => x.type === "shop");
+      const gym = npcs.filter((x) => x.type === "gym");
+      const healer = npcs.filter((x) => x.type === "healer");
+      expect(shop, `mapa ${n}: sem loja`).toHaveLength(1);
+      expect(gym, `mapa ${n}: sem ginásio`).toHaveLength(1);
+      expect(healer, `mapa ${n}: sem cura`).toHaveLength(1);
+      expect(shop[0]!.shopId, `mapa ${n}: loja errada`).toBe(n / 5 + 3);
+      // No arquivo versionado o ginásio é referenciado por nome (ids variam
+      // por banco); a amarração id↔nome é resolvida no import/export.
+      expect(gym[0]!.gymLeaderName, `mapa ${n}: ginásio errado`).toBe(CITY_NPCS[n]!.gymName);
+      for (const npc of npcs) {
+        const tile = (m.tileGrid as string[][])[npc.y]![npc.x];
+        expect(WALKABLE.has(tile), `mapa ${n}: NPC ${npc.name} sobre tile ${tile}`).toBe(true);
+        expect(
+          m.portals.some((p) => p.sourceX === npc.x && p.sourceY === npc.y),
+          `mapa ${n}: NPC ${npc.name} em cima de portal`
+        ).toBe(false);
+      }
+      // Toda cidade tem Centro Pokémon (tile) — cura garantida além da NPC.
+      expect(
+        (m.tileGrid as string[][]).flat().includes("center"),
+        `mapa ${n}: sem tile Centro`
+      ).toBe(true);
+    }
+    // Mapas selvagens não ganharam NPC.
+    for (const m of maps) {
+      const n = mapNumber(m);
+      if (n <= 3 || n % 5 === 0) continue;
+      expect(m.npcs ?? [], `mapa ${n} deveria ser selvagem`).toHaveLength(0);
+    }
+  });
+
+  it("Etapa C: mapas 20 e 40 têm NPC de Arena Boss sobre tile ocupável", () => {
+    const byNumber = new Map(maps.map((m) => [mapNumber(m), m]));
+    const WALKABLE = new Set(["grass", "tall_grass", "stone", "sand", "flower", "center", "bridge", "portal"]);
+    for (const n of [20, 40]) {
+      const m = byNumber.get(n)!;
+      const boss = (m.npcs ?? []).filter((x) => x.type === "boss");
+      expect(boss, `mapa ${n}: sem Arena Boss`).toHaveLength(1);
+      const tile = (m.tileGrid as string[][])[boss[0]!.y]![boss[0]!.x];
+      expect(WALKABLE.has(tile), `mapa ${n}: boss sobre tile ${tile}`).toBe(true);
+    }
+    for (const m of maps) {
+      const n = mapNumber(m);
+      if (n === 20 || n === 40) continue;
+      expect(
+        (m.npcs ?? []).filter((x) => x.type === "boss"),
+        `mapa ${n}: boss fora das arenas`
+      ).toHaveLength(0);
+    }
   });
 
   it(`a cadeia de portais liga 1→2→3→…→${WORLD_MAP_COUNT} nas duas direções`, () => {

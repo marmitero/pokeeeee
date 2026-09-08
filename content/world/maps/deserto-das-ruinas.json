@@ -50,16 +50,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Abra",
-      "weight": 7,
-      "maxLevel": 33,
-      "minLevel": 23,
-      "pokedexId": 63,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Taillow",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 33,
       "minLevel": 23,
       "pokedexId": 276,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Cubone",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 33,
       "minLevel": 23,
       "pokedexId": 104,
@@ -83,9 +75,9 @@
     },
     {
       "name": "Whismur",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 33,
-      "minLevel": 25,
+      "minLevel": 23,
       "pokedexId": 293,
       "tileTypes": ["tall_grass"]
     },
@@ -99,7 +91,7 @@
     },
     {
       "name": "Dwebble",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 33,
       "minLevel": 25,
       "pokedexId": 557,
@@ -119,6 +111,14 @@
       "maxLevel": 33,
       "minLevel": 25,
       "pokedexId": 622,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Aron",
+      "weight": 3,
+      "maxLevel": 33,
+      "minLevel": 25,
+      "pokedexId": 304,
       "tileTypes": ["tall_grass"]
     },
     {

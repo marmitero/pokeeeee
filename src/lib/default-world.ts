@@ -61,7 +61,7 @@ export interface DefaultNpcSpec {
   id: string;
   x: number;
   y: number;
-  type: "shop" | "gym";
+  type: "shop" | "gym" | "healer" | "boss";
   name: string;
   shopId?: number;
   gymId?: number;
@@ -87,6 +87,75 @@ export interface DefaultMapData {
 export { WORLD_BANDS, type Rect, type WorldMapLayout } from "./world-layout";
 export { GYM_ACE_MIN_MAP, LEGENDARY_MIN_MAP };
 export const DEFAULT_LEGENDARIES: ReadonlySet<number> = WORLD_LEGENDARIES;
+
+/**
+ * Cidades da Etapa C: a cada 5 mapas (5→40), uma cidade com loja, ginásio e
+ * cura. `gymId`/`shopId` acompanham a ordem de criação dos seeds
+ * (`seed-gym.ts`/`seed-shop.ts`): loja 4 e ginásio 4 no mapa 5, e assim por
+ * diante. Os nomes de ginásio repetem o `name` do seed (fonte da verdade do
+ * time é `GYM_TEAMS`).
+ */
+/**
+ * Arenas Boss da Etapa C (8.3): uma no Santuário Celeste (meio da jornada),
+ * outra na Coroa do Mundo (fim). Cada uma tem seu lendário semanal.
+ */
+export const BOSS_NPCS: Readonly<Record<number, { x: number; y: number; name: string; dialog: string }>> = {
+  20: {
+    x: 9, y: 8, name: "Arena Boss do Santuário",
+    dialog: "Um lendário desce à arena toda semana… poucos saem de pé!",
+  },
+  40: {
+    x: 6, y: 8, name: "Arena Boss da Coroa",
+    dialog: "A arena final! O lendário mais temido do mundo te espera!",
+  },
+};
+
+export const CITY_NPCS: Readonly<Record<number, {
+  shopId: number; gymId: number;
+  shopName: string; shopDialog: string;
+  gymName: string; gymDialog: string;
+}>> = {
+  5: {
+    shopId: 4, gymId: 4,
+    shopName: "Loja do Litoral", shopDialog: "Artigos de praia e suprimentos para a jornada!",
+    gymName: "Coralina", gymDialog: "Sou Coralina! O mar me ensinou paciência — e a afogar a pressa dos desafiantes!",
+  },
+  10: {
+    shopId: 5, gymId: 5,
+    shopName: "Loja Glacial", shopDialog: "Estoque reforçado contra o frio — e contra treinadores despreparados!",
+    gymName: "Glacio", gymDialog: "Sou Glacio. Aqui o frio separa os treinadores dos turistas.",
+  },
+  15: {
+    shopId: 6, gymId: 6,
+    shopName: "Loja Abissal", shopDialog: "Suprimentos das profundezas. Desça preparado!",
+    gymName: "Nerissa", gymDialog: "Sou Nerissa, voz da fossa. Poucos voltam com uma insígnia.",
+  },
+  20: {
+    shopId: 7, gymId: 7,
+    shopName: "Loja do Santuário", shopDialog: "Itens abençoados pelos dragões do templo!",
+    gymName: "Ventus", gymDialog: "Sou Ventus, guardião do Santuário. Mostre suas asas!",
+  },
+  25: {
+    shopId: 8, gymId: 8,
+    shopName: "Loja da Forja", shopDialog: "Equipamento forjado a fogo alto. Aguenta o tranco!",
+    gymName: "Ferrao", gymDialog: "Sou Ferrao! Esta forja molda aço e treinadores!",
+  },
+  30: {
+    shopId: 9, gymId: 9,
+    shopName: "Loja do Recife", shopDialog: "O melhor estoque dos sete mares — Masterballs à vista!",
+    gymName: "Tormenta", gymDialog: "Sou Tormenta, capitão deste recife! Segure-se!",
+  },
+  35: {
+    shopId: 10, gymId: 10,
+    shopName: "Loja do Farol", shopDialog: "A última loja antes do fim do mundo. Abasteça-se!",
+    gymName: "Nocturna", gymDialog: "Sou Nocturna, a luz que guia e assombra.",
+  },
+  40: {
+    shopId: 11, gymId: 11,
+    shopName: "Loja da Coroa", shopDialog: "O estoque mais raro do mundo, digno de um Soberano!",
+    gymName: "Magnus", gymDialog: "Sou Magnus, Soberano da Coroa do Mundo. Prove que merece o topo!",
+  },
+};
 
 /**
  * Linha gerada → entrada de `encounterTable`. `água = 1` só aparece nos mapas
@@ -321,6 +390,35 @@ export function buildDefaultMaps(): DefaultMapData[] {
     { id: "shop-peak", x: 8, y: 12, type: "shop", name: "Loja do Pico", shopId: 3, dialog: "Items raros para os mais fortes Treinadores do mundo!" },
     { id: "gym-lance", x: 7, y: 3, type: "gym", name: "Lance", gymId: 3, dialog: "Lance, Mestre dos Dragões! Ninguém passou por mim ainda!" },
   );
+
+  // ── Etapa C (8.1/8.2): NPCs das cidades (mapas 5→40 de 5 em 5) ─────────────
+  // Cada cidade tem loja + ginásio + curandeira. Posições na trilha de pedra
+  // central (sempre ocupável): loja (6,7), ginásio (9,7), cura (6,8) — no
+  // mapa 40 o Centro Pokémon ocupa o (6,7), então a loja vai para (5,7) e a
+  // cura para (9,8). Verificado contra `waterRects`/centros de cada cidade.
+  for (const m of maps) {
+    const city = CITY_NPCS[m.order];
+    if (!city) continue;
+    const shopX = m.order === 40 ? 5 : 6;
+    const healerX = m.order === 40 ? 9 : 6;
+    const healerY = m.order === 40 ? 8 : 8;
+    m.npcs.push(
+      { id: `shop-${m.slug}`, x: shopX, y: 7, type: "shop", name: city.shopName, shopId: city.shopId, dialog: city.shopDialog },
+      { id: `gym-${m.slug}`, x: 9, y: 7, type: "gym", name: city.gymName, gymId: city.gymId, dialog: city.gymDialog },
+      { id: `healer-${m.slug}`, x: healerX, y: healerY, type: "healer", name: `Curandeira de ${m.shortName}`, dialog: "Sua equipe foi curada! Volte sempre!" },
+    );
+  }
+
+  // ── Etapa C (8.3): Arenas Boss (mapas 20 e 40) ─────────────────────────────
+  // O lendário semanal é calculado em runtime (`bossFor`); o NPC é só a porta
+  // de entrada. Posições na trilha de pedra: (9,8) no 20, (6,8) no 40.
+  for (const m of maps) {
+    const boss = BOSS_NPCS[m.order];
+    if (!boss) continue;
+    m.npcs.push(
+      { id: `boss-${m.slug}`, x: boss.x, y: boss.y, type: "boss", name: boss.name, dialog: boss.dialog },
+    );
+  }
 
   // ── Cadeia de portais 3→4→…→40 (norte) e volta (sul) ──────────────────────
   // Os tiles 7/8 são espelhados: entrar em qualquer um dos dois cai no tile

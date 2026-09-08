@@ -42,4 +42,44 @@ export const GYM_TEAMS: Record<string, GymTeamMember[]> = {
     { pokedexId: 148, level: 38, variant: "Normal" },
     { pokedexId: 149, level: 45, variant: "Normal" },
   ],
+  // ── Etapa C (8.2): um líder por cidade (mapas 5→40), times tirados da
+  // tabela de encontros da própria cidade, no topo da banda do mapa ──────
+  Coralina: [
+    { pokedexId: 363, level: 24, variant: "Normal" },
+    { pokedexId: 366, level: 27, variant: "Normal" },
+  ],
+  Glacio: [
+    { pokedexId: 86, level: 33, variant: "Normal" },
+    { pokedexId: 361, level: 37, variant: "Normal" },
+  ],
+  Nerissa: [
+    { pokedexId: 610, level: 43, variant: "Normal" },
+    { pokedexId: 147, level: 45, variant: "Normal" },
+    { pokedexId: 594, level: 47, variant: "Normal" },
+  ],
+  Ventus: [
+    { pokedexId: 329, level: 54, variant: "Normal" },
+    { pokedexId: 621, level: 56, variant: "Normal" },
+    { pokedexId: 169, level: 58, variant: "Normal" },
+  ],
+  Ferrao: [
+    { pokedexId: 262, level: 64, variant: "Normal" },
+    { pokedexId: 305, level: 66, variant: "Normal" },
+    { pokedexId: 510, level: 68, variant: "Normal" },
+  ],
+  Tormenta: [
+    { pokedexId: 57, level: 75, variant: "Normal" },
+    { pokedexId: 55, level: 77, variant: "Normal" },
+    { pokedexId: 454, level: 79, variant: "Normal" },
+  ],
+  Nocturna: [
+    { pokedexId: 31, level: 86, variant: "Normal" },
+    { pokedexId: 429, level: 88, variant: "Normal" },
+    { pokedexId: 593, level: 90, variant: "Normal" },
+  ],
+  Magnus: [
+    { pokedexId: 373, level: 95, variant: "Normal" },
+    { pokedexId: 445, level: 97, variant: "Normal" },
+    { pokedexId: 635, level: 100, variant: "Normal" },
+  ],
 };

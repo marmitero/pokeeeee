@@ -34,16 +34,24 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Gligar",
+      "name": "Boldore",
       "weight": 9,
       "maxLevel": 49,
       "minLevel": 38,
+      "pokedexId": 525,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Gligar",
+      "weight": 8,
+      "maxLevel": 50,
+      "minLevel": 40,
       "pokedexId": 207,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Farfetch'd",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 50,
       "minLevel": 40,
       "pokedexId": 83,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Onix",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 50,
       "minLevel": 40,
       "pokedexId": 95,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Aerodactyl",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 50,
       "minLevel": 40,
       "pokedexId": 142,
@@ -75,9 +83,9 @@
     },
     {
       "name": "Lunatone",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 50,
-      "minLevel": 40,
+      "minLevel": 42,
       "pokedexId": 337,
       "tileTypes": ["tall_grass"]
     },
@@ -91,7 +99,7 @@
     },
     {
       "name": "Lileep",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 50,
       "minLevel": 42,
       "pokedexId": 345,
@@ -115,18 +123,10 @@
     },
     {
       "name": "Shieldon",
-      "weight": 3,
-      "maxLevel": 50,
-      "minLevel": 42,
-      "pokedexId": 410,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Mothim",
       "weight": 2,
       "maxLevel": 50,
       "minLevel": 42,
-      "pokedexId": 414,
+      "pokedexId": 410,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -138,11 +138,11 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Murkrow",
+      "name": "Sudowoodo",
       "weight": 2,
       "maxLevel": 50,
       "minLevel": 42,
-      "pokedexId": 198,
+      "pokedexId": 185,
       "tileTypes": ["tall_grass"]
     }
   ],

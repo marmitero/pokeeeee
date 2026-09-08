@@ -79,6 +79,16 @@ export const MAP1_PINNED: readonly number[] = [1, 4, 7, 25, 133];
  */
 export const GYM_ACE_MIN_MAP: Readonly<Record<number, number>> = {
   74: 1, 95: 1, 120: 2, 121: 2, 148: 3, 149: 3,
+  // Etapa C (8.2): membros dos times das cidades — cada um mora na tabela
+  // da própria cidade, então o mínimo é o mapa do ginásio.
+  363: 5, 366: 5, // Coralina
+  86: 10, 361: 10, // Glacio
+  610: 15, 147: 15, 594: 15, // Nerissa
+  329: 20, 621: 20, 169: 20, // Ventus
+  262: 25, 305: 25, 510: 25, // Ferrao
+  57: 30, 55: 30, 454: 30, // Tormenta
+  31: 35, 429: 35, 593: 35, // Nocturna
+  373: 40, 445: 40, 635: 40, // Magnus
 };
 
 export type Rect = readonly [number, number, number, number]; // x1, y1, x2, y2
@@ -185,6 +195,7 @@ export const WORLD_MAP_LAYOUT: readonly WorldMapLayout[] = [
     ground: "sand",
     grassRects: [[2, 8, 6, 13], [10, 8, 13, 13]],
     waterRects: [[10, 1, 14, 6], [1, 1, 5, 4]],
+    center: [3, 6], // Etapa C: cidade — cura garantida
   },
   {
     order: 6, slug: "pantano-venenoso", name: "Mapa 6: Pântano Venenoso", shortName: "Pântano Venenoso",
@@ -229,6 +240,7 @@ export const WORLD_MAP_LAYOUT: readonly WorldMapLayout[] = [
     ground: "grass",
     grassRects: [[2, 5, 6, 10], [9, 5, 13, 10]],
     waterRects: [[1, 1, 14, 3], [1, 12, 14, 14]],
+    center: [3, 4], // Etapa C: cidade — cura garantida
   },
   {
     order: 11, slug: "torre-dos-espiritos", name: "Mapa 11: Torre dos Espíritos", shortName: "Torre dos Espíritos",
@@ -273,6 +285,7 @@ export const WORLD_MAP_LAYOUT: readonly WorldMapLayout[] = [
     ground: "sand",
     grassRects: [[5, 4, 10, 12]],
     waterRects: [[1, 1, 4, 14], [11, 1, 14, 14]],
+    center: [6, 3], // Etapa C: cidade — cura garantida
   },
   {
     order: 16, slug: "canion-dos-fosseis", name: "Mapa 16: Cânion dos Fósseis", shortName: "Cânion dos Fósseis",
@@ -364,6 +377,7 @@ export const WORLD_MAP_LAYOUT: readonly WorldMapLayout[] = [
     types: ["Steel", "Rock", "Dark"],
     ground: "stone",
     grassRects: [[2, 2, 13, 6], [2, 9, 6, 13], [9, 9, 13, 13]],
+    center: [3, 7], // Etapa C: cidade — cura garantida
   },
   {
     order: 26, slug: "pantano-do-silencio", name: "Mapa 26: Pântano do Silêncio", shortName: "Pântano do Silêncio",
@@ -409,6 +423,7 @@ export const WORLD_MAP_LAYOUT: readonly WorldMapLayout[] = [
     ground: "sand",
     grassRects: [[2, 2, 6, 6], [9, 9, 13, 13]],
     waterRects: [[9, 1, 14, 6], [1, 9, 6, 13]],
+    center: [12, 8], // Etapa C: cidade — cura garantida
   },
   {
     order: 31, slug: "duna-de-vidro", name: "Mapa 31: Duna de Vidro", shortName: "Duna de Vidro",
@@ -517,3 +532,4 @@ export function descriptionFor(layout: WorldMapLayout): string {
   const [lo, hi] = bandFor(layout.order);
   return `${layout.flavor} (nv ${lo}–${hi}). ${layout.cast}`;
 }
+

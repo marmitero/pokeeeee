@@ -90,19 +90,27 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Goldeen",
+      "name": "Ralts",
       "weight": 4,
       "maxLevel": 27,
       "minLevel": 19,
-      "pokedexId": 118,
-      "tileTypes": ["tall_grass", "water"]
+      "pokedexId": 280,
+      "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Carvanha",
+      "name": "Krabby",
       "weight": 3,
       "maxLevel": 27,
       "minLevel": 19,
-      "pokedexId": 318,
+      "pokedexId": 98,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Corphish",
+      "weight": 3,
+      "maxLevel": 27,
+      "minLevel": 19,
+      "pokedexId": 341,
       "tileTypes": ["tall_grass", "water"]
     },
     {
@@ -115,7 +123,7 @@
     },
     {
       "name": "Marill",
-      "weight": 3,
+      "weight": 2,
       "maxLevel": 27,
       "minLevel": 19,
       "pokedexId": 183,
@@ -136,14 +144,6 @@
       "minLevel": 19,
       "pokedexId": 339,
       "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Makuhita",
-      "weight": 2,
-      "maxLevel": 27,
-      "minLevel": 19,
-      "pokedexId": 296,
-      "tileTypes": ["tall_grass"]
     }
   ],
   "portals": [
@@ -188,8 +188,61 @@
       "label": "Norte → Pântano Venenoso"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-litoral-vermilion",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja do Litoral",
+      "shopId": 4,
+      "dialog": "Artigos de praia e suprimentos para a jornada!"
+    },
+    {
+      "id": "gym-litoral-vermilion",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Coralina",
+      "gymLeaderName": "Coralina",
+      "dialog": "Sou Coralina! O mar me ensinou paciência — e a afogar a pressa dos desafiantes!"
+    },
+    {
+      "id": "healer-litoral-vermilion",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Litoral de Vermilion",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Coralina",
+      "title": "Líder do Ginásio de Vermilion",
+      "badgeName": "Insígnia Concha",
+      "badgeEmoji": "🐚",
+      "specialty": "Water",
+      "requiredBadges": 3,
+      "rewardMoney": 7000,
+      "shopId": 4,
+      "npcDialog": "Sou Coralina! O mar me ensinou paciência — e a afogar a pressa dos desafiantes!",
+      "defeatDialog": "A maré virou contra mim… volte quando souber nadar.",
+      "winDialog": "Que correnteza! Você merece a Insígnia Concha. O oceano te respeita!",
+      "team": [
+        {
+          "level": 24,
+          "variant": "Normal",
+          "pokedexId": 363
+        },
+        {
+          "level": 27,
+          "variant": "Normal",
+          "pokedexId": 366
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
@@ -198,8 +251,8 @@
     ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
     ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
     ["tree", "water", "water", "water", "water", "water", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
-    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
-    ["tree", "sand", "sand", "sand", "sand", "sand", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "sand", "stone", "sand", "sand", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
+    ["tree", "sand", "stone", "center", "stone", "sand", "sand", "stone", "stone", "sand", "water", "water", "water", "water", "water", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],

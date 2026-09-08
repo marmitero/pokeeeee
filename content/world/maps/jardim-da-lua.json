@@ -10,40 +10,56 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Scrafty",
+      "name": "Dusclops",
       "weight": 15,
       "maxLevel": 74,
       "minLevel": 63,
+      "pokedexId": 356,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Scrafty",
+      "weight": 13,
+      "maxLevel": 76,
+      "minLevel": 65,
       "pokedexId": 560,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Ferrothorn",
-      "weight": 13,
+      "weight": 11,
       "maxLevel": 76,
       "minLevel": 65,
       "pokedexId": 598,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Purugly",
-      "weight": 11,
+      "name": "Granbull",
+      "weight": 10,
       "maxLevel": 76,
       "minLevel": 65,
+      "pokedexId": 210,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Purugly",
+      "weight": 8,
+      "maxLevel": 77,
+      "minLevel": 67,
       "pokedexId": 432,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Simisage",
-      "weight": 10,
-      "maxLevel": 76,
-      "minLevel": 65,
+      "weight": 7,
+      "maxLevel": 77,
+      "minLevel": 67,
       "pokedexId": 512,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Whimsicott",
-      "weight": 8,
+      "weight": 6,
       "maxLevel": 77,
       "minLevel": 67,
       "pokedexId": 547,
@@ -51,7 +67,7 @@
     },
     {
       "name": "Lilligant",
-      "weight": 7,
+      "weight": 5,
       "maxLevel": 77,
       "minLevel": 67,
       "pokedexId": 549,
@@ -59,7 +75,7 @@
     },
     {
       "name": "Sawsbuck",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 77,
       "minLevel": 67,
       "pokedexId": 586,
@@ -67,23 +83,23 @@
     },
     {
       "name": "Amoonguss",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 77,
-      "minLevel": 67,
+      "minLevel": 69,
       "pokedexId": 591,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Ursaring",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 77,
-      "minLevel": 67,
+      "minLevel": 69,
       "pokedexId": 217,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Cacturne",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 77,
       "minLevel": 69,
       "pokedexId": 332,
@@ -91,7 +107,7 @@
     },
     {
       "name": "Skuntank",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 77,
       "minLevel": 69,
       "pokedexId": 435,
@@ -99,18 +115,10 @@
     },
     {
       "name": "Garbodor",
-      "weight": 3,
+      "weight": 2,
       "maxLevel": 77,
       "minLevel": 69,
       "pokedexId": 569,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Cinccino",
-      "weight": 3,
-      "maxLevel": 77,
-      "minLevel": 69,
-      "pokedexId": 573,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -127,14 +135,6 @@
       "maxLevel": 77,
       "minLevel": 69,
       "pokedexId": 229,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Zoroark",
-      "weight": 2,
-      "maxLevel": 77,
-      "minLevel": 69,
-      "pokedexId": 571,
       "tileTypes": ["tall_grass"]
     }
   ],

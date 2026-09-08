@@ -34,16 +34,24 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Huntail",
+      "name": "Tentacruel",
       "weight": 10,
       "maxLevel": 78,
       "minLevel": 67,
+      "pokedexId": 73,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Huntail",
+      "weight": 8,
+      "maxLevel": 79,
+      "minLevel": 69,
       "pokedexId": 367,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Gorebyss",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 79,
       "minLevel": 69,
       "pokedexId": 368,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Drifblim",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 79,
       "minLevel": 69,
       "pokedexId": 426,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Dodrio",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 79,
       "minLevel": 69,
       "pokedexId": 85,
@@ -75,23 +83,23 @@
     },
     {
       "name": "Kabutops",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 79,
-      "minLevel": 69,
+      "minLevel": 71,
       "pokedexId": 141,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Altaria",
+      "name": "Ambipom",
       "weight": 4,
       "maxLevel": 79,
       "minLevel": 71,
-      "pokedexId": 334,
+      "pokedexId": 424,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Swanna",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 79,
       "minLevel": 71,
       "pokedexId": 581,
@@ -107,7 +115,7 @@
     },
     {
       "name": "Gyarados",
-      "weight": 3,
+      "weight": 2,
       "maxLevel": 79,
       "minLevel": 71,
       "pokedexId": 130,
@@ -119,14 +127,6 @@
       "maxLevel": 79,
       "minLevel": 71,
       "pokedexId": 226,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Kyogre",
-      "weight": 2,
-      "maxLevel": 79,
-      "minLevel": 71,
-      "pokedexId": 382,
       "tileTypes": ["tall_grass", "water"]
     },
     {
@@ -180,8 +180,66 @@
       "label": "Norte → Duna de Vidro"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-recife-da-tempestade",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja do Recife",
+      "shopId": 9,
+      "dialog": "O melhor estoque dos sete mares — Masterballs à vista!"
+    },
+    {
+      "id": "gym-recife-da-tempestade",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Tormenta",
+      "gymLeaderName": "Tormenta",
+      "dialog": "Sou Tormenta, capitão deste recife! Segure-se!"
+    },
+    {
+      "id": "healer-recife-da-tempestade",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Recife da Tempestade",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Tormenta",
+      "title": "Líder do Ginásio do Recife",
+      "badgeName": "Insígnia Âncora",
+      "badgeEmoji": "⚓",
+      "specialty": "Water",
+      "requiredBadges": 8,
+      "rewardMoney": 22000,
+      "shopId": 9,
+      "npcDialog": "Sou Tormenta, capitão deste recife! Meu time bate como ressaca — segure-se!",
+      "defeatDialog": "Naufragado… o mar cobra pedágio de novo na volta.",
+      "winDialog": "Que travessia! Você ancorou a Insígnia Âncora!",
+      "team": [
+        {
+          "level": 75,
+          "variant": "Normal",
+          "pokedexId": 57
+        },
+        {
+          "level": 77,
+          "variant": "Normal",
+          "pokedexId": 55
+        },
+        {
+          "level": 79,
+          "variant": "Normal",
+          "pokedexId": 454
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
@@ -193,8 +251,8 @@
     ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
     ["tree", "sand", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "water", "water", "water", "water", "water", "water", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
-    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
-    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
+    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "center", "stone", "stone", "tree"],
+    ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "stone", "tall_grass", "sand", "tree"],
     ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
     ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],
     ["tree", "water", "water", "water", "water", "water", "water", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "sand", "tree"],

@@ -3,13 +3,68 @@
   "shopId": 2,
   "items": [
     {
+      "itemKey": "dawnStone",
+      "name": "Pedra do Amanhecer",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 150000,
+      "sellPrice": 75000,
+      "iconEmoji": "🌅",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
       "itemKey": "dragonScale",
       "name": "Escama de Dragão",
       "description": "Usado fora de batalha para evoluir certas espécies.",
       "category": "misc",
-      "buyPrice": 3000,
-      "sellPrice": 1500,
+      "buyPrice": 130000,
+      "sellPrice": 65000,
       "iconEmoji": "🐉",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "dubiousDisc",
+      "name": "Disco Dúbio",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 200000,
+      "sellPrice": 100000,
+      "iconEmoji": "💽",
+      "isPremium": false,
+      "stock": 2
+    },
+    {
+      "itemKey": "duskStone",
+      "name": "Pedra do Entardecer",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 150000,
+      "sellPrice": 75000,
+      "iconEmoji": "🌆",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
+      "itemKey": "electirizer",
+      "name": "Eletrizador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 160000,
+      "sellPrice": 80000,
+      "iconEmoji": "🔋",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
+      "itemKey": "fireStone",
+      "name": "Pedra de Fogo",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 100000,
+      "sellPrice": 50000,
+      "iconEmoji": "🔥",
       "isPremium": false,
       "stock": 5
     },
@@ -29,22 +84,66 @@
       "name": "Rocha do Rei",
       "description": "Usado fora de batalha para evoluir certas espécies.",
       "category": "misc",
-      "buyPrice": 3000,
-      "sellPrice": 1500,
+      "buyPrice": 130000,
+      "sellPrice": 65000,
       "iconEmoji": "👑",
       "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "leafStone",
+      "name": "Pedra de Folha",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 100000,
+      "sellPrice": 50000,
+      "iconEmoji": "🍃",
+      "isPremium": false,
       "stock": 5
+    },
+    {
+      "itemKey": "magmarizer",
+      "name": "Magmatizador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 160000,
+      "sellPrice": 80000,
+      "iconEmoji": "🌋",
+      "isPremium": false,
+      "stock": 3
     },
     {
       "itemKey": "metalCoat",
       "name": "Revestimento de Metal",
       "description": "Usado fora de batalha para evoluir certas espécies.",
       "category": "misc",
-      "buyPrice": 2500,
-      "sellPrice": 1250,
+      "buyPrice": 130000,
+      "sellPrice": 65000,
       "iconEmoji": "🛡️",
       "isPremium": false,
-      "stock": 5
+      "stock": 4
+    },
+    {
+      "itemKey": "moonStone",
+      "name": "Pedra da Lua",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 110000,
+      "sellPrice": 55000,
+      "iconEmoji": "🌙",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "ovalStone",
+      "name": "Pedra Oval",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 150000,
+      "sellPrice": 75000,
+      "iconEmoji": "🥚",
+      "isPremium": false,
+      "stock": 3
     },
     {
       "itemKey": "pokeballs",
@@ -56,6 +155,50 @@
       "iconEmoji": "🔴",
       "isPremium": false,
       "stock": 99
+    },
+    {
+      "itemKey": "protector",
+      "name": "Protetor",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 160000,
+      "sellPrice": 80000,
+      "iconEmoji": "🪖",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
+      "itemKey": "razorClaw",
+      "name": "Garra Afiada",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 160000,
+      "sellPrice": 80000,
+      "iconEmoji": "🪝",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
+      "itemKey": "razorFang",
+      "name": "Presa Afiada",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 160000,
+      "sellPrice": 80000,
+      "iconEmoji": "🦷",
+      "isPremium": false,
+      "stock": 3
+    },
+    {
+      "itemKey": "reaperCloth",
+      "name": "Manto do Ceifador",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 200000,
+      "sellPrice": 100000,
+      "iconEmoji": "🕯️",
+      "isPremium": false,
+      "stock": 2
     },
     {
       "itemKey": "revives",
@@ -73,22 +216,22 @@
       "name": "Pedra Brilhante",
       "description": "Usado fora de batalha para evoluir certas espécies.",
       "category": "misc",
-      "buyPrice": 2200,
-      "sellPrice": 1100,
+      "buyPrice": 120000,
+      "sellPrice": 60000,
       "iconEmoji": "✨",
       "isPremium": false,
-      "stock": 6
+      "stock": 4
     },
     {
       "itemKey": "sunStone",
       "name": "Pedra do Sol",
       "description": "Usado fora de batalha para evoluir certas espécies.",
       "category": "misc",
-      "buyPrice": 1800,
-      "sellPrice": 900,
+      "buyPrice": 120000,
+      "sellPrice": 60000,
       "iconEmoji": "☀️",
       "isPremium": false,
-      "stock": 8
+      "stock": 4
     },
     {
       "itemKey": "superPotions",
@@ -102,13 +245,35 @@
       "stock": 99
     },
     {
+      "itemKey": "thunderStone",
+      "name": "Pedra de Trovão",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 100000,
+      "sellPrice": 50000,
+      "iconEmoji": "⚡",
+      "isPremium": false,
+      "stock": 5
+    },
+    {
       "itemKey": "upgrade",
       "name": "Melhorador",
       "description": "Usado fora de batalha para evoluir certas espécies.",
       "category": "misc",
-      "buyPrice": 3000,
-      "sellPrice": 1500,
+      "buyPrice": 130000,
+      "sellPrice": 65000,
       "iconEmoji": "🖥️",
+      "isPremium": false,
+      "stock": 4
+    },
+    {
+      "itemKey": "waterStone",
+      "name": "Pedra d'Água",
+      "description": "Usado fora de batalha para evoluir certas espécies.",
+      "category": "misc",
+      "buyPrice": 100000,
+      "sellPrice": 50000,
+      "iconEmoji": "💧",
       "isPremium": false,
       "stock": 5
     }

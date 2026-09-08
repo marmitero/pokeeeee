@@ -62,6 +62,16 @@
 > Fase 8.8 (Chat no jogo: global/local/whisper) concluída no sandbox,
 > aguardando merge. Pendência #17: migration 0009 + chat no HUD (💬 GLOBAL/LOCAL/PRIVADO).**
 >
+> **2026-09-07 (noite) — o mantenedor declarou CONCLUÍDAS as pendências #16
+> (Unova), #17 (chat) e a ativação 7.1 em produção (run `34163835861`
+> APPLY-production verde, 40 mapas servidos). Decisão nova: **mundo travado
+> em 40 mapas por enquanto** (Etapa B 7.2–7.4 congelada) e **seguir para a
+> Etapa C** com regras próprias: pedras absurdamente caras + drop raro nv
+> 40+; cidade a cada 5 mapas (loja+ginásio+cura); 2 Arenas Boss (mapas 20 e
+> 40, lendários semanais diferentes, 2 tentativas/dia/arena, vitória trava
+> a semana, boss nv 80–100, prêmio = XP + dinheiro + pedra à escolha +
+> 1/1200 o lendário nv 5).**
+>
 >
 >
 >
@@ -82,8 +92,8 @@
 > | 13 | **Pedras de evolução em produção (6.4-B)**: após colar `docs/supabase-production-0007-runtime.sql`, abrir as lojas 1–3 e ver os 15 itens, comprar uma Pedra de Trovão, usar no Pikachu no Pokémon Box e ver `★ … evoluiu para Raichu!` | catchbound.vercel.app | Fase 6.4-B/§4.28 | ✅ 2026-09-06 |
 > | 14 | **Hoenn em produção (6.4-C)**: abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!` | catchbound.vercel.app | Fase 6.4-C/§4.29 | ✅ 2026-09-06 |
 > | 15 | **Sinnoh em produção (6.4-D)**: **antes do merge** colar `docs/supabase-production-0008-runtime.sql` no SQL Editor (conferência: `sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9`); após o deploy, abrir a loja 3 (Pico Celeste) e ver os 7 itens novos (🪖 Protetor, 🔋 Eletrizador, 🌋 Magmatizador, 🪝 Garra Afiada, 🦷 Presa Afiada, 💽 Disco Dúbio, 🕯️ Manto do Ceifador); via GM dar um Rhydon + 1 Protetor, usar no Pokémon Box → `★ Rhydon evoluiu para Rhyperior!`; dar um Riolu lv19 e vencer uma batalha → Lucario; vitrine de sprites com 493 espécies (2958 sprites). Encontros de Sinnoh **ainda não existem no mundo** (decisão do mantenedor) — use as Ferramentas GM | catchbound.vercel.app | Fase 6.4-D/§4.30 | ✅ 2026-09-07 (validado em produção pelo mantenedor) |
-| 16 | **Unova em produção (6.4-E)**: **sem SQL novo** (reutiliza pedras); após o deploy, vitrine de sprites com 649 espécies (3894 sprites); via GM dar Snivy lv16 → vencer batalha → Servine (lv17) → lv36 → Serperior; dar Pansage + Pedra de Folha → Simisage; dar Boldore lv39 → vencer → Gigalith (proxy troca lv40); Woobat lv24 → Swoobat (felicidade lv25). Encontros de Unova **ainda não existem no mundo** — use GM | catchbound.vercel.app | Fase 6.4-E/§4.31 | ⬜ Pendente (aguardando merge) |
-| 17 | **Chat no jogo em produção (8.8)**: **antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); após o deploy, logar no jogo, abrir o 💬 no canto inferior direito, ver 3 abas GLOBAL/LOCAL/PRIVADO; enviar mensagem em GLOBAL e ver aparecer para outro usuário; mudar de mapa e enviar em LOCAL (só quem está no mesmo mapa vê); enviar privado via ` /w <nome> <msg>` ou aba PRIVADO (só remetente e destinatário veem); conferir badge de não-lidas quando fechado | catchbound.vercel.app | Fase 8.8/§4.32 | ⬜ Pendente (aguardando merge) |
+| 16 | **Unova em produção (6.4-E)**: **sem SQL novo** (reutiliza pedras); após o deploy, vitrine de sprites com 649 espécies (3894 sprites); via GM dar Snivy lv16 → vencer batalha → Servine (lv17) → lv36 → Serperior; dar Pansage + Pedra de Folha → Pokémon Box → usar pedra → Simisage; Boldore lv39 → Gigalith (proxy troca lv40); Woobat lv24 → Swoobat | catchbound.vercel.app | Fase 6.4-E/§4.31 | ✅ 2026-09-07 (mantenedor declarou concluída) |
+| 17 | **Chat no jogo em produção (8.8)**: **antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); após o deploy, 💬 GLOBAL/LOCAL/PRIVADO + `/w` + badge de não-lidas | catchbound.vercel.app | Fase 8.8/§4.32 | ✅ 2026-09-07 (mantenedor declarou concluída) |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
 >
@@ -441,9 +451,10 @@ PR e aplicação em produção pelo workflow **World activation**.
       `world-encounters.ts` (**artefato gerado** commitado) — o elenco deixou de
       ser digitado à mão em `default-world.ts`, que virou renderizador.
       Comandos: `npm run world:distribute -- --report|--write|--check`.
-- [ ] **7.2 — Mapas 41–60**
-- [ ] **7.3 — Mapas 61–80**
-- [ ] **7.4 — Mapas 81–100** (fecha o mundo)
+- [ ] **7.2 — Mapas 41–60** — 🧊 CONGELADA em 2026-09-07: mantenedor mandou
+      manter 40 mapas por enquanto e seguir para a Etapa C
+- [ ] **7.3 — Mapas 61–80** — 🧊 congelada (idem)
+- [ ] **7.4 — Mapas 81–100** (fecha o mundo) — 🧊 congelada (idem)
 
 Invariantes de todo lote: **mapa 1 intocado** (contrato 6.2-C); bandas de nível
 crescentes e sem buraco; toda espécie em **exatamente um** mapa; linhas
@@ -457,16 +468,24 @@ falha antes de escrever no banco.
 Cada item aqui é pré-requisito de "mundo vivo" e pode andar em paralelo à
 Etapa B assim que o primeiro lote de mapas existir.
 
-- [ ] **8.1 — Lojas por região**: hoje são 3 lojas (mapas 1–3) e um catálogo
-      único. Precisa de estoque por região/nível, preços escalonados e a
-      **venda de itens** (`sellPrice` é coluna morta desde a Fase 3). Corrigir
-      junto o exploit conhecido de `quantity` negativa na compra.
-- [ ] **8.2 — Ginásios (8 + Elite)**: hoje 3 líderes (Brock/Misty/+1) e
-      `user_badges` já existe. Faltam os demais líderes com times coerentes com
-      a banda do mapa, ordem de insígnias e portas que exigem insígnia.
-- [ ] **8.3 — Arenas de bosses lendários**: encontro fixo, único por conta,
-      curado (não é grama aleatória) — tabela de "encontro roteirizado" +
-      trava de repetição. Os lendários já estão no catálogo e no mapa 20.
+- [x] **8.1 — Lojas por região + pedras absurdas + drops + venda** ✅ 2026-09-07:
+      11 lojas (3 originais + 8 das cidades, consumíveis por tier, Masterball
+      só do mapa 30 em diante); as 21 pedras em TODAS as lojas a 100k–200k
+      (sync idempotente de preço no seed, sem migration); drop de 0,2% de
+      selvagens nv 40+ (`src/lib/engine/drops.ts`); venda de consumíveis
+      (pedras sem recompra). O "exploit de quantity" citado no roadmap
+      antigo já estava corrigido desde a Fase 1 (schema 1–99).
+- [x] **8.2 — Ginásios das cidades** ✅ 2026-09-07: 8 líderes novos
+      (Coralina→Magnus, mapas 5→40, times da tabela da própria cidade no topo
+      da banda), escada de pré-requisito 0→10, recompensas 1.500→30.000 —
+      total **11 ginásios**. Elite 4 continua futura.
+- [x] **8.3 — Arenas de bosses lendários** ✅ 2026-09-07 (ESPEC DO MANTENEDOR):
+      NPC "Arena Boss" 👹 nos mapas **20 e 40**, lendário semanal por arena
+      (offset 23, sem repetição na semana), **nv 80–100**; **2 tentativas/dia/
+      arena** (lock `FOR UPDATE`); vitória trava a semana; prêmio = XP + Pk$
+      (15.000+100×nv) + **1 pedra à escolha** + **1/1200 o lendário nv 5**.
+      Migration **0010** (`boss_fights` + `kind='boss'`) + companheiro idempotente
+      validado 2×. Captura/fuga bloqueadas. Docs: `docs/FASE-8-ARENA-BOSS.md`.
 - [ ] **8.4 — Status de batalha** (era a 6.5): veneno/queimadura/paralisia no
       motor, colunas `status`/`statusTurns` em `user_pokemon` (**migration**),
       Antídoto e Queimadura-cura voltam à loja. Vira pré-requisito de ginásio
@@ -496,6 +515,69 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 8.3 — Arena Boss: lendário semanal nv 80–100 nos mapas 20 e 40, 2 tentativas/dia, pedra à escolha + 1/1200 (2026-09-07, Etapa C, entrega B)
+
+Motor `startBossBattle` (tentativa registrada no início, `FOR UPDATE`),
+vitória `WON` (XP + Pk$ + `bossStoneChoice` + rolagem do lendário nv 5),
+derrota `LOST` com retry, captura/fuga bloqueadas. Rotas `/api/battle`
+(`start_boss`) e `/api/boss` (GET status + `claim_stone` 1×/semana/arena).
+`BossModal.tsx` (intro/luta/resultado + `StonePicker` das 21 pedras), NPC tipo
+`"boss"` 👹 nos mapas 20/40, migration **0010** + companheiro
+`docs/supabase-production-0010-runtime.sql` **validado idempotente 2×** em clone
+`TEMPLATE` (conferência `1·1·3·true·1·11` nas duas). Testes: 7 rotação + 8
+integração (vitória simulada via `boss_fights → WON`); suíte **323 unit + 128
+integração** verde. Entrega A+B no mesmo PR #15. Detalhe:
+`docs/FASE-8-ARENA-BOSS.md`.
+
+**Pós-merge (ordem):** ① merge do PR → ② rodar o companheiro **0010** no
+Supabase SQL Editor (production) → ③ aguardar deploy Vercel (`Ready`) → ④
+Actions → `World activation` em `main` (`production`/`apply=true`, digitar
+`APLICAR-production`) — leva os NPCs boss ao jsonb dos mapas 20/40 → ⑤
+navegador: teleportar (GM) aos mapas 20/40 → NPC 👹 → status do lendário semanal
+→ iniciar (2 tentativas) → vitrine/batalha sem regressão.
+
+> Etapas 7.2–7.4 (mundo até 100 mapas) estão 🧊 congeladas por decisão do
+> mantenedor de 2026-09-07 — manter 40 mapas por enquanto.
+
+### ✅ FASE 8.1+8.2 — Cidades a cada 5 mapas: 8 lojas + 8 ginásios + cura, pedras 100k–200k, drop nv 40+ e venda de itens (2026-09-07, Etapa C, entrega A)
+
+**Pedido do mantenedor:** travar o mundo em 40 mapas, dar as pendências
+(#16, #17, ativação 7.1) como concluídas e seguir para a Etapa C com regras
+próprias. Esta é a **entrega A** (cidades); a Arena Boss (8.3) é a entrega B.
+
+**Entregue**
+
+- **8 cidades** (mapas 5, 10, 15, 20, 25, 30, 35, 40 — `CITY_NPCS` em
+  `default-world.ts`): cada uma com NPC de **loja** (🏪), **ginásio** (🏟️) e
+  **curandeira** (✚, tipo `healer` que a UI já tratava) sobre a trilha de
+  pedra central, + tile Centro Pokémon garantido (5 cidades ganharam
+  `center` no layout; 20/35/40 já tinham). Mapas 1–3 intactos; mapa 1 byte
+  a byte igual.
+- **Lojas 4–11** (`seed-shop.ts` reescrito): consumíveis por tier (Masterball
+  só nas lojas 9–11, Hiper Poção da 7 em diante) e as **21 pedras em todas
+  as 11 lojas** a 100k–200k. Seed reestruturado para 1 SELECT (era 1 por
+  item/loja) + **sync idempotente de preço** — produção recebe os preços
+  novos no primeiro request de loja, sem migration. `content/world/shops/`
+  agora tem 11 JSONs (274 itens).
+- **8 ginásios** (`gym-teams.ts` + `seed-gym.ts` virado insert-if-absent por
+  nome): Coralina 24/27 → Magnus 95/97/100, times da tabela da própria
+  cidade, escada `requiredBadges` 0→10, recompensas 1.500→30.000. Total 11.
+- **Drop de pedra** (`src/lib/engine/drops.ts`, 0,2% de selvagem nv 40+,
+  uniforme nas 21) hookado na vitória selvagem em `battle-service.ts`
+  (log `✨` + `rewards.stone`).
+- **Venda de itens**: `sell` no schema + rota (atômico, valida posse);
+  pedras sem recompra (decisão econômica). `ShopModal` ganhou aba
+  COMPRAR/VENDER.
+- **Artefato `world-encounters.ts` regenerado**: os 22 ases novos mudaram a
+  entrada do gerador → `--write` + re-export (37 mapas com tabelas
+  remexidas, mapa 1 intacto). 21/22 espécies de ginásio ficaram nas
+  próprias cidades; Nidoking 35→38 foi trocado por Mismagius 429 (da tabela
+  nova do 35) e o gerador convergiu (22/22, `--check` verde).
+
+**Sem migration e sem SQL companheiro**: só conteúdo (jsonb de mapas +
+linhas de loja/ginásio via seed). Produção precisa do workflow **World
+activation** (NPCs/centros/tabelas) após o merge.
 
 ### ✅ FASE 7.1 — Mundo até 40 mapas: mapas 21–40 + redistribuição das 649 espécies (2026-09-07, Etapa B)
 
@@ -2749,7 +2831,75 @@ Números observados:
 
 Não validado aqui (é do mantenedor, em produção): colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`), depois no navegador logar, abrir 💬, testar GLOBAL/LOCAL/PRIVADO com 2 contas, badge de não-lidas (item #17).
 
+### 4.35 Fase 8.1+8.2 — cidades, lojas, ginásios, drops e venda (2026-09-07, sandbox)
+
+Comandos executados no sandbox do agente (não são tarefa do mantenedor):
+
+```
+# 0. ambiente zerado: npm ci + cp .env.example .env + db:local (PG 18.4 :5432)
+#    + drizzle-kit migrate (0000–0009)
+# 1. código: gym-teams (8 times), seed-gym (insert-if-absent), seed-shop
+#    (11 lojas, pedras 100k–200k, sync de preço), world-layout (5 centers +
+#    22 ases), default-world (CITY_NPCS), engine/drops + hook na vitória
+#    selvagem, sell no schema/rota, ShopModal COMPRAR/VENDER
+npm run lint                    # 0 erros
+npm run typecheck               # 0 erros (1 erro intermediário: WorldNpcFile
+                                # usa gymLeaderName, não gymId — corrigido no teste)
+# 2. gerador → artefato (ases novos mudam a entrada do distribuidor)
+npm run world:distribute -- --write   # 37 linhas remexidas
+#    21/22 espécies de ginásio nas próprias cidades; Nidoking→Mismagius;
+#    --write de novo → 22/22 + --check verde
+# 3. banco + espelho
+npm run world:seed              # 40 criado(s) [banco novo]
+npx tsx scripts/tmp-seed-all.mts  # ensureGymSeeded + ensureShopSeeded (o
+                                # world:seed só semeia mapas; o export resolve
+                                # ginásio por nome) — script descartado depois
+npm run world:export            # 40 mapas, 11 ginásios, 274 itens → 8 criados,
+                                # 11 atualizados (2ª rodada: 37 mapas atualizados)
+git diff content/world/maps/vale-pallet.json  # VAZIO (mapa 1 intacto)
+# 4. qualidade
+npm run test                    # 23 arquivos / 315 testes verdes
+                                # (308 + 5 drops + 1 níveis dos times + 1 cidades)
+npm run test:integration        # 10 arquivos / 120 verdes (112 + 8 city.*)
+                                # (1 ajuste: security gym 3→11 líderes)
+npm run check                   # lint + tsc + 315 unit + build 15 rotas — verde
+# 5. caminhos que os testes não cobrem
+npx tsx scripts/tmp-sync-check.mts  # preço 1200→100000 pelo seed (produção) ✓
+npm run db:rebalance -- --dry-run   # movesets 0/0, ginásios 0 — no-op limpo ✓
+```
+
 ## 5. Qual a próxima etapa a ser aplicada
+
+### 🅲 Etapa C (2026-09-07, noite): 8.1+8.2 entregues no sandbox — **PR a abrir** (entrega A)
+
+**Estado desta rodada:** 8 cidades (loja+ginásio+cura) + 11 lojas + 11
+ginásios + pedras 100k–200k + drop 0,2% nv 40+ + venda de consumíveis.
+`npm run check` verde (lint + tsc + 315 unit + build 15 rotas), 120 de
+integração verdes, `content/world/` reexportado (37 mapas, 11 lojas, mapa 1
+intacto). **Sem migration e sem SQL companheiro.**
+
+🌐 **Passos do mantenedor (tudo pela interface):**
+
+1. **Merge do PR** (Create a merge commit). Sem SQL antes/depois.
+2. **Vercel**: aguardar deploy de `main` (`Ready`).
+3. **Actions → `World activation (maps 1-40 + rebalance)` → Run workflow** em
+   `main`: `production`/`apply=true` (digitar `APLICAR-production`) — aplica
+   NPCs/centros/tabelas novas no banco de produção. (As lojas 4–11, os 8
+   ginásios e os preços novos entram sozinhos via seed no primeiro request;
+   o que precisa do workflow é o jsonb dos mapas.)
+4. **Navegador**: teleportar (GM) aos mapas 5/20/40 → loja com pedras 100k+,
+   ginásio com pré-requisito em escada, cura; aba VENDER recomprando poções;
+   vitrine/batalha sem regressão.
+
+**Próxima etapa: 8.3 — Arena Boss (entrega B).** NPC boss nos mapas 20 e 40,
+lendários semanais diferentes sem repetição, nv 80–100, 2 tentativas/dia/
+arena, vitória trava a semana, prêmio = XP + dinheiro + pedra à escolha +
+1/1200 o lendário nv 5. Exige **migration 0010** (`boss_fights` +
+`battles.kind='boss'`) + `docs/supabase-production-0010-runtime.sql`
+**antes do merge**, como 0008/0009.
+
+> Etapas 7.2–7.4 (mundo até 100 mapas) estão 🧊 congeladas por decisão do
+> mantenedor de 2026-09-07 — manter 40 mapas por enquanto.
 
 ### 🅱️ Etapa B (2026-09-07): 7.1 entregue — **PR #14** aberto para `main`
 
@@ -2940,6 +3090,7 @@ Ou seja: próxima conversa = **perguntar ao mantenedor: (a/b/c) para 6.4-F** e, 
 | 2026-09-07 | **Decisão B — Pokédex completa em 649** + **Fase 8.8 — Chat no jogo (global/local/whisper)**: chat_messages + map_id + recipient_id, 3 índices, check canal, API /api/chat (global/local/whisper com afterId), ChatWidget HUD (💬 GLOBAL/LOCAL/PRIVADO, badge unread, /w atalho), migration 0009 + `docs/supabase-production-0009-runtime.sql` idempotente | ✅ Concluída e validada no sandbox · ⬜ chat no jogo em produção (#17) | 21/297 unit · 9/112 integração · `src/app/api/chat/route.ts` · `src/components/ChatWidget.tsx` · `drizzle/0009` · §3/§4.32 |
 | 2026-09-07 | **Regra nova de protocolo — passos do mantenedor são ONLINE** (GitHub/Vercel/Supabase, sem console): nenhum `git`/`npm`/`git apply` para ele; o ajuste do workflow virou edição de 1 linha pela interface (ou cópia do espelho `docs/world-activation.yml`), `docs/patches/` removido por ser inútil sem terminal, e a conferência do mundo ganhou `docs/world-conferencia.sql` (11 checagens, `SELECT` único, validado no sandbox) | ✅ Registrado (§regra no topo, §1, §4.34, §5) | `docs/FASE-7-MUNDO.md` · §4.34 |
 | 2026-09-07 | **Correção de processo (7.1)** — o gate do workflow `World activation` precisava sair de 20 para 40 mapas; o agente não tem permissão `workflows` e o primeiro reparo (colar o patch como arquivo novo `.github/workflows/world-activation-40-mapas`) **não funcionou**: sem `.yml` o GitHub não registra workflow nenhum e o arquivo real continuou o mesmo. Corrigido com `docs/patches/world-activation-40-fix.patch` (aplicar, não colar) + receita de conferência em `docs/FASE-7-MUNDO.md` | ⬜ manter aplicação pelo mantenedor | `gh workflow list` · `diff .github/workflows/… docs/…` |
+| 2026-09-07 | **Fase 8.1+8.2 — Cidades (8 lojas + 8 ginásios + cura), pedras 100k–200k, drop 0,2% nv 40+, venda** | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-8-CIDADES.md` · §3/§4.35 · 23/315 unit · 10/120 integração · build 15 rotas |
 | 2026-09-07 | **Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 espécies**: `world-layout.ts` (40 mapas como dados), `world-distribute.ts` (gerador determinístico: alvo por rank, varredura mapa-a-mapa, afinidade de bioma, teto de desvio, pesos em agenda geométrica, piso de nível de evolução), `world-encounters.ts` (artefato gerado commitado), `default-world.ts` virou renderizador, bandas reescaladas M2 6–20 → M40 86–100 (mapa 1 travado em 3–10), 40 JSONs em `content/world/maps/`, workflow `World activation` 20→40 + `world:distribute:check`, +20 guardas de teste | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-7-MUNDO.md` · §3/§4.33 · 22/308 unit · 9/112 integração · build 15 rotas |
 | — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 

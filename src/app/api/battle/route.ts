@@ -11,6 +11,7 @@ import {
   attemptCatch,
   flee,
   getBattle,
+  startBossBattle,
   startGymBattle,
   startWildBattle,
   switchPokemon,
@@ -58,6 +59,9 @@ export async function POST(req: Request) {
         break;
       case "start_gym":
         battle = await startGymBattle(user.id, input.gymLeaderId);
+        break;
+      case "start_boss":
+        battle = await startBossBattle(user.id, input.arenaMapId);
         break;
       case "attack":
         battle = await attack(user.id, input.battleId, input.moveIndex);

@@ -10,16 +10,24 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Alakazam",
+      "name": "Exeggutor",
       "weight": 15,
       "maxLevel": 95,
       "minLevel": 84,
+      "pokedexId": 103,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Alakazam",
+      "weight": 13,
+      "maxLevel": 97,
+      "minLevel": 86,
       "pokedexId": 65,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Gothitelle",
-      "weight": 13,
+      "weight": 11,
       "maxLevel": 97,
       "minLevel": 86,
       "pokedexId": 576,
@@ -27,7 +35,7 @@
     },
     {
       "name": "Reuniclus",
-      "weight": 11,
+      "weight": 10,
       "maxLevel": 97,
       "minLevel": 86,
       "pokedexId": 579,
@@ -35,15 +43,15 @@
     },
     {
       "name": "Kingdra",
-      "weight": 10,
-      "maxLevel": 97,
-      "minLevel": 86,
+      "weight": 8,
+      "maxLevel": 98,
+      "minLevel": 88,
       "pokedexId": 230,
       "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Tyranitar",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 98,
       "minLevel": 88,
       "pokedexId": 248,
@@ -51,19 +59,19 @@
     },
     {
       "name": "Empoleon",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 98,
       "minLevel": 88,
       "pokedexId": 395,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Gallade",
-      "weight": 6,
+      "name": "Samurott",
+      "weight": 5,
       "maxLevel": 98,
       "minLevel": 88,
-      "pokedexId": 475,
-      "tileTypes": ["tall_grass"]
+      "pokedexId": 503,
+      "tileTypes": ["tall_grass", "water"]
     },
     {
       "name": "Gengar",
@@ -71,14 +79,6 @@
       "maxLevel": 98,
       "minLevel": 88,
       "pokedexId": 94,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Gardevoir",
-      "weight": 5,
-      "maxLevel": 98,
-      "minLevel": 88,
-      "pokedexId": 282,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -90,11 +90,11 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Giratina",
+      "name": "Metagross",
       "weight": 4,
       "maxLevel": 98,
       "minLevel": 90,
-      "pokedexId": 487,
+      "pokedexId": 376,
       "tileTypes": ["tall_grass"]
     },
     {

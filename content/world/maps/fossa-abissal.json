@@ -50,8 +50,16 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Dratini",
+      "name": "Kabuto",
       "weight": 7,
+      "maxLevel": 47,
+      "minLevel": 37,
+      "pokedexId": 140,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Dratini",
+      "weight": 6,
       "maxLevel": 47,
       "minLevel": 37,
       "pokedexId": 147,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Totodile",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 47,
       "minLevel": 37,
       "pokedexId": 158,
@@ -75,9 +83,9 @@
     },
     {
       "name": "Delibird",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 47,
-      "minLevel": 37,
+      "minLevel": 39,
       "pokedexId": 225,
       "tileTypes": ["tall_grass"]
     },
@@ -91,7 +99,7 @@
     },
     {
       "name": "Bagon",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 47,
       "minLevel": 39,
       "pokedexId": 371,
@@ -115,7 +123,7 @@
     },
     {
       "name": "Tirtouga",
-      "weight": 3,
+      "weight": 2,
       "maxLevel": 47,
       "minLevel": 39,
       "pokedexId": 564,
@@ -127,14 +135,6 @@
       "maxLevel": 47,
       "minLevel": 39,
       "pokedexId": 131,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Relicanth",
-      "weight": 2,
-      "maxLevel": 47,
-      "minLevel": 39,
-      "pokedexId": 369,
       "tileTypes": ["tall_grass", "water"]
     },
     {
@@ -188,16 +188,74 @@
       "label": "Norte → Cânion dos Fósseis"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-fossa-abissal",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja Abissal",
+      "shopId": 6,
+      "dialog": "Suprimentos das profundezas. Desça preparado!"
+    },
+    {
+      "id": "gym-fossa-abissal",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Nerissa",
+      "gymLeaderName": "Nerissa",
+      "dialog": "Sou Nerissa, voz da fossa. Poucos voltam com uma insígnia."
+    },
+    {
+      "id": "healer-fossa-abissal",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Fossa Abissal",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Nerissa",
+      "title": "Líder do Ginásio Abissal",
+      "badgeName": "Insígnia Profundeza",
+      "badgeEmoji": "🌊",
+      "specialty": "Water",
+      "requiredBadges": 5,
+      "rewardMoney": 12000,
+      "shopId": 6,
+      "npcDialog": "Sou Nerissa, voz da fossa. Poucos descem até aqui — menos ainda voltam com uma insígnia.",
+      "defeatDialog": "O abismo te engoliu… respire fundo e desça outra vez.",
+      "winDialog": "Você tocou o fundo e voltou! A Insígnia Profundeza é sua!",
+      "team": [
+        {
+          "level": 43,
+          "variant": "Normal",
+          "pokedexId": 610
+        },
+        {
+          "level": 45,
+          "variant": "Normal",
+          "pokedexId": 147
+        },
+        {
+          "level": 47,
+          "variant": "Normal",
+          "pokedexId": 594
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
     ["tree", "tree", "tree", "tree", "tree", "tree", "tree", "portal", "portal", "tree", "tree", "tree", "tree", "tree", "tree", "tree"],
     ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
-    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
-    ["tree", "water", "water", "water", "water", "sand", "sand", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
-    ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "sand", "stone", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "stone", "center", "stone", "stone", "sand", "sand", "water", "water", "water", "water", "tree"],
+    ["tree", "water", "water", "water", "water", "tall_grass", "stone", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
     ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
     ["tree", "water", "water", "water", "water", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "water", "water", "water", "water", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],

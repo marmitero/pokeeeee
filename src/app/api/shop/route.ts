@@ -71,6 +71,39 @@ export async function POST(req: Request) {
     }
     const column = item.itemKey as (typeof INVENTORY_KEYS)[number];
 
+    // ── Etapa C (8.1): venda de itens ────────────────────────────────────
+    if (input.action === "sell") {
+      // Pedras de evolução não têm recompra: com preços de 100k–200k, vender
+      // um drop gratuito (ou a pedra semanal do boss) viraria fonte infinita
+      // de dinheiro. Consumíveis (bolas/poções) vendem pelo `sellPrice`.
+      if (item.category === "misc") {
+        throw badRequest("Este item não pode ser vendido.");
+      }
+      const quantity = input.quantity;
+      const owned = user[column] as number;
+      if (owned < quantity) {
+        throw badRequest(`Você só tem ${owned}x ${item.name}.`);
+      }
+      const totalGain = item.sellPrice * quantity;
+      const updated = await db
+        .update(users)
+        .set({
+          money: sql`${users.money} + ${totalGain}`,
+          [column]: sql`${users[column]} - ${quantity}`,
+        })
+        .where(and(eq(users.id, user.id), sql`${users[column]} >= ${quantity}`))
+        .returning();
+
+      if (updated.length === 0) {
+        throw badRequest(`Você só tem ${owned}x ${item.name}.`);
+      }
+
+      return NextResponse.json({
+        user: publicUser(updated[0]),
+        message: `Vendeu ${quantity}x ${item.name} por ${totalGain} Pk$!`,
+      });
+    }
+
     const quantity = input.quantity;
     const totalCost = item.buyPrice * quantity;
 

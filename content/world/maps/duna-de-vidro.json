@@ -10,16 +10,24 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Golurk",
+      "name": "Claydol",
       "weight": 15,
       "maxLevel": 78,
       "minLevel": 67,
+      "pokedexId": 344,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Golurk",
+      "weight": 13,
+      "maxLevel": 80,
+      "minLevel": 69,
       "pokedexId": 623,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Raichu",
-      "weight": 13,
+      "weight": 11,
       "maxLevel": 80,
       "minLevel": 69,
       "pokedexId": 26,
@@ -27,23 +35,23 @@
     },
     {
       "name": "Muk",
-      "weight": 11,
+      "weight": 10,
       "maxLevel": 80,
       "minLevel": 69,
       "pokedexId": 89,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Zebstrika",
-      "weight": 10,
-      "maxLevel": 80,
-      "minLevel": 69,
-      "pokedexId": 523,
+      "name": "Crustle",
+      "weight": 8,
+      "maxLevel": 81,
+      "minLevel": 71,
+      "pokedexId": 558,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Magneton",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 81,
       "minLevel": 71,
       "pokedexId": 82,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Electrode",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 81,
       "minLevel": 71,
       "pokedexId": 101,
@@ -59,7 +67,7 @@
     },
     {
       "name": "Rhydon",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 81,
       "minLevel": 71,
       "pokedexId": 112,
@@ -75,9 +83,9 @@
     },
     {
       "name": "Probopass",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 81,
-      "minLevel": 71,
+      "minLevel": 73,
       "pokedexId": 476,
       "tileTypes": ["tall_grass"]
     },
@@ -91,7 +99,7 @@
     },
     {
       "name": "Eelektrik",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 81,
       "minLevel": 73,
       "pokedexId": 603,
@@ -107,18 +115,10 @@
     },
     {
       "name": "Bastiodon",
-      "weight": 3,
-      "maxLevel": 81,
-      "minLevel": 73,
-      "pokedexId": 411,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Ambipom",
       "weight": 2,
       "maxLevel": 81,
       "minLevel": 73,
-      "pokedexId": 424,
+      "pokedexId": 411,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -130,11 +130,11 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Azelf",
+      "name": "Dialga",
       "weight": 2,
       "maxLevel": 81,
       "minLevel": 73,
-      "pokedexId": 482,
+      "pokedexId": 483,
       "tileTypes": ["tall_grass"]
     }
   ],

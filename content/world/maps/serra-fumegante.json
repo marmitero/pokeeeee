@@ -66,19 +66,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Leafeon",
+      "weight": 5,
+      "maxLevel": 85,
+      "minLevel": 75,
+      "pokedexId": 470,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Archeops",
       "weight": 5,
       "maxLevel": 85,
       "minLevel": 75,
       "pokedexId": 567,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Mienshao",
-      "weight": 5,
-      "maxLevel": 85,
-      "minLevel": 75,
-      "pokedexId": 620,
       "tileTypes": ["tall_grass"]
     },
     {
@@ -106,19 +106,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Lickilicky",
+      "name": "Magmortar",
       "weight": 3,
       "maxLevel": 85,
       "minLevel": 77,
-      "pokedexId": 463,
+      "pokedexId": 467,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Magmortar",
+      "name": "Deoxys",
       "weight": 2,
       "maxLevel": 85,
       "minLevel": 77,
-      "pokedexId": 467,
+      "pokedexId": 386,
       "tileTypes": ["tall_grass"]
     },
     {

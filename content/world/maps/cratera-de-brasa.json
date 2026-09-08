@@ -18,40 +18,32 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Claydol",
-      "weight": 13,
-      "maxLevel": 72,
-      "minLevel": 61,
-      "pokedexId": 344,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Dusclops",
-      "weight": 11,
-      "maxLevel": 72,
-      "minLevel": 61,
-      "pokedexId": 356,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Ninetales",
-      "weight": 10,
+      "weight": 13,
       "maxLevel": 72,
       "minLevel": 61,
       "pokedexId": 38,
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Marowak",
+      "weight": 11,
+      "maxLevel": 72,
+      "minLevel": 61,
+      "pokedexId": 105,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Magcargo",
-      "weight": 8,
-      "maxLevel": 73,
-      "minLevel": 63,
+      "weight": 10,
+      "maxLevel": 72,
+      "minLevel": 61,
       "pokedexId": 219,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Piloswine",
-      "weight": 7,
+      "weight": 8,
       "maxLevel": 73,
       "minLevel": 63,
       "pokedexId": 221,
@@ -59,7 +51,7 @@
     },
     {
       "name": "Simisear",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 73,
       "minLevel": 63,
       "pokedexId": 514,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Donphan",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 73,
       "minLevel": 63,
       "pokedexId": 232,
@@ -83,10 +75,18 @@
     },
     {
       "name": "Dragonair",
+      "weight": 5,
+      "maxLevel": 73,
+      "minLevel": 63,
+      "pokedexId": 148,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Altaria",
       "weight": 4,
       "maxLevel": 73,
       "minLevel": 65,
-      "pokedexId": 148,
+      "pokedexId": 334,
       "tileTypes": ["tall_grass"]
     },
     {

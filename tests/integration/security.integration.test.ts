@@ -262,14 +262,15 @@ describe("ginásio (V5)", () => {
     expect(r.status).toBe(405);
   });
 
-  it("GET /api/gym é público e lista os 3 líderes", async () => {
+  it("GET /api/gym é público e lista os 11 líderes", async () => {
     const c = client();
     await c.call("/api/maps"); // garante o seed
 
     const r = await c.call("/api/gym");
 
     expect(r.status).toBe(200);
-    expect((r.body as { gymLeaders: unknown[] }).gymLeaders).toHaveLength(3);
+    // Etapa C (8.2): 3 originais + 8 das cidades.
+    expect((r.body as { gymLeaders: unknown[] }).gymLeaders).toHaveLength(11);
   });
 });
 

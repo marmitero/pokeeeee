@@ -18,16 +18,8 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Sandslash",
-      "weight": 13,
-      "maxLevel": 67,
-      "minLevel": 56,
-      "pokedexId": 28,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Lairon",
-      "weight": 11,
+      "weight": 13,
       "maxLevel": 67,
       "minLevel": 56,
       "pokedexId": 305,
@@ -35,31 +27,31 @@
     },
     {
       "name": "Liepard",
-      "weight": 10,
+      "weight": 11,
       "maxLevel": 67,
       "minLevel": 56,
       "pokedexId": 510,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Marowak",
-      "weight": 8,
-      "maxLevel": 68,
-      "minLevel": 58,
-      "pokedexId": 105,
+      "name": "Lampent",
+      "weight": 10,
+      "maxLevel": 67,
+      "minLevel": 56,
+      "pokedexId": 608,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Granbull",
-      "weight": 7,
+      "name": "Zebstrika",
+      "weight": 8,
       "maxLevel": 68,
       "minLevel": 58,
-      "pokedexId": 210,
+      "pokedexId": 523,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Delcatty",
-      "weight": 6,
+      "weight": 7,
       "maxLevel": 68,
       "minLevel": 58,
       "pokedexId": 301,
@@ -67,7 +59,7 @@
     },
     {
       "name": "Lopunny",
-      "weight": 5,
+      "weight": 6,
       "maxLevel": 68,
       "minLevel": 58,
       "pokedexId": 428,
@@ -83,9 +75,9 @@
     },
     {
       "name": "Dugtrio",
-      "weight": 4,
+      "weight": 5,
       "maxLevel": 68,
-      "minLevel": 60,
+      "minLevel": 58,
       "pokedexId": 51,
       "tileTypes": ["tall_grass"]
     },
@@ -99,7 +91,7 @@
     },
     {
       "name": "Manectric",
-      "weight": 3,
+      "weight": 4,
       "maxLevel": 68,
       "minLevel": 60,
       "pokedexId": 310,
@@ -115,7 +107,7 @@
     },
     {
       "name": "Metang",
-      "weight": 2,
+      "weight": 3,
       "maxLevel": 68,
       "minLevel": 60,
       "pokedexId": 375,
@@ -135,6 +127,14 @@
       "maxLevel": 68,
       "minLevel": 60,
       "pokedexId": 379,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Jirachi",
+      "weight": 2,
+      "maxLevel": 68,
+      "minLevel": 60,
+      "pokedexId": 385,
       "tileTypes": ["tall_grass"]
     }
   ],
@@ -180,8 +180,66 @@
       "label": "Norte → Pântano do Silêncio"
     }
   ],
-  "npcs": [],
-  "gyms": [],
+  "npcs": [
+    {
+      "id": "shop-forja-abandonada",
+      "x": 6,
+      "y": 7,
+      "type": "shop",
+      "name": "Loja da Forja",
+      "shopId": 8,
+      "dialog": "Equipamento forjado a fogo alto. Aguenta o tranco!"
+    },
+    {
+      "id": "gym-forja-abandonada",
+      "x": 9,
+      "y": 7,
+      "type": "gym",
+      "name": "Ferrao",
+      "gymLeaderName": "Ferrao",
+      "dialog": "Sou Ferrao! Esta forja molda aço e treinadores!"
+    },
+    {
+      "id": "healer-forja-abandonada",
+      "x": 6,
+      "y": 8,
+      "type": "healer",
+      "name": "Curandeira de Forja Abandonada",
+      "dialog": "Sua equipe foi curada! Volte sempre!"
+    }
+  ],
+  "gyms": [
+    {
+      "leaderName": "Ferrao",
+      "title": "Líder do Ginásio da Forja",
+      "badgeName": "Insígnia Bigorna",
+      "badgeEmoji": "⚙️",
+      "specialty": "Steel",
+      "requiredBadges": 7,
+      "rewardMoney": 18000,
+      "shopId": 8,
+      "npcDialog": "Sou Ferrao! Esta forja molda aço e treinadores. Aguenta o martelo?",
+      "defeatDialog": "Amassado como chapa fina… volte quando for aço.",
+      "winDialog": "Temperado a fogo alto! Você forjou a Insígnia Bigorna!",
+      "team": [
+        {
+          "level": 64,
+          "variant": "Normal",
+          "pokedexId": 262
+        },
+        {
+          "level": 66,
+          "variant": "Normal",
+          "pokedexId": 305
+        },
+        {
+          "level": 68,
+          "variant": "Normal",
+          "pokedexId": 510
+        }
+      ]
+    }
+  ],
   "encounterGrid": [],
   "collisionGrid": [],
   "tileGrid": [
@@ -191,8 +249,8 @@
     ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
     ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
     ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
-    ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
-    ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
+    ["tree", "stone", "tall_grass", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
+    ["tree", "stone", "stone", "center", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "stone", "tree"],
     ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],
     ["tree", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "stone", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "tall_grass", "stone", "tree"],

@@ -42,12 +42,12 @@
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Starmie",
+      "name": "Weezing",
       "weight": 8,
       "maxLevel": 83,
       "minLevel": 73,
-      "pokedexId": 121,
-      "tileTypes": ["tall_grass", "water"]
+      "pokedexId": 110,
+      "tileTypes": ["tall_grass"]
     },
     {
       "name": "Wailord",

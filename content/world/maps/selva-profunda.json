@@ -82,6 +82,14 @@
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Luxio",
+      "weight": 4,
+      "maxLevel": 52,
+      "minLevel": 44,
+      "pokedexId": 404,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Swadloon",
       "weight": 4,
       "maxLevel": 52,
@@ -91,7 +99,7 @@
     },
     {
       "name": "Whirlipede",
-      "weight": 4,
+      "weight": 3,
       "maxLevel": 52,
       "minLevel": 44,
       "pokedexId": 544,
@@ -114,14 +122,6 @@
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Pinsir",
-      "weight": 3,
-      "maxLevel": 52,
-      "minLevel": 44,
-      "pokedexId": 127,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Heracross",
       "weight": 2,
       "maxLevel": 52,
@@ -130,19 +130,19 @@
       "tileTypes": ["tall_grass"]
     },
     {
+      "name": "Mothim",
+      "weight": 2,
+      "maxLevel": 52,
+      "minLevel": 44,
+      "pokedexId": 414,
+      "tileTypes": ["tall_grass"]
+    },
+    {
       "name": "Larvesta",
       "weight": 2,
       "maxLevel": 52,
       "minLevel": 44,
       "pokedexId": 636,
-      "tileTypes": ["tall_grass"]
-    },
-    {
-      "name": "Ivysaur",
-      "weight": 2,
-      "maxLevel": 52,
-      "minLevel": 44,
-      "pokedexId": 2,
       "tileTypes": ["tall_grass"]
     }
   ],

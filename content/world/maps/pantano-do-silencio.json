@@ -10,40 +10,48 @@
   "encounterRate": 22,
   "encounterTable": [
     {
-      "name": "Cofagrigus",
+      "name": "Arbok",
       "weight": 15,
       "maxLevel": 68,
       "minLevel": 57,
+      "pokedexId": 24,
+      "tileTypes": ["tall_grass"]
+    },
+    {
+      "name": "Cofagrigus",
+      "weight": 13,
+      "maxLevel": 70,
+      "minLevel": 59,
       "pokedexId": 563,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Venomoth",
-      "weight": 13,
+      "weight": 11,
       "maxLevel": 70,
       "minLevel": 59,
       "pokedexId": 49,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Forretress",
-      "weight": 11,
+      "name": "Seadra",
+      "weight": 10,
       "maxLevel": 70,
       "minLevel": 59,
+      "pokedexId": 117,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Forretress",
+      "weight": 8,
+      "maxLevel": 71,
+      "minLevel": 61,
       "pokedexId": 205,
       "tileTypes": ["tall_grass"]
     },
     {
-      "name": "Octillery",
-      "weight": 10,
-      "maxLevel": 70,
-      "minLevel": 59,
-      "pokedexId": 224,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
       "name": "Swalot",
-      "weight": 8,
+      "weight": 7,
       "maxLevel": 71,
       "minLevel": 61,
       "pokedexId": 317,
@@ -51,7 +59,7 @@
     },
     {
       "name": "Whiscash",
-      "weight": 7,
+      "weight": 6,
       "maxLevel": 71,
       "minLevel": 61,
       "pokedexId": 340,
@@ -59,50 +67,42 @@
     },
     {
       "name": "Floatzel",
-      "weight": 6,
+      "weight": 5,
       "maxLevel": 71,
       "minLevel": 61,
       "pokedexId": 419,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Galvantula",
+      "name": "Lumineon",
       "weight": 5,
       "maxLevel": 71,
       "minLevel": 61,
+      "pokedexId": 457,
+      "tileTypes": ["tall_grass", "water"]
+    },
+    {
+      "name": "Galvantula",
+      "weight": 4,
+      "maxLevel": 71,
+      "minLevel": 63,
       "pokedexId": 596,
       "tileTypes": ["tall_grass"]
     },
     {
       "name": "Kingler",
-      "weight": 5,
+      "weight": 4,
       "maxLevel": 71,
-      "minLevel": 61,
+      "minLevel": 63,
       "pokedexId": 99,
       "tileTypes": ["tall_grass", "water"]
     },
     {
-      "name": "Weezing",
-      "weight": 4,
-      "maxLevel": 71,
-      "minLevel": 63,
-      "pokedexId": 110,
-      "tileTypes": ["tall_grass"]
-    },
-    {
       "name": "Seaking",
-      "weight": 4,
-      "maxLevel": 71,
-      "minLevel": 63,
-      "pokedexId": 119,
-      "tileTypes": ["tall_grass", "water"]
-    },
-    {
-      "name": "Sharpedo",
       "weight": 3,
       "maxLevel": 71,
       "minLevel": 63,
-      "pokedexId": 319,
+      "pokedexId": 119,
       "tileTypes": ["tall_grass", "water"]
     },
     {
