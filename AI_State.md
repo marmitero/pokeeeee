@@ -3009,7 +3009,7 @@ no navegador. Pendência #18 cobre as duas coisas.
 
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🅲 Etapa C (2026-09-08): 8.4 entregue no sandbox — **PR a abrir** (entrega C) · próxima = **8.5 Arena PvP ranqueada**
+### 🅲 Etapa C (2026-09-08): 8.4 entregue — **PR #17 aberto** (entrega C, https://github.com/marmitero/pokeeeee/pull/17) · próxima = **8.5 Arena PvP ranqueada**
 
 **Estado desta rodada:** status de batalha completo (motor, catálogo, banco,
 loja, rotas, UI, testes) — `npm run check` verde (358 unit + build), 133 de
@@ -3122,7 +3122,7 @@ produção (Verify restoration) continua **adiado** por decisão do mantenedor.
 | 2026-09-07 | **Fase 8.1+8.2 — Cidades (8 lojas + 8 ginásios + cura), pedras 100k–200k, drop 0,2% nv 40+, venda** | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-8-CIDADES.md` · §3/§4.35 · 23/315 unit · 10/120 integração · build 15 rotas |
 | 2026-09-07 | **Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 espécies**: `world-layout.ts` (40 mapas como dados), `world-distribute.ts` (gerador determinístico: alvo por rank, varredura mapa-a-mapa, afinidade de bioma, teto de desvio, pesos em agenda geométrica, piso de nível de evolução), `world-encounters.ts` (artefato gerado commitado), `default-world.ts` virou renderizador, bandas reescaladas M2 6–20 → M40 86–100 (mapa 1 travado em 3–10), 40 JSONs em `content/world/maps/`, workflow `World activation` 20→40 + `world:distribute:check`, +20 guardas de teste | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-7-MUNDO.md` · §3/§4.33 · 22/308 unit · 9/112 integração · build 15 rotas |
 | 2026-09-08 | **Fase 8.3 — Arena Boss** (PR #15 A+B) + **incidente `battles_kind_check` pós-renumeração** (PR #16 reparo + `ensureDefaultMapsSeeded`) | ✅ Merged (`c65401d`) · ✅ validado em produção pelo mantenedor 2026-09-08 (pendências A/B/C) | `docs/FASE-8-ARENA-BOSS.md` · `docs/supabase-production-0010-*.sql` · §3/§4.35 |
-| 2026-09-08 | **Fase 8.4 — Status de batalha**: PSN/TOX/BRN/PAR/SLP/FRZ (Gen III) em PvE + PvP, `engine/status.ts` + `engine/turn.ts`, 9 golpes de Status + 27 efeitos em 107 learnsets, migration **0011** (`user_pokemon.status/status_turns` + 7 colunas de cura) + `docs/supabase-production-0011-runtime.sql` validado 2×, 7 itens de cura nas lojas por progressão, `POST /api/battle use_item` (consome turno), etiqueta de status + barra ITENS nas 4 telas, curas no Pokémon Box | ✅ Concluída e validada no sandbox · ⬜ PR + SQL 0011 + pendência #18 em produção | `docs/FASE-8-STATUS.md` · §3/§4.36 · 26/358 unit · 12/133 integração · `drizzle/0011` |
+| 2026-09-08 | **Fase 8.4 — Status de batalha**: PSN/TOX/BRN/PAR/SLP/FRZ (Gen III) em PvE + PvP, `engine/status.ts` + `engine/turn.ts`, 9 golpes de Status + 27 efeitos em 107 learnsets, migration **0011** (`user_pokemon.status/status_turns` + 7 colunas de cura) + `docs/supabase-production-0011-runtime.sql` validado 2×, 7 itens de cura nas lojas por progressão, `POST /api/battle use_item` (consome turno), etiqueta de status + barra ITENS nas 4 telas, curas no Pokémon Box | ✅ Concluída e validada no sandbox · 🔵 **PR #17 aberto** (`c9cfc52`) · ⬜ SQL 0011 antes do merge + pendência #18 em produção | `docs/FASE-8-STATUS.md` · §3/§4.36 · 26/358 unit · 12/133 integração · `drizzle/0011` |
 | — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

@@ -6,7 +6,7 @@ Você é a continuação do agente do projeto **Catchbound** (produção: https:
 
 ---
 
-## ESTADO ATUAL (2026-09-08, Fase 8.4 entregue no branch `arena/01a0809a-pokeeeee`, aguardando PR)
+## ESTADO ATUAL (2026-09-08, Fase 8.4 entregue — **PR #17** aberto a partir de `arena/01a0809a-pokeeeee`)
 
 - ✅ **Produção de pé e atual em `c65401d`** (PR #16): 649 espécies, 40 mapas ativados, 11 cidades/lojas/ginásios, 2 Arenas Boss. **O mantenedor validou em produção (2026-09-08) as pendências A (boss E2E), B (visual 8.1/8.2) e C (artefato world-diff).** Backup de produção ("Verify restoration" falhando) **adiado por decisão dele**.
 - 🔵 **Fase 8.4 pronta no branch** — status de batalha: `engine/status.ts` (regras puras Gen III) + `engine/turn.ts` (`performStrike`/`endOfTurn`/`chooseOpponentMove`, um motor para PvE **e** PvP); 9 golpes de Status + 27 efeitos secundários em 107 learnsets; `user_pokemon.status/status_turns` + 7 colunas de cura em `users` → **migration 0011** + **`docs/supabase-production-0011-runtime.sql`** (idempotente, validado 2×: `2·7·1·1·8·12`); `POST /api/battle use_item` (consome o turno); `src/lib/status-items.ts` (Antídoto 100 … Restaurador Total 3000, lojas por progressão, `content/world/shops/*.json` reexportados); etiqueta de status (`components/battle/StatusTag.tsx`) e barra ITENS (`BattleItemBar.tsx`) nas 4 telas de luta + Pokémon Box; **358 unit + 133 integração**, `npm run check` verde. Spec: `docs/FASE-8-STATUS.md`.
