@@ -72,8 +72,13 @@
 > a semana, boss nv 80–100, prêmio = XP + dinheiro + pedra à escolha +
 > 1/1200 o lendário nv 5).**
 >
->
->
+> **2026-09-08 — o mantenedor declarou VALIDADAS em produção as pendências
+> A (Arena Boss E2E, 8.3), B (passada visual 8.1/8.2) e C (artefato
+> `world-diff`). O backup de produção que falha em "Verify restoration"
+> (hipótese: role `catchbound_maint` ausente em `backup-production.yml` L107)
+> fica **adiado por decisão dele** ("o backup nós vemos depois"). Ordem
+> combinada do roadmap: 8.4 → 8.5 → 8.6 → 8.7 → Etapa D. Pendência nova
+> abaixo: #18 (8.4 em produção).**
 >
 > | # | O que testar | Como | Origem | Status |
 > |---|---|---|---|---|
@@ -93,6 +98,7 @@
 > | 14 | **Hoenn em produção (6.4-C)**: abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!` | catchbound.vercel.app | Fase 6.4-C/§4.29 | ✅ 2026-09-06 |
 > | 15 | **Sinnoh em produção (6.4-D)**: **antes do merge** colar `docs/supabase-production-0008-runtime.sql` no SQL Editor (conferência: `sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9`); após o deploy, abrir a loja 3 (Pico Celeste) e ver os 7 itens novos (🪖 Protetor, 🔋 Eletrizador, 🌋 Magmatizador, 🪝 Garra Afiada, 🦷 Presa Afiada, 💽 Disco Dúbio, 🕯️ Manto do Ceifador); via GM dar um Rhydon + 1 Protetor, usar no Pokémon Box → `★ Rhydon evoluiu para Rhyperior!`; dar um Riolu lv19 e vencer uma batalha → Lucario; vitrine de sprites com 493 espécies (2958 sprites). Encontros de Sinnoh **ainda não existem no mundo** (decisão do mantenedor) — use as Ferramentas GM | catchbound.vercel.app | Fase 6.4-D/§4.30 | ✅ 2026-09-07 (validado em produção pelo mantenedor) |
 | 16 | **Unova em produção (6.4-E)**: **sem SQL novo** (reutiliza pedras); após o deploy, vitrine de sprites com 649 espécies (3894 sprites); via GM dar Snivy lv16 → vencer batalha → Servine (lv17) → lv36 → Serperior; dar Pansage + Pedra de Folha → Pokémon Box → usar pedra → Simisage; Boldore lv39 → Gigalith (proxy troca lv40); Woobat lv24 → Swoobat | catchbound.vercel.app | Fase 6.4-E/§4.31 | ✅ 2026-09-07 (mantenedor declarou concluída) |
+| 18 | **Status de batalha em produção (8.4)**: **antes do merge** colar `docs/supabase-production-0011-runtime.sql` no SQL Editor (conferência: `status_columns 2 · cure_columns 7 · status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`); após o deploy: loja 1 lista 🧫 Antídoto (100) e 💛 Anti-Paralisia (200); via GM dar um Pikachu nv 12 → grama do mapa 1 → usar ✨ Onda Trovão → log "está paralisado!" + etiqueta **PAR** amarela na caixa de HP do selvagem; ser envenenado/queimado por um selvagem e ver a barra "ITENS (usar gasta o turno)" → usar Antídoto → turno passa e etiqueta some; fugir com status → Pokémon Box mostra a etiqueta → Centro Pokémon (✚) limpa; PvP amistoso: Pó do Sono de um Bulbasaur nv 15 adormece o adversário ("está dormindo profundamente") | catchbound.vercel.app | Fase 8.4/§4.36 | ⬜ |
 | 17 | **Chat no jogo em produção (8.8)**: **antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); após o deploy, 💬 GLOBAL/LOCAL/PRIVADO + `/w` + badge de não-lidas | catchbound.vercel.app | Fase 8.8/§4.32 | ✅ 2026-09-07 (mantenedor declarou concluída) |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -160,7 +166,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a07b36-pokeeeee` (Fase 8.8 — Chat no jogo global/local/whisper + decisão B Pokédex 649; o `main` está em `f6f0d98` — merge do PR #12, Fase 6.4-D, PR #13 Unova aberto)
+**Branch da sessão atual:** `arena/01a0809a-pokeeeee` (Fase 8.4 — Status de batalha; o `main` está em `c65401d` — merge do PR #16, reparo pós-8.3)
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -195,11 +201,11 @@ scripts/world-export.mts      # banco → content/world/     (npm run world:expo
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
 ```
 
-### Banco de dados — 12 tabelas
-`users` · `sessions` · `user_pokemon` · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06)
+### Banco de dados — 13 tabelas
+`users` · `sessions` · `user_pokemon` (+ `status`/`status_turns`, 8.4) · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06) · `battles` · `boss_fights` (8.3) · `rate_limits`. Migrations **0000–0011**.
 
 ### Conteúdo seedado
-**649 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh + 494–649 Unova, com learnset e linhas evolutivas completas — 6.4-E) · 133 golpes · 6 variantes · **40 mapas temáticos (6.4-A → 7.1, cadeia 1↔40)** — as **649** espécies distribuídas, cada uma em exatamente um mapa · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
+**649 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh + 494–649 Unova, com learnset e linhas evolutivas completas — 6.4-E) · **142 golpes** (133 + 9 de Status na 8.4; 27 com efeito secundário) · 6 variantes · **40 mapas temáticos (6.4-A → 7.1, cadeia 1↔40)** — as **649** espécies distribuídas, cada uma em exatamente um mapa · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
 
 ### Estado funcional real
 | Feature | Estado |
@@ -215,7 +221,8 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Ginásio | ✅ **Servidor** — luta turno a turno, insígnia só vencendo de verdade |
 | Loja (comprar) | ⚠️ Funciona, com exploit de `quantity` negativa |
 | Loja (vender item) | ❌ Não existe (`sellPrice` é coluna morta) |
-| Loja (Antídoto) | 🗑️ Removido na Fase 3 — dava Poção e não havia status para curar |
+| Loja (Antídoto) | ✅ **Voltou na 8.4** com coluna própria (`antidotes`) + 6 curas irmãs; o legado `itemKey: "potions"` continua sendo limpo pelo seed |
+| **Status de batalha (8.4)** | ✅ **Servidor** — PSN/TOX/BRN/PAR/SLP/FRZ em PvE e PvP, persistem em `user_pokemon.status` até Centro/item; `use_item` em batalha consome o turno |
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
 | PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
@@ -303,9 +310,12 @@ Amistoso atualiza `wins`/`losses` e o dano persiste; **não** mexe em ELO nem em
 | `src/lib/engine/damage.ts` | Fórmula de dano: `power`, `accuracy`, `category`, STAB, tipos, crítico, variância |
 | `src/lib/engine/xp.ts` | Curva de XP, ganho por batalha, level up |
 | `src/lib/engine/capture.ts` | Rolagem de captura com `catchRate` + fórmula de chacoalhada |
-| `src/lib/engine/combatant.ts` | Monta os combatentes; variante **afeta** os status (B4) |
-| `src/lib/battle-service.ts` | Orquestra turno, troca, captura, fuga e o resultado do ginásio |
-| `src/app/api/battle/route.ts` | `start_wild` · `start_gym` · `attack` · `switch` · `catch` · `flee` |
+| `src/lib/engine/combatant.ts` | Monta os combatentes; variante **afeta** os status (B4); `SideState.status/statusTurns` (8.4) |
+| `src/lib/engine/status.ts` | **8.4** — regras puras de status (Gen III): imunidades, `inflictStatus`, `beforeMove`, `residualDamage`, `effectiveSpeed`, bônus de captura |
+| `src/lib/engine/turn.ts` | **8.4** — `performStrike` / `endOfTurn` / `chooseOpponentMove`, compartilhados por PvE e PvP |
+| `src/lib/status-items.ts` | **8.4** — os 7 itens de cura (coluna, `use_item`, o que cura, preço Gen III) |
+| `src/lib/battle-service.ts` | Orquestra turno (`runRound`), item em batalha (`applyBattleItem`), troca, captura, fuga e o resultado do ginásio/boss |
+| `src/app/api/battle/route.ts` | `start_wild` · `start_gym` · `start_boss` · `attack` · `switch` · `catch` · `flee` · **`use_item`** (8.4) |
 | tabela `battles` | Estado de batalha persistido (`state` jsonb + `status`) |
 
 O cliente não calcula mais nada: escolhe uma ação e desenha o que o servidor devolver.
@@ -486,10 +496,13 @@ Etapa B assim que o primeiro lote de mapas existir.
       (15.000+100×nv) + **1 pedra à escolha** + **1/1200 o lendário nv 5**.
       Migration **0010** (`boss_fights` + `kind='boss'`) + companheiro idempotente
       validado 2×. Captura/fuga bloqueadas. Docs: `docs/FASE-8-ARENA-BOSS.md`.
-- [ ] **8.4 — Status de batalha** (era a 6.5): veneno/queimadura/paralisia no
-      motor, colunas `status`/`statusTurns` em `user_pokemon` (**migration**),
-      Antídoto e Queimadura-cura voltam à loja. Vira pré-requisito de ginásio
-      difícil e de boss.
+- [x] **8.4 — Status de batalha** ✅ 2026-09-08 (sandbox; pendência #18 em
+      produção): PSN/TOX/BRN/PAR/SLP/FRZ com regras da Gen III em PvE + PvP,
+      persistentes em `user_pokemon.status` (**migration 0011** + companheiro
+      `docs/supabase-production-0011-runtime.sql`), 9 golpes de Status + 27
+      efeitos secundários em 107 learnsets, 7 itens de cura na loja (Antídoto
+      de volta, com coluna própria), `use_item` dentro da batalha, etiqueta de
+      status e barra de itens nas 4 telas de luta. Docs: `docs/FASE-8-STATUS.md`.
 - [ ] **8.5 — Arena PvP ranqueada** (era a 6.6): `users.elo` já existe dormente
       e `pvp_battles.mode` já aceita `"ranked"`. Falta ranking global,
       pareamento, recompensa por posição e antifarm.
@@ -515,6 +528,71 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 8.4 — Status de batalha: veneno/queimadura/paralisia/sono/gelo com regras da Gen III, 7 itens de cura e item em batalha (2026-09-08, Etapa C, entrega C)
+
+**Pedido do mantenedor (2026-09-08):** dar como validadas as pendências A/B/C,
+adiar o backup, atualizar este arquivo, e implementar a 8.4 **pesquisando os
+jogos** (GBA em especial) para basear efeitos, balanceamento e itens de cura.
+
+**Pesquisa → decisões** (tabela completa em `docs/FASE-8-STATUS.md` §1): Gen III
+como base — veneno 1/8, veneno grave 1/16·n (teto 15/16, contador zera ao
+trocar), queimadura 1/8 + físico ×0,5, paralisia Speed ×0,25 + 25% de não agir,
+congelamento 20%/turno para descongelar + golpe de Fogo descongela, dano
+residual **depois** de os dois agirem (mais rápido primeiro), um status por vez,
+persiste após a batalha até Centro/item, desmaiar limpa, bônus de captura
+×2 (sono/gelo) e ×1,5 (demais). Duas concessões modernas, registradas: sono
+1–3 turnos (Gen V+, porque as batalhas aqui duram 2–7 turnos) e Elétrico imune
+a paralisia (Gen VI+, intuitivo). Preços dos itens 1:1 com a Gen III (a Poção
+do jogo já custa os 300 do GBA).
+
+**Motor:** `engine/status.ts` (puro, rng injetável) + `engine/turn.ts`
+(`performStrike`/`endOfTurn`/`chooseOpponentMove` — **um** motor para PvE e
+PvP, para as regras não divergirem). `battle-service.attack` reescrito em
+`runRound` (velocidade efetiva, desmaio entre ações e por residual passando
+pelo mesmo `resolveFaint` → XP/ginásio/boss/drop continuam corretos);
+`attemptCatch` com bônus de status e contra-ataque pelo mesmo motor;
+`persistTurn`/`pvp persistHp` gravam o status (desmaio limpa; só o sono guarda
+turnos); Centro Pokémon e `gm_heal` limpam. IA do oponente: golpe de Status
+**útil** em 40% das vezes.
+
+**Catálogo:** `PokemonMove.effect {status, chance, typeChart?}`; 9 golpes novos
+(Onda Trovão, Pó Paralisante, Fogo-Fátuo, Tóxico, Pó Venenoso, Pó do Sono,
+Esporo, Hipnose, Canção) e 27 efeitos secundários (Trovoada 30% PAR, Brasa
+10% BRN, Raio de Gelo 10% FRZ, Bomba de Lodo 30% PSN…); 107 learnsets
+alterados nos níveis da Gen III (Pikachu 10, Bulbasaur 13/15, Paras 7/27,
+Gastly 1, Vulpix 17, Koffing 30…). Guardas de learnset intactas (poder 0).
+
+**Banco:** migration **0011** (`user_pokemon.status/status_turns` + check;
+7 colunas de cura em `users` + `users_inventory_nonnegative` com 36 colunas).
+Companheiro `docs/supabase-production-0011-runtime.sql` idempotente,
+**validado 2×** em clone `TEMPLATE` revertido ao estado 0010 (conferência
+`2·7·1·1·8·12` nas duas) e as duas checks provadas.
+
+**Itens/loja/rotas:** `src/lib/status-items.ts` (Antídoto 100, Anti-Paralisia
+200, Despertador 250, Anti-Queimadura 250, Descongelante 250, Cura Total 600,
+Restaurador Total 3000 — lojas por progressão, `content/world/shops/*.json`
+reexportados); `POST /api/battle use_item` (poções + curas, **consome o
+turno**, 400 sem débito quando não teria efeito, débito atômico antes do
+efeito); `manage use_item` com as curas; `INVENTORY_KEYS`/`gm_give_item`
+aceitam as colunas novas.
+
+**UI:** `components/battle/StatusTag.tsx` (etiqueta PAR/ENV/TÓX/QUE/SON/GEL ao
+lado do LV. em `BattleArenaModal`/`GymModal`/`BossModal`/`PvpArena`/`PokemonBox`),
+`components/battle/BattleItemBar.tsx` ("ITENS (usar gasta o turno)", só o que
+o jogador tem, destaca o útil), golpes de Status com ✨/"STATUS", sfx do golpe
+pelo catálogo, curas no Pokémon Box, select do GM.
+
+**Testes:** +20 (`status.test.ts`) +15 (`turn.test.ts`) +5 integração
+(`status.integration.test.ts`) → **358 unit + 133 integração**, `npm run
+check` verde (lint + typecheck + unit + build).
+
+**Pós-merge (ordem):** ① colar o companheiro **0011** no Supabase SQL Editor
+(production) **antes** do merge → ② merge → ③ deploy Vercel `Ready` → ④ a loja
+seeda os itens sozinha no 1º acesso → ⑤ validar a pendência #18.
+
+**Próxima:** 8.5 — Arena PvP ranqueada (ver §5). Aguardando confirmação do
+mantenedor.
 
 ### ✅ FASE 8.3 — Arena Boss: lendário semanal nv 80–100 nos mapas 20 e 40, 2 tentativas/dia, pedra à escolha + 1/1200 (2026-09-07, Etapa C, entrega B)
 
@@ -2868,170 +2946,121 @@ npx tsx scripts/tmp-sync-check.mts  # preço 1200→100000 pelo seed (produção
 npm run db:rebalance -- --dry-run   # movesets 0/0, ginásios 0 — no-op limpo ✓
 ```
 
+### 4.36 Fase 8.4 — Status de batalha (2026-09-08, sandbox)
+
+> Comandos abaixo são do **sandbox do agente** (evidência), não tarefa do
+> mantenedor. Os passos dele estão na pendência #18 e em §5.
+
+**Ambiente:** `cp -n .env.example .env && npm ci` (341 pacotes) · `npm run
+db:local` (PostgreSQL 18.4 embutido, `127.0.0.1:5432/app_db`) · `npx
+drizzle-kit migrate` → 0000–0010 aplicadas.
+
+**Migration 0011 gerada e aplicada:**
+```
+npx drizzle-kit generate --name battle_status
+  → drizzle/0011_battle_status.sql (user_pokemon 26 colunas · users 54 colunas)
+npx drizzle-kit migrate → [✓] migrations applied successfully!
+sha256sum drizzle/0011_battle_status.sql
+  → e28964bfe86d866ef3d8181bf184210998bc13f045b93959b618005e7f8e9fbe
+drizzle.__drizzle_migrations: hash e28964bf… · created_at 1788870700554
+```
+
+**Companheiro de produção validado (clone `TEMPLATE app_db` revertido ao
+estado 0010, roles `catchbound_runtime`/`catchbound_backup` criadas; o SQL
+inteiro colado 2×):**
+```
+rodada 1: status_columns 2 · cure_columns 7 · status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12
+rodada 2: idem (idempotente)
+UPDATE user_pokemon SET status='XXX' → ERRO user_pokemon_status_check ✓
+UPDATE users SET antidotes=-1        → ERRO users_inventory_nonnegative ✓
+```
+
+**Suíte:**
+```
+npm run check
+  eslint .            → 0 problemas (após renomear useItemInBattle → applyBattleItem:
+                        o prefixo `use` disparava react-hooks/rules-of-hooks numa rota)
+  tsc --noEmit        → 0 erros
+  vitest run          → 26 arquivos · 358 testes ✓ (20 status + 15 turn novos;
+                        guardas de learnset gen1/hoenn/sinnoh/unova/balance intactas)
+  next build          → 17 rotas (16 + /api/boss já existia; nenhuma rota nova — use_item vive em /api/battle)
+npm run test:integration → 12 arquivos · 133 testes ✓
+  status.integration.test.ts (5): Onda Trovão paralisa pela rota real
+  (ou "Não afeta" quando o selvagem é Pikachu — Elétrico imune), status
+  persistido + Centro limpa, use_item fora de batalha (recusa sem débito,
+  cura e debita 1, Cura Total, Zod 400), use_item em batalha (consome
+  turno, debita, recusa sem efeito, Reviver fora do enum), loja 1 vende
+  Antídoto 100/Anti-Paralisia 200 e recompra a 50.
+  3 execuções seguidas do arquivo novo: 5/5 · 5/5 · 5/5 (sem flake).
+```
+
+**Mundo como código:** `npm run world:seed` + `ensureGymSeeded/ensureShopSeeded`
++ `npm run world:export` → 11 lojas `atualizado` (+319 linhas, só itens de
+cura). `farol-do-fim.json` voltou a divergir do banco (líder 429 vs 34 — dado
+pré-existente da renumeração, **não** desta fase) e foi **revertido** para não
+misturar diffs. ⚠️ Lição: `world:export` **poda** arquivos de mapas que não
+existem no banco — rodar só com o banco semeado (aconteceu uma vez e foi
+restaurado com `git checkout -- content/world` na hora, sem perda).
+
+**O que NÃO foi validado aqui:** Supabase (bloqueado no sandbox) — o
+companheiro foi provado em Postgres 18 local, e a UI (etiquetas, barra de
+itens, ✨ nos golpes de Status, curas no Pokémon Box) só por build/tipos, não
+no navegador. Pendência #18 cobre as duas coisas.
+
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🅲 Etapa C (2026-09-07, noite): 8.1+8.2 entregues no sandbox — **PR a abrir** (entrega A)
+### 🅲 Etapa C (2026-09-08): 8.4 entregue no sandbox — **PR a abrir** (entrega C) · próxima = **8.5 Arena PvP ranqueada**
 
-**Estado desta rodada:** 8 cidades (loja+ginásio+cura) + 11 lojas + 11
-ginásios + pedras 100k–200k + drop 0,2% nv 40+ + venda de consumíveis.
-`npm run check` verde (lint + tsc + 315 unit + build 15 rotas), 120 de
-integração verdes, `content/world/` reexportado (37 mapas, 11 lojas, mapa 1
-intacto). **Sem migration e sem SQL companheiro.**
+**Estado desta rodada:** status de batalha completo (motor, catálogo, banco,
+loja, rotas, UI, testes) — `npm run check` verde (358 unit + build), 133 de
+integração verdes, migration **0011** + companheiro validado 2×.
 
-🌐 **Passos do mantenedor (tudo pela interface):**
+🌐 **Passos do mantenedor (tudo pela interface), nesta ordem:**
 
-1. **Merge do PR** (Create a merge commit). Sem SQL antes/depois.
-2. **Vercel**: aguardar deploy de `main` (`Ready`).
-3. **Actions → `World activation (maps 1-40 + rebalance)` → Run workflow** em
-   `main`: `production`/`apply=true` (digitar `APLICAR-production`) — aplica
-   NPCs/centros/tabelas novas no banco de produção. (As lojas 4–11, os 8
-   ginásios e os preços novos entram sozinhos via seed no primeiro request;
-   o que precisa do workflow é o jsonb dos mapas.)
-4. **Navegador**: teleportar (GM) aos mapas 5/20/40 → loja com pedras 100k+,
-   ginásio com pré-requisito em escada, cura; aba VENDER recomprando poções;
-   vitrine/batalha sem regressão.
+1. **Supabase → SQL Editor (production)**: colar **inteiro**
+   `docs/supabase-production-0011-runtime.sql` (botão *Copy raw* no GitHub) e
+   executar. Conferência esperada: `status_columns 2 · cure_columns 7 ·
+   status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`.
+   Fazer **antes** do merge (o código antigo ignora as colunas; o novo precisa
+   delas).
+2. **Merge do PR** (Create a merge commit).
+3. **Vercel**: aguardar deploy de `main` (`Ready`). Nada de workflow: as lojas
+   seedam os itens de cura sozinhas no primeiro `GET /api/shop`.
+4. **Navegador**: pendência **#18** (loja 1 com Antídoto/Anti-Paralisia,
+   Pikachu nv 12 + Onda Trovão → etiqueta PAR, barra ITENS, Centro limpa, PvP
+   com Pó do Sono).
 
-**Próxima etapa: 8.3 — Arena Boss (entrega B).** NPC boss nos mapas 20 e 40,
-lendários semanais diferentes sem repetição, nv 80–100, 2 tentativas/dia/
-arena, vitória trava a semana, prêmio = XP + dinheiro + pedra à escolha +
-1/1200 o lendário nv 5. Exige **migration 0010** (`boss_fights` +
-`battles.kind='boss'`) + `docs/supabase-production-0010-runtime.sql`
-**antes do merge**, como 0008/0009.
+**Próxima etapa: 8.5 — Arena PvP ranqueada** (só após confirmação do
+mantenedor). O que já existe: `users.elo` (default 1000, dormente),
+`pvp_battles.mode` aceita `"ranked"`, motor de troca com lock e status.
+Plano:
+- **ELO**: K-factor 32 (24 acima de 2000), atualizado **só** em `ranked`,
+  dentro da mesma transação do `FINISHED` (forfeit e timeout contam);
+  `users.elo` já existe — sem migration para ele.
+- **Pareamento**: fila `ranked` em vez de código de sala — `join_ranked`
+  procura sala `WAITING` com `|elo − meu| ≤ 150` (janela cresce +50 a cada
+  30 s de espera), senão cria. Sem WebSocket: o polling atual de 2,5 s serve.
+- **Ranking global**: `GET /api/pvp?ranking=1` → top 50 por ELO + posição do
+  jogador; página/aba "RANKING" no lobby PvP com estética Press Start 2P.
+- **Recompensa por posição**: temporada semanal (mesmo `weekIdOf` do boss);
+  fechamento preguiçoso na 1ª chamada da semana nova (padrão do timeout do
+  PvP, sem cron): top 1/2/3/10 ganham Pk$ + Cura Total/Restaurador Total;
+  precisa de **tabela nova `pvp_seasons`** (week_id, user_id, elo_final,
+  rank, reward_claimed) → **migration 0012 + companheiro** (regra do
+  incidente 2026-09-06).
+- **Antifarm**: mesmo par de contas só pontua 3× por dia; conta com menos de
+  10 partidas não aparece no top; derrota por forfeit antes do turno 3 conta
+  como derrota cheia para quem desistiu e vitória reduzida (½ K) para o outro;
+  mesmo IP (hash) não pareia.
+- **Testes**: unit do ELO (simetria, K, piso 100) + integração do pareamento,
+  do ranking e da recompensa semanal.
 
-> Etapas 7.2–7.4 (mundo até 100 mapas) estão 🧊 congeladas por decisão do
-> mantenedor de 2026-09-07 — manter 40 mapas por enquanto.
+Depois: 8.6 NPCs de missão (tabela nova) → 8.7 treinadores de rota → Etapa D
+(rebranding 9.1, decisão legal 9.2, remetente 9.3, premium 9.4). Backup de
+produção (Verify restoration) continua **adiado** por decisão do mantenedor.
 
-### 🅱️ Etapa B (2026-09-07): 7.1 entregue — **PR #14** aberto para `main`
-
-**Estado desta rodada:** 40 mapas + 649 espécies redistribuídas, `npm run check`
-(lint + tsc + 308 unit + build 15 rotas) e 112 de integração verdes;
-`content/world/` reexportado (40 mapas; `shops/` intactos; mapa 1 byte a byte
-igual). **Sem migration e sem SQL companheiro** — nada de schema mudou.
-
-**Antes de mergear (manual, do mantenedor):**
-
-1. Validar no navegador com o banco da rodada (ou em staging pelo workflow
-   `World activation` com `apply=false`, depois `apply=true`): mapa 1 inalterado;
-   subir a cadeia 3→4→…→40 e checar encontros coerentes (bioma, nível dentro da
-   banda, lendários só do 10 para frente, peso baixo).
-2. Ver `docs/FASE-7-MUNDO.md` (tabela de bandas/temas e decisões de conteúdo).
-
-**PR:** #14 (`arena/01a07c70-pokeeeee` → `main`, 2 commits, 54 arquivos).
-
-🌐 **Passo pendente deste PR — tudo pela interface (o mantenedor não tem
-terminal com o projeto).** O app do GitHub do agente **não tem permissão
-`workflows`**: qualquer commit que toque em `.github/workflows/` (inclusive
-apagar arquivo) é rejeitado no push. Como `world-activation.yml` ainda gateda
-**20** mapas e o conteúdo versionado tem **40**, a ativação morria em "Verify
-public API" — quem aplica o ajuste é o mantenedor, no navegador:
-
-1. **GitHub → editar 1 linha**: abrir
-   `https://github.com/marmitero/pokeeeee/edit/arena/01a07c70-pokeeeee/.github/workflows/world-activation.yml`,
-   trocar `if [ "$n" != "20" ]; then` por `!= "40"` (e a frase `esperava 20
-   mapas` logo abaixo) → commit no branch do PR. *Ou*, melhor, substituir o
-   arquivo inteiro pelo conteúdo de `docs/world-activation.yml` (botão **Copy raw
-   file**) — isso traz também o step `world:distribute:check` e renomeia o
-   workflow para "maps 1-40".
-2. **Mesmo branch, apagar o que sobrou de lixo**: `.github/workflows/world-activation-40-mapas`
-   (arquivo criado por engano ao colar um `.patch` como workflow — sem `.yml` o
-   GitHub nem o registra) e `docs/patches/*` (patch só serve para `git apply` em
-   máquina local, que não existe aqui). Este PR já remove `docs/patches/`.
-3. **Actions**: a lista deve passar a mostrar `World activation (maps 1-40 +
-   rebalance)`; os checks do PR #14 verdes de novo.
-4. **Merge do PR #14** (Create a merge commit). **Sem SQL antes do merge**: nada
-   de migration neste PR (diferente de 0008/0009).
-5. **Vercel**: aguardar o deploy de `main` (`Ready`) e abrir
-   `https://catchbound.vercel.app/api/health`.
-6. **Actions → `World activation (maps 1-40 + rebalance)` → Run workflow**, em
-   `main`: `staging`/`apply=false` → `production`/`apply=false` →
-   `production`/`apply=true` (digitar `APLICAR-production`). No log do último:
-   `20 criado(s), 20 atualizado(s), 40 mapa(s)`, **Espelho OK**,
-   `mapas servidos por /api/maps: 40`. Se aparecer artefato `world-diff-*`,
-   baixar e mandar para o agente versionar.
-7. **Supabase → SQL Editor**: colar `docs/world-conferencia.sql` (Copy no
-   GitHub) e Run → 11 checagens com `valor = alvo` (40 mapas, 649 espécies,
-   pesos 100, lendários, mapa 1 verbatim).
-8. **Navegador**: mapa 1 intacto; cadeia 3→…→40; bioma/nível coerentes;
-   atalho `/admin` → FERRAMENTAS GM → teleportar para mapa (10, 20, 40).
-
-**Próxima etapa: 7.2 — Mapas 41–60.** Com o gerador pronto, o lote é: (a) 20
-entradas novas em `WORLD_MAP_LAYOUT`, (b) reescalonar `WORLD_BANDS` para o mapa
-60 (as bandas estariam com ~1 nível de largura — decisão registrada em
-`docs/FASE-7-MUNDO.md` antes de codar), (c) `world:distribute --write` +
-`world:seed` + `world:export`, (d) testes, (e) workflow `World activation`
-(40 → 60 mapas).
-
-> As seções 5 das rodadas anteriores (Fases 5.1 → 6.4-D, ativação do mundo,
-> incidente do cadastro) estão preservadas no histórico abaixo e em §3/§4.
-
-### Estado de produção nesta rodada (conferido em 2026-09-07)
-
-```
-GET https://catchbound.vercel.app/api/health → {"ok":true,"emailVerification":"ok"}
-```
-Migrations **0006, 0007 e 0008 já aplicadas** em produção; PR #12 (6.4-D) mergeado em `f6f0d98` e **pendências #1–#15 validadas pelo mantenedor** em produção. Pendências abertas: **#16 Unova (6.4-E)** e **#17 Chat no jogo (8.8)** — aguardam merge (este PR acumula as duas).
-
-### ✅ Decisão B — Pokédex completa em 649 + Chat no jogo
-
-**Decisão do mantenedor (2026-09-07): (B) parar em 649 e chamar de "Pokédex completa" do jogo.** Sem Kalos (650+), sem quebra de arte. A Etapa A está **fechada**.
-
-Este merge agora tem **passo de banco**: migration 0009 (chat local/whisper).
-
-Ordem:
-
-1. **Antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor do Supabase de produção (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); é idempotente (testado 2× em prodsim).
-2. Mergear o PR (Unova 649 + Chat 8.8); a Vercel sobe sozinha.
-3. **Não** é preciso `world:seed`/`World activation`: mapas não mudaram.
-4. Conferir produção conforme itens #16 e #17 do cabeçalho.
-
-### Passos do mantenedor após o merge (itens #16 e #17)
-
-**#16 Unova:**
-1. `catchbound.vercel.app` → vitrine de sprites com **649 espécies** (3894 sprites) carregando do CDN Gen V animado (teto 649);
-2. `/admin` → Ferramentas GM → dar Snivy (495) lv16 → vencer batalha → `★ Snivy evoluiu para Servine!` (cânone 17) → subir para 36 → Serperior;
-3. GM → dar Pansage (511) + Pedra de Folha → Pokémon Box → usar pedra → `★ Pansage evoluiu para Simisage!`;
-4. GM → dar Boldore lv39 → vencer → Gigalith (proxy troca lv40) e Woobat lv24 → Swoobat.
-
-**#17 Chat no jogo:**
-1. Logar no jogo (2 contas para testar privado), abrir o botão 💬 no canto inferior direito;
-2. Aba GLOBAL: enviar mensagem e ver aparecer para outro usuário logado;
-3. Aba LOCAL: mudar de mapa (via portal) e enviar mensagem — só quem está no mesmo mapa vê (testar com 2 contas no mesmo mapa vs mapas diferentes);
-4. Aba PRIVADO: enviar via `/w <nome> <msg>` ou preenchendo destinatário — só remetente e destinatário veem; conferir lista de conversas recentes e badge de não-lidas quando chat fechado ou em outro canal.
-
-### PRÓXIMA ETAPA: Etapa B — Mundo até 100 mapas
-
-Com a Pokédex fechada em 649 (B) e chat no jogo entregue, a próxima é **Etapa B — O mundo até 100 mapas**:
-
-- **7.1 Mapas 21–40** + redistribuição das espécies Hoenn/Sinnoh/Unova nas bandas altas (pesos = 100, evolução nunca em mapa anterior, lendários ≥ mapa 10 peso ≤20, mapa 1 intocado, cadeia de portais);
-- Depois 7.2 (41–60), 7.3 (61–80), 7.4 (81–100);
-- Cada lote: `default-world.ts` + `world:seed` + `world:export` + PR + `World activation` em produção.
-
-Paralelamente, Etapa C ainda tem:
-- **8.1 Lojas por região** (venda de itens + fix exploit quantity),
-- **8.2 Ginásios 8 + Elite**,
-- **8.3 Arenas de bosses lendários**,
-- **8.4 Status de batalha**,
-- **8.5 Arena PvP ranqueada** (ELO dormente),
-- **8.6 NPCs de missão**,
-- **8.7 Treinadores de rota**.
-
-**Antes de começar:** reler este arquivo inteiro (regra do protocolo) e `docs/PROMPT-NOVA-CONVERSA.md`.
-
-### PRÓXIMA ETAPA: decisão 6.4-F + fila
-
-A **Etapa A** fechou em 649 — é o teto do CDN animado. Próxima decisão é **6.4-F (Além do 649, Kalos 650–721+)**:
-
-- **(a)** usar sprites estáticos de outra geração só para 650+ — quebra unidade visual, mas mantém Pokédex crescendo;
-- **(b)** parar em 649 e chamar de "Pokédex completa" do jogo — honesto com a arte, foca na Etapa B (mundo 100 mapas);
-- **(c)** arte própria — casa com rebranding completo (9.1) e resolve risco legal (9.2), mas exige pipeline de arte.
-
-**Levar ao mantenedor antes de implementar 6.4-F.** Enquanto decide, a fila da **Etapa C** já tem um item pedido em produção:
-
-- **8.8 — Chat dentro do jogo**: hoje só existe no painel admin e arena PvP (polling 5s, `chat_messages` + moderação). Falta chat no mundo, "bonito e não poluente" no HUD, recolhível, badge de não-lidas, reusa tabela/moderation, sem migration. Pode ganhar canais (global/mapa) depois.
-
-Ou seja: próxima conversa = **perguntar ao mantenedor: (a/b/c) para 6.4-F** e, se escolher (b) ou adiar, começar **8.8 Chat no jogo** em paralelo à Etapa B.
-
-**Antes de começar:** reler este arquivo inteiro (regra do protocolo) e `docs/PROMPT-NOVA-CONVERSA.md`.
+**Antes de começar:** reler este arquivo inteiro (regra do protocolo) e
+`docs/PROMPT-NOVA-CONVERSA.md`.
 
 ---
 
@@ -3092,6 +3121,8 @@ Ou seja: próxima conversa = **perguntar ao mantenedor: (a/b/c) para 6.4-F** e, 
 | 2026-09-07 | **Correção de processo (7.1)** — o gate do workflow `World activation` precisava sair de 20 para 40 mapas; o agente não tem permissão `workflows` e o primeiro reparo (colar o patch como arquivo novo `.github/workflows/world-activation-40-mapas`) **não funcionou**: sem `.yml` o GitHub não registra workflow nenhum e o arquivo real continuou o mesmo. Corrigido com `docs/patches/world-activation-40-fix.patch` (aplicar, não colar) + receita de conferência em `docs/FASE-7-MUNDO.md` | ⬜ manter aplicação pelo mantenedor | `gh workflow list` · `diff .github/workflows/… docs/…` |
 | 2026-09-07 | **Fase 8.1+8.2 — Cidades (8 lojas + 8 ginásios + cura), pedras 100k–200k, drop 0,2% nv 40+, venda** | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-8-CIDADES.md` · §3/§4.35 · 23/315 unit · 10/120 integração · build 15 rotas |
 | 2026-09-07 | **Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 espécies**: `world-layout.ts` (40 mapas como dados), `world-distribute.ts` (gerador determinístico: alvo por rank, varredura mapa-a-mapa, afinidade de bioma, teto de desvio, pesos em agenda geométrica, piso de nível de evolução), `world-encounters.ts` (artefato gerado commitado), `default-world.ts` virou renderizador, bandas reescaladas M2 6–20 → M40 86–100 (mapa 1 travado em 3–10), 40 JSONs em `content/world/maps/`, workflow `World activation` 20→40 + `world:distribute:check`, +20 guardas de teste | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-7-MUNDO.md` · §3/§4.33 · 22/308 unit · 9/112 integração · build 15 rotas |
+| 2026-09-08 | **Fase 8.3 — Arena Boss** (PR #15 A+B) + **incidente `battles_kind_check` pós-renumeração** (PR #16 reparo + `ensureDefaultMapsSeeded`) | ✅ Merged (`c65401d`) · ✅ validado em produção pelo mantenedor 2026-09-08 (pendências A/B/C) | `docs/FASE-8-ARENA-BOSS.md` · `docs/supabase-production-0010-*.sql` · §3/§4.35 |
+| 2026-09-08 | **Fase 8.4 — Status de batalha**: PSN/TOX/BRN/PAR/SLP/FRZ (Gen III) em PvE + PvP, `engine/status.ts` + `engine/turn.ts`, 9 golpes de Status + 27 efeitos em 107 learnsets, migration **0011** (`user_pokemon.status/status_turns` + 7 colunas de cura) + `docs/supabase-production-0011-runtime.sql` validado 2×, 7 itens de cura nas lojas por progressão, `POST /api/battle use_item` (consome turno), etiqueta de status + barra ITENS nas 4 telas, curas no Pokémon Box | ✅ Concluída e validada no sandbox · ⬜ PR + SQL 0011 + pendência #18 em produção | `docs/FASE-8-STATUS.md` · §3/§4.36 · 26/358 unit · 12/133 integração · `drizzle/0011` |
 | — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

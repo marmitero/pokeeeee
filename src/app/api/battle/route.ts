@@ -15,6 +15,7 @@ import {
   startGymBattle,
   startWildBattle,
   switchPokemon,
+  applyBattleItem,
 } from "@/lib/battle-service";
 
 /**
@@ -74,6 +75,10 @@ export async function POST(req: Request) {
         break;
       case "flee":
         battle = await flee(user.id, input.battleId);
+        break;
+      case "use_item":
+        // Fase 8.4: poção ou cura de status no Pokémon ativo — consome o turno.
+        battle = await applyBattleItem(user.id, input.battleId, input.item);
         break;
     }
 

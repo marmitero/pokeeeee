@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
+import { getMoveByName, getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
 import { retroSfx } from "@/lib/sound";
 import { X, Trophy, Shield, Swords } from "lucide-react";
 import type { BattleState, BattleView } from "@/lib/battle-service";
 import { api } from "@/lib/api-client";
+import { StatusTag } from "@/components/battle/StatusTag";
+import { BattleItemBar } from "@/components/battle/BattleItemBar";
 
 interface GymLeader {
   id: number;
@@ -32,6 +34,8 @@ interface UserBadge {
 interface GymModalProps {
   gymLeaderId: number;
   userBadges: UserBadge[];
+  /** Inventário do jogador (o `user` público) — barra de itens da 8.4. */
+  inventory?: Record<string, unknown> | null;
   onBattleResult: (updatedUser: unknown, updatedBadges: UserBadge[]) => void;
   onClose: () => void;
 }
@@ -65,6 +69,7 @@ async function callBattle(
 export function GymModal({
   gymLeaderId,
   userBadges,
+  inventory,
   onBattleResult,
   onClose,
 }: GymModalProps) {
@@ -128,11 +133,23 @@ export function GymModal({
 
   const doAttack = async (moveIndex: number) => {
     if (!battle || busy) return;
+    const moveName = battle.state.player.moves[moveIndex]?.name;
+    retroSfx.playAttack(moveName ? getMoveByName(moveName).sfx : "slash");
+    await doAction({ action: "attack", battleId: battle.id, moveIndex });
+  };
+
+  // Fase 8.4: poção / cura de status — consome o turno (o líder ataca depois).
+  const doUseItem = async (item: string) => {
+    if (!battle || busy) return;
+    retroSfx.playAttack("heal");
+    await doAction({ action: "use_item", battleId: battle.id, item });
+  };
+
+  const doAction = async (body: Record<string, unknown>) => {
     setBusy(true);
     setError(null);
-    retroSfx.playAttack("slash");
 
-    const res = await callBattle({ action: "attack", battleId: battle.id, moveIndex });
+    const res = await callBattle(body);
     setBusy(false);
 
     if ("error" in res) {
@@ -280,8 +297,9 @@ export function GymModal({
               {/* Oponente */}
               <div className="flex flex-col items-start justify-start">
                 <div className="border-2 border-slate-600 bg-slate-950/90 px-3 py-1.5">
-                  <div className="font-['Press_Start_2P'] text-[9px] text-amber-300">
-                    {opponent.name} <span className="text-slate-500">LV.{opponent.level}</span>
+                  <div className="flex items-center gap-2 font-['Press_Start_2P'] text-[9px] text-amber-300">
+                    <span>{opponent.name} <span className="text-slate-500">LV.{opponent.level}</span></span>
+                    <StatusTag status={opponent.status} />
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[7px] text-amber-400">HP</span>
@@ -308,8 +326,9 @@ export function GymModal({
                   className="mb-2 h-24 w-24 object-contain"
                 />
                 <div className="border-2 border-amber-400 bg-slate-950/90 px-3 py-1.5">
-                  <div className="font-['Press_Start_2P'] text-[9px] text-amber-300">
-                    {player.displayName} <span className="text-slate-500">LV.{player.level}</span>
+                  <div className="flex items-center gap-2 font-['Press_Start_2P'] text-[9px] text-amber-300">
+                    <span>{player.displayName} <span className="text-slate-500">LV.{player.level}</span></span>
+                    <StatusTag status={player.status} />
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[7px] text-amber-400">HP</span>
@@ -354,9 +373,19 @@ export function GymModal({
                     disabled={busy || player.hp <= 0}
                     className="border-2 border-slate-600 bg-slate-800 px-3 py-2.5 font-['Press_Start_2P'] text-[10px] text-amber-300 shadow-[2px_2px_0px_#000] hover:border-amber-400 hover:bg-slate-700 disabled:opacity-40"
                   >
-                    ⚡ {m.name}
+                    {m.category === "Status" ? "✨" : "⚡"} {m.name}
                   </button>
                 ))}
+              </div>
+              <div className="mt-3">
+                <BattleItemBar
+                  inventory={inventory}
+                  playerHp={player.hp}
+                  playerMaxHp={player.maxHp}
+                  playerStatus={player.status}
+                  disabled={busy || player.hp <= 0}
+                  onUse={doUseItem}
+                />
               </div>
             </div>
           </div>

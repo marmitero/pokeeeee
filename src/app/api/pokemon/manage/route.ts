@@ -12,6 +12,8 @@ import {
 } from "@/lib/evolution-items";
 import { applyItemEvolution, evolutionWithItem } from "@/lib/engine/evolution";
 import { moveNamesForDb, refreshMovesForLevel, sideFromUserPokemon } from "@/lib/engine/combatant";
+import { STATUS_ITEMS, itemCures, statusItemByUseKey } from "@/lib/status-items";
+import { STATUS_NOUN, normalizeStatus } from "@/lib/engine/status";
 import { parse, badRequest, notFound, publicUser, routeError } from "@/lib/api";
 
 /**
@@ -50,6 +52,12 @@ const INVENTORY_COLUMN = {
   maxPotion: "maxPotions",
   revive: "revives",
 } as const;
+
+type HealItem = keyof typeof INVENTORY_COLUMN;
+
+function isHealItem(item: string): item is HealItem {
+  return item in INVENTORY_COLUMN;
+}
 
 /** Re-numera os slots do time para ficarem contíguos (1..n). */
 async function renumberParty(tx: Tx, userId: number): Promise<void> {
@@ -294,6 +302,66 @@ export async function POST(req: Request) {
         });
       }
 
+      // Fase 8.4: itens de cura de status (Antídoto, Anti-Paralisia, …).
+      // Fora de batalha o status persiste até Centro Pokémon ou item — este é
+      // o item. Restaurador Total também enche o HP.
+      const cureKey = statusItemByUseKey(input.item);
+      if (cureKey) {
+        const spec = STATUS_ITEMS[cureKey];
+        const status = normalizeStatus(poke.status);
+        if (poke.hp <= 0) {
+          throw badRequest("Pokémon desmaiado — use um Reviver primeiro!");
+        }
+        const cures = itemCures(cureKey, status);
+        const fillsHp = Boolean(spec.fullHp) && poke.hp < poke.maxHp;
+        if (!cures && !fillsHp) {
+          throw badRequest(
+            status === "NONE"
+              ? `${poke.name} não tem nenhum problema de status!`
+              : `${spec.name} não cura ${STATUS_NOUN[status]}!`
+          );
+        }
+
+        await db.transaction(async (tx) => {
+          const deducted = await tx
+            .update(users)
+            .set({ [cureKey]: sql`${users[cureKey]} - 1` })
+            .where(and(eq(users.id, uid), sql`${users[cureKey]} > 0`))
+            .returning({ id: users.id });
+          if (deducted.length === 0) {
+            throw badRequest(`Sem ${spec.plural}!`);
+          }
+          await tx
+            .update(userPokemon)
+            .set({
+              ...(cures ? { status: "NONE", statusTurns: 0 } : {}),
+              ...(spec.fullHp ? { hp: poke.maxHp } : {}),
+            })
+            .where(eq(userPokemon.id, poke.id));
+        });
+
+        const [updatedUser] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, uid));
+        const all = await db
+          .select()
+          .from(userPokemon)
+          .where(eq(userPokemon.userId, uid));
+
+        const parts: string[] = [];
+        if (cures && status !== "NONE") parts.push(`${poke.name} se curou de ${STATUS_NOUN[status]}!`);
+        if (fillsHp) parts.push(`HP restaurado por completo.`);
+        return NextResponse.json({
+          user: publicUser(updatedUser),
+          party: all,
+          message: parts.join(" "),
+        });
+      }
+
+      if (!isHealItem(input.item)) {
+        throw badRequest("Item desconhecido.");
+      }
       const column = INVENTORY_COLUMN[input.item];
       const inStock = user[column];
 

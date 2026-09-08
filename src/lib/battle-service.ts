@@ -7,8 +7,10 @@ import {
   rollRandomDelugeVariant,
   type DelugeVariant,
 } from "@/lib/pokedex";
-import { computeDamage } from "@/lib/engine/damage";
-import { toCombatant } from "@/lib/engine/combatant";
+import { chooseOpponentMove, endOfTurn, performStrike } from "@/lib/engine/turn";
+import { STATUS_NOUN, effectiveSpeed, normalizeStatus } from "@/lib/engine/status";
+import { STATUS_ITEMS, itemCures, statusItemByUseKey } from "@/lib/status-items";
+import type { BattleItem } from "@/lib/validation";
 import {
   encounterPoolAt,
   hasEncounterAt,
@@ -380,79 +382,9 @@ export async function attack(
   const move = state.player.moves[moveIndex];
   if (!move) throw badRequest("Golpe inválido.");
 
-  let log = state.log;
   const rewards: BattleView["rewards"] = {};
+  const { log, status } = await runRound(state, userId, rewards, { kind: "move", move });
 
-  // Ordem do turno decidida pela velocidade.
-  const playerFirst =
-    state.player.speed >= state.opponent.speed ? true : Math.random() < 0.5;
-
-  const first = playerFirst ? state.player : state.opponent;
-  const second = playerFirst ? state.opponent : state.player;
-  const isFirstPlayer = playerFirst;
-
-  // ── Primeiro ataque ────────────────────────────────────────────────────
-  const firstMove = isFirstPlayer
-    ? move
-    : pickOpponentMove(state.opponent);
-
-  let firstResult = computeDamage(toCombatant(first), toCombatant(second), firstMove as never);
-  log = pushLog(
-    log,
-    `${first.displayName} usou ${firstMove.name}!` +
-      (firstResult.missed ? " Mas errou!" : "")
-  );
-
-  if (!firstResult.missed) {
-    if (firstResult.critical) log = pushLog(log, "Golpe crítico!");
-    if (firstResult.label) log = pushLog(log, firstResult.label);
-    log = pushLog(log, `Causou ${firstResult.damage} de dano.`);
-    second.hp = Math.max(0, second.hp - firstResult.damage);
-  }
-
-  // ── O primeiro desmaiou? ───────────────────────────────────────────────
-  let outcome = await resolveFaint(
-    isFirstPlayer ? "opponent" : "player",
-    state,
-    log,
-    rewards,
-    userId
-  );
-  log = outcome.log;
-
-  // ── Segundo ataque, se ambos seguem de pé ──────────────────────────────
-  if (outcome.continue && second.hp > 0 && first.hp > 0) {
-    const secondMove = isFirstPlayer ? pickOpponentMove(state.opponent) : move;
-    const secondResult = computeDamage(
-      toCombatant(second),
-      toCombatant(first),
-      secondMove as never
-    );
-
-    log = pushLog(
-      log,
-      `${second.displayName} usou ${secondMove.name}!` +
-        (secondResult.missed ? " Mas errou!" : "")
-    );
-
-    if (!secondResult.missed) {
-      if (secondResult.critical) log = pushLog(log, "Golpe crítico!");
-      if (secondResult.label) log = pushLog(log, secondResult.label);
-      log = pushLog(log, `Causou ${secondResult.damage} de dano.`);
-      first.hp = Math.max(0, first.hp - secondResult.damage);
-    }
-
-    outcome = await resolveFaint(
-      isFirstPlayer ? "player" : "opponent",
-      state,
-      log,
-      rewards,
-      userId
-    );
-    log = outcome.log;
-  }
-
-  const status = outcome.status;
   state.log = log;
   state.turn += 1;
 
@@ -461,10 +393,157 @@ export async function attack(
   return { ...view(await reload(battle.id)), rewards };
 }
 
-function pickOpponentMove(opponent: SideState) {
-  const damaging = opponent.moves.filter((m) => m.category !== "Status");
-  const pool = damaging.length > 0 ? damaging : opponent.moves;
-  return pool[Math.floor(Math.random() * pool.length)] ?? opponent.moves[0];
+/**
+ * Ação do jogador num turno: um golpe, ou um item (8.4) — o item é aplicado
+ * antes de o oponente agir, como no GBA, e consome o turno.
+ */
+type PlayerAction =
+  | { kind: "move"; move: SideState["moves"][number] }
+  | { kind: "item"; apply: (log: string[]) => string[] };
+
+/**
+ * Um turno completo (Fase 8.4): ordem pela velocidade **efetiva** (paralisia
+ * ×0,25), golpes via `performStrike` (sono/gelo/paralisia, efeitos de status,
+ * descongelar), desmaios entre as ações e o dano residual de veneno/queimadura
+ * **depois** de os dois agirem (Gen III). Item do jogador sempre vai primeiro.
+ */
+async function runRound(
+  state: BattleState,
+  userId: number,
+  rewards: NonNullable<BattleView["rewards"]>,
+  action: PlayerAction
+): Promise<{ log: string[]; status: BattleStatus }> {
+  let log = state.log;
+
+  const playerSpeed = effectiveSpeed(state.player);
+  const opponentSpeed = effectiveSpeed(state.opponent);
+  const playerFirst =
+    action.kind === "item" ||
+    (playerSpeed > opponentSpeed ? true : playerSpeed < opponentSpeed ? false : Math.random() < 0.5);
+
+  const actPlayer = (): void => {
+    if (action.kind === "item") {
+      log = action.apply(log);
+      return;
+    }
+    const r = performStrike(state.player, state.opponent, action.move);
+    log = pushLog(log, ...r.log);
+  };
+  const actOpponent = (): void => {
+    const oppMove = chooseOpponentMove(state.opponent, state.player);
+    const r = performStrike(state.opponent, state.player, oppMove);
+    log = pushLog(log, ...r.log);
+  };
+
+  // ── Primeira ação ──────────────────────────────────────────────────────
+  if (playerFirst) actPlayer(); else actOpponent();
+
+  let outcome = await resolveFaint(playerFirst ? "opponent" : "player", state, log, rewards, userId);
+  log = outcome.log;
+  if (!outcome.continue) return { log, status: outcome.status };
+
+  // ── Segunda ação, se ambos seguem de pé ────────────────────────────────
+  if (state.player.hp > 0 && state.opponent.hp > 0) {
+    if (playerFirst) actOpponent(); else actPlayer();
+
+    outcome = await resolveFaint(playerFirst ? "player" : "opponent", state, log, rewards, userId);
+    log = outcome.log;
+    if (!outcome.continue) return { log, status: outcome.status };
+  }
+
+  // ── Fim de turno: veneno / queimadura (mais rápido primeiro) ───────────
+  const order = playerFirst ? [state.player, state.opponent] : [state.opponent, state.player];
+  const residual = endOfTurn(order);
+  log = pushLog(log, ...residual.log);
+
+  for (const side of residual.fainted) {
+    outcome = await resolveFaint(side === state.player ? "player" : "opponent", state, log, rewards, userId);
+    log = outcome.log;
+    if (!outcome.continue) return { log, status: outcome.status };
+  }
+
+  return { log, status: "ACTIVE" };
+}
+
+// ─── Item em batalha (8.4) ─────────────────────────────────────────────────
+
+const BATTLE_POTION: Record<string, { column: "potions" | "superPotions" | "maxPotions"; label: string; heal: number | "max" }> = {
+  potion: { column: "potions", label: "Poção", heal: 20 },
+  superPotion: { column: "superPotions", label: "Super Poção", heal: 50 },
+  maxPotion: { column: "maxPotions", label: "Hiper Poção", heal: "max" },
+};
+
+/**
+ * Usa um item no Pokémon ativo durante a batalha. Regras do GBA: o item age
+ * antes do oponente e **gasta o turno** — o oponente ataca em seguida. Só
+ * poções e curas de status (`BATTLE_ITEM_VALUES`); o débito é atômico e
+ * acontece antes de qualquer efeito, como nas bolas.
+ */
+export async function applyBattleItem(
+  userId: number,
+  battleId: number,
+  item: BattleItem
+): Promise<BattleView> {
+  const { battle, state } = await loadActive(userId, battleId);
+  const me = state.player;
+
+  const potion = BATTLE_POTION[item];
+  const cureKey = statusItemByUseKey(item);
+  const column = potion ? potion.column : cureKey;
+  if (!column) throw badRequest("Item inválido.");
+
+  const label = potion ? potion.label : STATUS_ITEMS[cureKey!].name;
+
+  // Valida o efeito ANTES de debitar: item sem efeito não é consumido nem gasta turno.
+  let apply: (log: string[]) => string[];
+  if (potion) {
+    if (me.hp >= me.maxHp) throw badRequest(`${me.displayName} já está com o HP cheio!`);
+    apply = (log) => {
+      const before = me.hp;
+      me.hp = potion.heal === "max" ? me.maxHp : Math.min(me.maxHp, me.hp + potion.heal);
+      return pushLog(log, `Você usou ${label}! ${me.displayName} recuperou ${me.hp - before} de HP.`);
+    };
+  } else {
+    const spec = STATUS_ITEMS[cureKey!];
+    const cures = itemCures(cureKey!, me.status);
+    const fillsHp = Boolean(spec.fullHp) && me.hp < me.maxHp;
+    if (!cures && !fillsHp) {
+      throw badRequest(
+        me.status === "NONE"
+          ? `${me.displayName} não tem nenhum problema de status!`
+          : `${spec.name} não cura ${STATUS_NOUN[me.status]}!`
+      );
+    }
+    apply = (log) => {
+      const parts = [`Você usou ${label}!`];
+      if (cures && me.status !== "NONE") {
+        parts.push(`${me.displayName} se curou de ${STATUS_NOUN[me.status]}!`);
+        me.status = "NONE";
+        me.statusTurns = 0;
+      }
+      if (fillsHp) {
+        me.hp = me.maxHp;
+        parts.push("HP restaurado por completo.");
+      }
+      return pushLog(log, parts.join(" "));
+    };
+  }
+
+  const deducted = await db
+    .update(users)
+    .set({ [column]: sql`${users[column]} - 1` })
+    .where(and(eq(users.id, userId), sql`${users[column]} > 0`))
+    .returning({ id: users.id });
+  if (deducted.length === 0) throw badRequest(`Você não possui ${label}.`);
+
+  const rewards: BattleView["rewards"] = {};
+  const { log, status } = await runRound(state, userId, rewards, { kind: "item", apply });
+
+  state.log = log;
+  state.turn += 1;
+  await persistTurn(userId, battle.id, state, status);
+
+  return { ...view(await reload(battle.id)), rewards };
 }
 
 interface FaintOutcome {
@@ -774,11 +853,13 @@ export async function attemptCatch(
   if (user[ball] <= 0) throw badRequest(`Você não possui ${BALL_LABEL[ball]}.`);
 
   const species = getPokemonSpecies(state.opponent.pokedexId);
+  // Fase 8.4: sono/gelo ×2, veneno/queimadura/paralisia ×1,5 (Gen III).
   const chance = captureChance(
     species.catchRate,
     state.opponent.hp,
     state.opponent.maxHp,
-    ball
+    ball,
+    normalizeStatus(state.opponent.status)
   );
 
   // Debita a bola de forma atômica, antes de qualquer efeito.
@@ -838,26 +919,28 @@ export async function attemptCatch(
       `Ah não! ${species.name} escapou! (chance era de ${Math.round(chance * 100)}%)`
     );
 
-    // O selvagem contra-ataca após a falha.
-    const move = pickOpponentMove(state.opponent);
-    const result = computeDamage(
-      toCombatant(state.opponent),
-      toCombatant(state.player),
-      move as never
-    );
-    log = pushLog(log, `${state.opponent.displayName} usou ${move.name}!`);
-    if (!result.missed) {
-      log = pushLog(log, `Causou ${result.damage} de dano.`);
-      state.player.hp = Math.max(0, state.player.hp - result.damage);
-      if (state.player.hp <= 0) {
-        log = pushLog(
-          log,
-          `${state.player.displayName} desmaiou! Você voltou para a base.`
-        );
-        status = "LOST";
-      }
-    } else {
-      log = pushLog(log, "Mas errou!");
+    // O selvagem contra-ataca após a falha (com status: pode dormir/paralisar,
+    // pode aplicar status; veneno/queimadura correm no fim do turno).
+    const move = chooseOpponentMove(state.opponent, state.player);
+    const strike = performStrike(state.opponent, state.player, move);
+    log = pushLog(log, ...strike.log);
+    if (state.player.hp > 0) {
+      const residual = endOfTurn([state.opponent, state.player]);
+      log = pushLog(log, ...residual.log);
+    }
+    if (state.player.hp <= 0) {
+      log = pushLog(
+        log,
+        `${state.player.displayName} desmaiou! Você voltou para a base.`
+      );
+      status = "LOST";
+    }
+    if (state.opponent.hp <= 0) {
+      // O selvagem caiu pelo próprio veneno/queimadura: vitória normal.
+      const rewards: NonNullable<BattleView["rewards"]> = {};
+      const outcome = await resolveFaint("opponent", state, log, rewards, userId);
+      log = outcome.log;
+      status = outcome.status;
     }
   }
 
@@ -946,6 +1029,11 @@ async function persistTurn(
           pokedexId: state.player.pokedexId,
           name: state.player.name,
           hp: state.player.hp,
+          // Fase 8.4: o status persiste depois da batalha até Centro Pokémon
+          // ou item (GBA); desmaiar limpa. O contador do veneno grave não é
+          // guardado — recomeça ao entrar em campo (sideFromUserPokemon).
+          status: state.player.hp > 0 ? state.player.status : "NONE",
+          statusTurns: state.player.hp > 0 && state.player.status === "SLP" ? state.player.statusTurns : 0,
           level: state.player.level,
           xp: state.player.xp,
           xpToNextLevel: xpToNextLevel(state.player.level),

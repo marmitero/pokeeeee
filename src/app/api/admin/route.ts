@@ -330,7 +330,7 @@ export async function POST(req: Request) {
 
       const healed = await db
         .update(userPokemon)
-        .set({ hp: sql`${userPokemon.maxHp}` })
+        .set({ hp: sql`${userPokemon.maxHp}`, status: "NONE", statusTurns: 0 })
         .where(eq(userPokemon.userId, target.id))
         .returning({ id: userPokemon.id });
 

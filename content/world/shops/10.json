@@ -69,6 +69,28 @@
       "stock": 5
     },
     {
+      "itemKey": "fullHeals",
+      "name": "Cura Total",
+      "description": "Cura qualquer problema de status.",
+      "category": "potion",
+      "buyPrice": 600,
+      "sellPrice": 300,
+      "iconEmoji": "✨",
+      "isPremium": false,
+      "stock": 90
+    },
+    {
+      "itemKey": "fullRestores",
+      "name": "Restaurador Total",
+      "description": "Restaura todo o HP e cura qualquer status.",
+      "category": "potion",
+      "buyPrice": 3000,
+      "sellPrice": 1500,
+      "iconEmoji": "💖",
+      "isPremium": false,
+      "stock": 30
+    },
+    {
       "itemKey": "kingsRock",
       "name": "Rocha do Rei",
       "description": "Usado fora de batalha para evoluir certas espécies.",

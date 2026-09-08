@@ -6,6 +6,7 @@ import { Shield, Trash2, Crown, MessageSquare, Wrench } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { DELUGE_VARIANTS, POKEDEX } from "@/lib/pokedex";
 import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES } from "@/lib/evolution-items";
+import { STATUS_ITEMS, STATUS_ITEM_KEYS } from "@/lib/status-items";
 
 /**
  * Painel administrativo (Fase 5 + ferramentas GM de teste).
@@ -96,6 +97,10 @@ const GM_ITEM_LABEL: Record<string, string> = {
   // do catálogo para o GM poder testar qualquer linha sem passar pela loja.
   ...Object.fromEntries(
     EVOLUTION_ITEM_VALUES.map((key) => [key, `${EVOLUTION_ITEM_EMOJI[key]} ${EVOLUTION_ITEM_LABEL[key]}`])
+  ),
+  // 8.4: curas de status.
+  ...Object.fromEntries(
+    STATUS_ITEM_KEYS.map((key) => [key, `${STATUS_ITEMS[key].iconEmoji} ${STATUS_ITEMS[key].name}`])
   ),
 };
 

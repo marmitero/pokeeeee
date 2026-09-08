@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
+import { getMoveByName, getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
 import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES } from "@/lib/evolution-items";
 import { retroSfx } from "@/lib/sound";
 import { X, Trophy, Swords, Crown } from "lucide-react";
 import type { BattleState, BattleView } from "@/lib/battle-service";
 import { api } from "@/lib/api-client";
+import { StatusTag } from "@/components/battle/StatusTag";
+import { BattleItemBar } from "@/components/battle/BattleItemBar";
 
 interface BossStatus {
   arenaMapId: number;
@@ -21,6 +23,8 @@ interface BossStatus {
 interface BossModalProps {
   arenaMapId: number;
   arenaName: string;
+  /** Inventário do jogador (o `user` público) — barra de itens da 8.4. */
+  inventory?: Record<string, unknown> | null;
   onBattleResult: (updatedUser: unknown) => void;
   onClose: () => void;
 }
@@ -41,7 +45,7 @@ async function callBattle(
   return data;
 }
 
-export function BossModal({ arenaMapId, arenaName, onBattleResult, onClose }: BossModalProps) {
+export function BossModal({ arenaMapId, arenaName, inventory, onBattleResult, onClose }: BossModalProps) {
   const [status, setStatus] = useState<BossStatus | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [battle, setBattle] = useState<BattleView | null>(null);
@@ -102,11 +106,23 @@ export function BossModal({ arenaMapId, arenaName, onBattleResult, onClose }: Bo
 
   const doAttack = async (moveIndex: number) => {
     if (!battle || busy) return;
+    const moveName = battle.state.player.moves[moveIndex]?.name;
+    retroSfx.playAttack(moveName ? getMoveByName(moveName).sfx : "slash");
+    await doAction({ action: "attack", battleId: battle.id, moveIndex });
+  };
+
+  // Fase 8.4: poção / cura de status — consome o turno (o lendário ataca depois).
+  const doUseItem = async (item: string) => {
+    if (!battle || busy) return;
+    retroSfx.playAttack("heal");
+    await doAction({ action: "use_item", battleId: battle.id, item });
+  };
+
+  const doAction = async (body: Record<string, unknown>) => {
     setBusy(true);
     setError(null);
-    retroSfx.playAttack("slash");
 
-    const res = await callBattle({ action: "attack", battleId: battle.id, moveIndex });
+    const res = await callBattle(body);
     setBusy(false);
 
     if ("error" in res) {
@@ -302,8 +318,9 @@ export function BossModal({ arenaMapId, arenaName, onBattleResult, onClose }: Bo
             <div className="relative flex h-52 flex-row-reverse justify-between bg-[radial-gradient(ellipse_at_top,_#3b0764,_#0f172a)] p-5">
               <div className="flex flex-col items-start justify-start">
                 <div className="border-2 border-purple-500 bg-slate-950/90 px-3 py-1.5">
-                  <div className="font-['Press_Start_2P'] text-[9px] text-purple-300">
-                    {opponent.name} <span className="text-slate-500">LV.{opponent.level}</span>
+                  <div className="flex items-center gap-2 font-['Press_Start_2P'] text-[9px] text-purple-300">
+                    <span>{opponent.name} <span className="text-slate-500">LV.{opponent.level}</span></span>
+                    <StatusTag status={opponent.status} />
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[7px] text-purple-400">HP</span>
@@ -329,8 +346,9 @@ export function BossModal({ arenaMapId, arenaName, onBattleResult, onClose }: Bo
                   className="mb-2 h-24 w-24 object-contain"
                 />
                 <div className="border-2 border-amber-400 bg-slate-950/90 px-3 py-1.5">
-                  <div className="font-['Press_Start_2P'] text-[9px] text-amber-300">
-                    {player.displayName} <span className="text-slate-500">LV.{player.level}</span>
+                  <div className="flex items-center gap-2 font-['Press_Start_2P'] text-[9px] text-amber-300">
+                    <span>{player.displayName} <span className="text-slate-500">LV.{player.level}</span></span>
+                    <StatusTag status={player.status} />
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[7px] text-amber-400">HP</span>
@@ -374,9 +392,19 @@ export function BossModal({ arenaMapId, arenaName, onBattleResult, onClose }: Bo
                     disabled={busy || player.hp <= 0}
                     className="border-2 border-slate-600 bg-slate-800 px-3 py-2.5 font-['Press_Start_2P'] text-[10px] text-amber-300 shadow-[2px_2px_0px_#000] hover:border-amber-400 hover:bg-slate-700 disabled:opacity-40"
                   >
-                    ⚡ {m.name}
+                    {m.category === "Status" ? "✨" : "⚡"} {m.name}
                   </button>
                 ))}
+              </div>
+              <div className="mt-3">
+                <BattleItemBar
+                  inventory={inventory}
+                  playerHp={player.hp}
+                  playerMaxHp={player.maxHp}
+                  playerStatus={player.status}
+                  disabled={busy || player.hp <= 0}
+                  onUse={doUseItem}
+                />
               </div>
             </div>
           </div>

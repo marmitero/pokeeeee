@@ -3,6 +3,17 @@
   "shopId": 1,
   "items": [
     {
+      "itemKey": "antidotes",
+      "name": "Antídoto",
+      "description": "Cura veneno (inclusive o grave).",
+      "category": "potion",
+      "buyPrice": 100,
+      "sellPrice": 50,
+      "iconEmoji": "🧫",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
       "itemKey": "dawnStone",
       "name": "Pedra do Amanhecer",
       "description": "Usado fora de batalha para evoluir certas espécies.",
@@ -133,6 +144,17 @@
       "iconEmoji": "🥚",
       "isPremium": false,
       "stock": 3
+    },
+    {
+      "itemKey": "paralyzeHeals",
+      "name": "Anti-Paralisia",
+      "description": "Cura paralisia.",
+      "category": "potion",
+      "buyPrice": 200,
+      "sellPrice": 100,
+      "iconEmoji": "💛",
+      "isPremium": false,
+      "stock": 99
     },
     {
       "itemKey": "pokeballs",

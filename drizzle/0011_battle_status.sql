@@ -1,0 +1,12 @@
+ALTER TABLE "users" DROP CONSTRAINT "users_inventory_nonnegative";--> statement-breakpoint
+ALTER TABLE "user_pokemon" ADD COLUMN "status" text DEFAULT 'NONE' NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_pokemon" ADD COLUMN "status_turns" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "antidotes" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "paralyze_heals" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "awakenings" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "burn_heals" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "ice_heals" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "full_heals" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "users" ADD COLUMN "full_restores" integer DEFAULT 0 NOT NULL;--> statement-breakpoint
+ALTER TABLE "user_pokemon" ADD CONSTRAINT "user_pokemon_status_check" CHECK ("user_pokemon"."status" IN ('NONE', 'PSN', 'TOX', 'BRN', 'PAR', 'SLP', 'FRZ') AND "user_pokemon"."status_turns" >= 0);--> statement-breakpoint
+ALTER TABLE "users" ADD CONSTRAINT "users_inventory_nonnegative" CHECK ("users"."pokeballs" >= 0 AND "users"."greatballs" >= 0 AND "users"."ultraballs" >= 0 AND "users"."masterballs" >= 0 AND "users"."potions" >= 0 AND "users"."super_potions" >= 0 AND "users"."max_potions" >= 0 AND "users"."revives" >= 0 AND "users"."fire_stone" >= 0 AND "users"."water_stone" >= 0 AND "users"."thunder_stone" >= 0 AND "users"."leaf_stone" >= 0 AND "users"."moon_stone" >= 0 AND "users"."sun_stone" >= 0 AND "users"."shiny_stone" >= 0 AND "users"."metal_coat" >= 0 AND "users"."kings_rock" >= 0 AND "users"."dragon_scale" >= 0 AND "users"."upgrade" >= 0 AND "users"."dusk_stone" >= 0 AND "users"."dawn_stone" >= 0 AND "users"."oval_stone" >= 0 AND "users"."protector" >= 0 AND "users"."electirizer" >= 0 AND "users"."magmarizer" >= 0 AND "users"."razor_claw" >= 0 AND "users"."razor_fang" >= 0 AND "users"."dubious_disc" >= 0 AND "users"."reaper_cloth" >= 0 AND "users"."antidotes" >= 0 AND "users"."paralyze_heals" >= 0 AND "users"."awakenings" >= 0 AND "users"."burn_heals" >= 0 AND "users"."ice_heals" >= 0 AND "users"."full_heals" >= 0 AND "users"."full_restores" >= 0);

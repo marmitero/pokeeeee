@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Swords, Flag } from "lucide-react";
 import { getPokemonSpecies, DELUGE_VARIANTS } from "@/lib/pokedex";
 import { api } from "@/lib/api-client";
+import { StatusTag } from "@/components/battle/StatusTag";
 
 /**
  * Arena PvP (Fase 4).
@@ -24,7 +25,9 @@ interface SideView {
   level: number;
   hp: number;
   maxHp: number;
-  moves: Array<{ name: string; type: string; power: number }>;
+  moves: Array<{ name: string; type: string; power: number; category?: string }>;
+  /** 8.4: status de batalha (ausente em salas antigas). */
+  status?: string;
 }
 
 interface BattleView {
@@ -34,7 +37,7 @@ interface BattleView {
   phase: "ACTION" | "SWITCH";
   youAre: "p1" | "p2";
   you: SideView;
-  opponent: { name: string; level: number; hp: number; maxHp: number; variant: string; pokedexId: number };
+  opponent: { name: string; level: number; hp: number; maxHp: number; variant: string; pokedexId: number; status?: string };
   opponentUsername: string;
   opponentCommitted: boolean;
   youCommitted: boolean;
@@ -261,6 +264,7 @@ export function PvpArena({
                     <span className="font-['Press_Start_2P'] text-[10px] text-slate-400">
                       LV.{view.opponent.level}
                     </span>
+                    <StatusTag status={view.opponent.status} />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[9px] text-amber-400">HP</span>
@@ -309,6 +313,7 @@ export function PvpArena({
                     <span className="font-['Press_Start_2P'] text-[10px] text-slate-400">
                       LV.{view.you.level}
                     </span>
+                    <StatusTag status={view.you.status} />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[9px] text-amber-400">HP</span>
@@ -415,9 +420,9 @@ export function PvpArena({
                           }
                           className="border-2 border-slate-600 bg-gradient-to-r from-slate-800 to-slate-900 px-3 py-2.5 text-left font-['Press_Start_2P'] text-[10px] text-amber-300 shadow-[3px_3px_0px_#000] hover:border-amber-400 disabled:opacity-40"
                         >
-                          ⚡ {m.name}
+                          {m.category === "Status" ? "✨" : "⚡"} {m.name}
                           <span className="ml-1 text-[8px] text-slate-500">
-                            {m.type} {m.power}
+                            {m.type} {m.category === "Status" ? "STATUS" : m.power}
                           </span>
                         </button>
                       ))}

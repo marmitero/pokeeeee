@@ -1,12 +1,20 @@
 # Handoff da próxima conversa — Catchbound
 
-> Este arquivo é o handoff de **2026-09-07 (Fase 7.1 — Etapa B: mundo até 40 mapas + redistribuição das 649 espécies; nasce o gerador determinístico de encontros)**. Rodadas anteriores: 8.8 (chat no jogo) e 6.4-E/F (Pokédex 649) no PR #13. Atualize-o ao final de cada nova rodada (mesma função que o histórico do `AI_State.md`). **Nunca apagar histórico**, só acrescentar.
+> Este arquivo é o handoff de **2026-09-08 (Fase 8.4 — Etapa C: status de batalha com regras da Gen III, 7 itens de cura, item em batalha; migration 0011)**. Rodadas anteriores: 8.3 Arena Boss + reparo (PRs #15/#16), 8.1+8.2 cidades, 7.1 mundo 40 mapas, 8.8 chat, 6.4-E Pokédex 649. Atualize-o ao final de cada nova rodada (mesma função que o histórico do `AI_State.md`). **Nunca apagar histórico**, só acrescentar.
 
 Você é a continuação do agente do projeto **Catchbound** (produção: https://catchbound.vercel.app). Comece **LENDO `AI_State.md` por completo** (regra do protocolo) — em especial a **§2**, que tem o roadmap em 4 etapas — e depois `docs/RELATORIO-POS-ATIVACAO.md`.
 
 ---
 
-## ESTADO ATUAL (2026-09-07, Fase 8.8 entregue + Fase 7.1 no branch, aguardando merge)
+## ESTADO ATUAL (2026-09-08, Fase 8.4 entregue no branch `arena/01a0809a-pokeeeee`, aguardando PR)
+
+- ✅ **Produção de pé e atual em `c65401d`** (PR #16): 649 espécies, 40 mapas ativados, 11 cidades/lojas/ginásios, 2 Arenas Boss. **O mantenedor validou em produção (2026-09-08) as pendências A (boss E2E), B (visual 8.1/8.2) e C (artefato world-diff).** Backup de produção ("Verify restoration" falhando) **adiado por decisão dele**.
+- 🔵 **Fase 8.4 pronta no branch** — status de batalha: `engine/status.ts` (regras puras Gen III) + `engine/turn.ts` (`performStrike`/`endOfTurn`/`chooseOpponentMove`, um motor para PvE **e** PvP); 9 golpes de Status + 27 efeitos secundários em 107 learnsets; `user_pokemon.status/status_turns` + 7 colunas de cura em `users` → **migration 0011** + **`docs/supabase-production-0011-runtime.sql`** (idempotente, validado 2×: `2·7·1·1·8·12`); `POST /api/battle use_item` (consome o turno); `src/lib/status-items.ts` (Antídoto 100 … Restaurador Total 3000, lojas por progressão, `content/world/shops/*.json` reexportados); etiqueta de status (`components/battle/StatusTag.tsx`) e barra ITENS (`BattleItemBar.tsx`) nas 4 telas de luta + Pokémon Box; **358 unit + 133 integração**, `npm run check` verde. Spec: `docs/FASE-8-STATUS.md`.
+- ⚠️ **ESTE MERGE TEM PASSO DE BANCO.** Ordem: (1) colar `docs/supabase-production-0011-runtime.sql` no SQL Editor (conferência `status_columns 2 · cure_columns 7 · status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`); (2) mergear; (3) deploy `Ready` (sem workflow — a loja seeda os itens de cura sozinha); (4) pendência **#18** (loja 1 com Antídoto/Anti-Paralisia, Pikachu nv 12 + Onda Trovão → etiqueta PAR, barra ITENS, Centro limpa, PvP com Pó do Sono).
+- ➡️ **Próxima etapa combinada: 8.5 — Arena PvP ranqueada** (plano detalhado em `AI_State.md` §5: ELO K32 só em `ranked`, fila com janela ±150 crescente, ranking top 50, temporada semanal com `pvp_seasons` → migration 0012 + companheiro, antifarm). Depois 8.6 missões → 8.7 treinadores → Etapa D. **Só começar após confirmação do mantenedor.**
+- 🧠 Armadilhas novas da 8.4: função de serviço com prefixo `use*` dispara `react-hooks/rules-of-hooks` no lint mesmo fora de componente (por isso `applyBattleItem`); `world:export` **poda** arquivos de mapas ausentes do banco — só rodar com banco semeado (`world:seed` + `ensureGymSeeded`/`ensureShopSeeded`); `farol-do-fim.json` diverge do banco no líder (429 vs 34) por dado pré-existente — não misturar esse diff em outras fases.
+
+## ESTADO ANTERIOR (2026-09-07, Fase 8.8 entregue + Fase 7.1 no branch, aguardando merge)
 
 - ✅ **Produção de pé e atual.** `/api/health` → `{"ok":true,"emailVerification":"ok"}`.
 - ✅ Migrations **0006, 0007 e 0008** aplicadas em produção; PR #12 (6.4-D) mergeado em `f6f0d98`. **O mantenedor validou em produção todas as pendências #1–#15** do cabeçalho do `AI_State.md`.
@@ -30,13 +38,17 @@ Direção declarada, **em ordem**: primeiro **terminar todos os Pokémon**, depo
 | Etapa | O quê | Situação |
 |---|---|---|
 | **A** | **Pokédex completa** — Kanto/Johto/Hoenn/Sinnoh/Unova (649) — **decisão B: parar em 649, chamar de Pokédex completa** | ✅ **fechada em 649** — sem Kalos — 2026-09-07 |
-| **B** | **Mundo até 100 mapas** — 7.1 (21–40), 7.2 (41–60), 7.3 (61–80), 7.4 (81–100), cada lote com a redistribuição das espécies daquela faixa | 🟡 **7.1 ✅ 2026-09-07** (40 mapas, 649 redistribuídas, gerador pronto) — 7.2/7.3/7.4 ⬜ |
-| **C** | **Povoar o mundo** — 8.1 lojas por região, 8.2 ginásios 8 + Elite, 8.3 arenas de bosses lendários, 8.4 status de batalha, 8.5 arena PvP ranqueada, 8.6 NPCs de missão, 8.7 treinadores de rota, **8.8 chat dentro do jogo** (GLOBAL/LOCAL/PRIVADO) | ✅ **8.8 feito** — 2026-09-07 — resto ⬜ |
+| **B** | **Mundo até 100 mapas** — 7.1 (21–40), 7.2 (41–60), 7.3 (61–80), 7.4 (81–100), cada lote com a redistribuição das espécies daquela faixa | 🟡 **7.1 ✅ em produção** (40 mapas) — 7.2/7.3/7.4 🧊 **congeladas** por decisão do mantenedor (2026-09-07): mundo travado em 40 |
+| **C** | **Povoar o mundo** — 8.1 lojas por região, 8.2 ginásios 8 + Elite, 8.3 arenas de bosses lendários, 8.4 status de batalha, 8.5 arena PvP ranqueada, 8.6 NPCs de missão, 8.7 treinadores de rota, **8.8 chat dentro do jogo** (GLOBAL/LOCAL/PRIVADO) | ✅ 8.8, 8.1+8.2, 8.3 (produção) · ✅ **8.4 no branch** (2026-09-08) · ⬜ 8.5 → 8.6 → 8.7 |
 | **D** | **Antes de divulgar** — 9.1 rebranding completo, 9.2 decisão legal de nomes/sprites, 9.3 remetente próprio, 9.4 premium (**bloqueado**) | ⬜ bloqueia monetização |
 
 ---
 
-## PRÓXIMA ENTREGA: Etapa B — 7.2 (mapas 41–60)
+## PRÓXIMA ENTREGA: Etapa C — 8.5 Arena PvP ranqueada (após confirmação do mantenedor)
+
+Plano completo em `AI_State.md` §5. Resumo: ELO (K 32/24) só em `pvp_battles.mode = "ranked"`, dentro da transação do `FINISHED`; fila `join_ranked` com janela ±150 crescente; `GET /api/pvp?ranking=1` top 50 + posição; temporada semanal (`weekIdOf` do boss) com fechamento preguiçoso e tabela **`pvp_seasons`** → migration 0012 + companheiro; antifarm (3×/dia por par, mínimo 10 partidas, forfeit cedo, mesmo IP). O motor de troca já tem status (8.4) — o PvP ranqueado herda tudo.
+
+## ENTREGA ANTERIOR (congelada): Etapa B — 7.2 (mapas 41–60)
 
 A 7.1 entregou os 40 mapas **e** a máquina que torna o lote seguinte barato. Para **7.2**:
 
@@ -71,7 +83,7 @@ Paralelo: Etapa C ainda tem 8.1 lojas por região (venda de itens + fix exploit)
 - **Migration nova:** gerar com `drizzle-kit generate --name …` **depois** de fechar o schema; se precisar regenerar, apague arquivo + snapshot + entrada do journal e recrie o banco local antes — o SQL companheiro grava o **hash sha256 do arquivo final** e o `when` do `_journal.json`, e eles têm que bater. Teste o companheiro 2× num banco que simule produção (migrations anteriores + papel `catchbound_runtime`) para provar idempotência.
 - Sprites animados Gen V: **até o id 649** — é o teto do CDN atual. Decisão B: parar em 649, Pokédex completa.
 - Suítes de integração: ambiente **sem SMTP** → a rota devolve `devCode` (`helpers.ts registerVerified()`); `beforeEach` com `resetRateLimits()`. O `client()` de teste aceita query string (`/api/shop?shopId=3`, `/api/chat?channel=...`) e `GET`.
-- Migrações: `drizzle/0000–0009`; em produção a aplicação é **MANUAL** no SQL Editor do Supabase (o `vercel.json` não roda migration em build).
+- Migrações: `drizzle/0000–0011`; em produção a aplicação é **MANUAL** no SQL Editor do Supabase (o `vercel.json` não roda migration em build). Companheiros: 0006, 0007, 0008, 0009, 0010 (+ reparo pós-renumeração), 0011.
 - **REGRA (incidente 2026-09-06):** produção tem **RLS em TODAS as tabelas** e o papel `catchbound_runtime` só opera onde há policy própria. Tabela nova = migration **+** SQL companheiro `docs/supabase-production-000X-runtime.sql` (coluna nova também ganha companheiro, com grants + journal).
 - `docs/world-activation.yml` e `docs/backup*.yml` são espelhos de `.github/workflows/` — mantenha idênticos.
 - 🌐 **O mantenedor não tem terminal com o projeto** (está tudo em GitHub/Vercel/Supabase). **Nunca** escrever passo a passo com `git`/`npm`/`git apply`/`psql` para ele: cada passo humano é arquivo no GitHub (link direto + o que editar, com "Copy raw file"), botão em Actions/Vercel/Supabase, ou **SQL colável no SQL Editor** (um único `SELECT`/tabela final — o Editor mostra só o último result set). Comando de shell é evidência do sandbox do agente (e assim se rotula no §4). E **não criar `.patch` em `docs/`**: sem console ninguém aplica, e uma vez isso virou um workflow quebrado (arquivo colado em `.github/workflows/` sem `.yml`, que o GitHub ignora).
