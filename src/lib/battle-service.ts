@@ -281,6 +281,11 @@ export async function startBossBattle(
   if (!isBossArena(arenaMapId)) {
     throw badRequest("Arena Boss inexistente.");
   }
+  // Garante que game_maps existe (mesmo padrão de startWild/startGym).
+  // Em produção, após a renumeração dos ids, o workflow World activation
+  // recria os 40 mapas — mas se o banco estiver vazio (teste) ou se a
+  // FK de battles.map_id for validada, o SELECT de mapas precisa existir.
+  await ensureDefaultMapsSeeded();
   const arena = arenaMapId as BossArena;
   const now = new Date();
   const weekId = weekIdOf(now);
