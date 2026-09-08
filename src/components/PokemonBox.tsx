@@ -3,6 +3,9 @@
 import React, { useState } from "react";
 import { DELUGE_VARIANTS, getPokemonSpecies } from "@/lib/pokedex";
 import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, EVOLUTION_ITEM_VALUES, type EvolutionItemKey } from "@/lib/evolution-items";
+import { STATUS_ITEMS, STATUS_ITEM_KEYS, itemCures, type StatusItemKey } from "@/lib/status-items";
+import { normalizeStatus } from "@/lib/engine/status";
+import { StatusTag } from "@/components/battle/StatusTag";
 import { retroSfx } from "@/lib/sound";
 import { X, ArrowRightLeft, Trash2, DollarSign, Package, Zap } from "lucide-react";
 import { api } from "@/lib/api-client";
@@ -30,13 +33,16 @@ export interface BoxPokemon {
   move2: string;
   move3: string;
   move4: string;
+  /** 8.4: NONE|PSN|TOX|BRN|PAR|SLP|FRZ — ausente em respostas antigas. */
+  status?: string;
+  statusTurns?: number;
 }
 
 interface PokemonBoxProps {
   allPokemon: BoxPokemon[];
   userItems: {
     potions: number; superPotions: number; maxPotions: number; revives: number;
-  } & Record<EvolutionItemKey, number>;
+  } & Record<EvolutionItemKey, number> & Partial<Record<StatusItemKey, number>>;
   onUpdated: (updatedPokemon: BoxPokemon[], updatedUser?: unknown) => void;
   onClose: () => void;
 }
@@ -141,7 +147,10 @@ export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: Pokemo
               )}
               {poke.isPremiumSkin && <span className="text-amber-400 text-xs">★</span>}
             </div>
-            <div className="font-['IBM_Plex_Mono'] text-[9px] text-slate-500">LV.{poke.level} • {poke.name}</div>
+            <div className="flex items-center gap-1.5 font-['IBM_Plex_Mono'] text-[9px] text-slate-500">
+              <span>LV.{poke.level} • {poke.name}</span>
+              <StatusTag status={poke.status} />
+            </div>
             {/* HP bar */}
             <div className="mt-1 flex items-center gap-1">
               <span className="font-['Press_Start_2P'] text-[7px] text-emerald-400">HP</span>
@@ -302,6 +311,25 @@ export function PokemonBox({ allPokemon, userItems, onUpdated, onClose }: Pokemo
                       className="flex items-center justify-center gap-1 border border-slate-600 bg-slate-900 px-2 py-1.5 font-['Press_Start_2P'] text-[8px] text-slate-200 hover:border-amber-500 disabled:opacity-40">
                       ⚡ Reviver ×{userItems.revives}
                     </button>
+                    {/* 8.4: curas de status — destaca o que resolve o status atual. */}
+                    {STATUS_ITEM_KEYS.map((key) => {
+                      const count = userItems[key] ?? 0;
+                      if (count <= 0) return null;
+                      const spec = STATUS_ITEMS[key];
+                      const st = normalizeStatus(selected.status);
+                      const useful = itemCures(key, st) || (Boolean(spec.fullHp) && selected.hp < selected.maxHp);
+                      return (
+                        <button key={key} onClick={() => applyItem(spec.useKey)} disabled={loading || selected.hp <= 0 || !useful}
+                          title={spec.description}
+                          className={`flex items-center justify-center gap-1 border px-2 py-1.5 font-['Press_Start_2P'] text-[8px] disabled:opacity-40 ${
+                            useful
+                              ? "border-emerald-500 bg-emerald-950/60 text-emerald-100 hover:border-emerald-300"
+                              : "border-slate-600 bg-slate-900 text-slate-300"
+                          }`}>
+                          {spec.iconEmoji} {spec.name} ×{count}
+                        </button>
+                      );
+                    })}
                     {EVOLUTION_ITEM_VALUES.map((item) => {
                       const count = userItems[item];
                       if (count <= 0) return null;

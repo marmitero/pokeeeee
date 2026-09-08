@@ -66,6 +66,14 @@ interface UserState {
   razorFang: number;
   dubiousDisc: number;
   reaperCloth: number;
+  // 8.4: curas de status
+  antidotes: number;
+  paralyzeHeals: number;
+  awakenings: number;
+  burnHeals: number;
+  iceHeals: number;
+  fullHeals: number;
+  fullRestores: number;
   wins: number;
   losses: number;
   currentMapId: number;
@@ -124,6 +132,8 @@ const GUEST_USER: UserState = {
   upgrade: 0, duskStone: 0, dawnStone: 0, ovalStone: 0,
   protector: 0, electirizer: 0, magmarizer: 0, razorClaw: 0, razorFang: 0,
   dubiousDisc: 0, reaperCloth: 0,
+  antidotes: 0, paralyzeHeals: 0, awakenings: 0, burnHeals: 0, iceHeals: 0,
+  fullHeals: 0, fullRestores: 0,
   wins: 0, losses: 0, currentMapId: 1, playerX: 8, playerY: 12,
   role: "player",
 };
@@ -881,6 +891,10 @@ export default function DelugeRPGPage() {
             magmarizer: user.magmarizer, razorClaw: user.razorClaw,
             razorFang: user.razorFang, dubiousDisc: user.dubiousDisc,
             reaperCloth: user.reaperCloth,
+            antidotes: user.antidotes, paralyzeHeals: user.paralyzeHeals,
+            awakenings: user.awakenings, burnHeals: user.burnHeals,
+            iceHeals: user.iceHeals, fullHeals: user.fullHeals,
+            fullRestores: user.fullRestores,
           }}
           onUpdated={(updated, updatedUser) => {
             setAllPokemon(updated as BoxPokemon[]);
@@ -908,6 +922,7 @@ export default function DelugeRPGPage() {
         <GymModal
           gymLeaderId={gymCtx.gymLeaderId}
           userBadges={userBadges}
+          inventory={user as unknown as Record<string, unknown>}
           onBattleResult={(updatedUser, badges) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
             setUserBadges(badges);
@@ -921,6 +936,7 @@ export default function DelugeRPGPage() {
         <BossModal
           arenaMapId={bossCtx.arenaMapId}
           arenaName={bossCtx.arenaName}
+          inventory={user as unknown as Record<string, unknown>}
           onBattleResult={(updatedUser) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
           }}
@@ -973,6 +989,7 @@ export default function DelugeRPGPage() {
         <BattleArenaModal
           battleId={battleState.battleId}
           username={user.username}
+          inventory={user as unknown as Record<string, unknown>}
           onStateChange={(updatedUser, updatedParty) => {
             if (updatedUser) setUser((prev) => ({ ...prev, ...(updatedUser as UserState) }));
             if (Array.isArray(updatedParty)) setAllPokemon(updatedParty as BoxPokemon[]);

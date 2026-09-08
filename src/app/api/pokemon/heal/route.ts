@@ -21,9 +21,11 @@ export async function POST(req: Request) {
     const user = await requireUser(req);
     const input = parse(healSchema, await req.json().catch(() => ({})));
 
+    // Centro Pokémon: HP cheio e, desde a 8.4, também cura veneno/queimadura/
+    // paralisia/sono/gelo — como no GBA.
     await db
       .update(userPokemon)
-      .set({ hp: sql`${userPokemon.maxHp}` })
+      .set({ hp: sql`${userPokemon.maxHp}`, status: "NONE", statusTurns: 0 })
       .where(eq(userPokemon.userId, user.id));
 
     const { currentMapId, playerX, playerY } = input;

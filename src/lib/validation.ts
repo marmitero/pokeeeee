@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { EVOLUTION_ITEM_VALUES } from "./evolution-items";
+import { STATUS_ITEM_KEYS, STATUS_USE_VALUES } from "./status-items";
 import { TILE_DEFINITIONS } from "./tiles";
 
 /**
@@ -35,11 +36,25 @@ export const HEAL_ITEM_VALUES = [
   "revive",
 ] as const;
 
-/** Itens que podem ser usados fora de batalha: cura + evolução (6.4-B). */
+/** Itens que podem ser usados fora de batalha: cura + evolução (6.4-B) + cura de status (8.4). */
 export const USE_ITEM_VALUES = [
   ...HEAL_ITEM_VALUES,
   ...EVOLUTION_ITEM_VALUES,
+  ...STATUS_USE_VALUES,
 ] as const;
+
+/**
+ * Itens usáveis DENTRO de uma batalha (8.4): cura de HP e de status. Usar um
+ * item consome o turno — o oponente ataca depois. Pedras de evolução e
+ * Reviver ficam de fora (o Pokémon ativo nunca está desmaiado).
+ */
+export const BATTLE_ITEM_VALUES = [
+  "potion",
+  "superPotion",
+  "maxPotion",
+  ...STATUS_USE_VALUES,
+] as const;
+export type BattleItem = (typeof BATTLE_ITEM_VALUES)[number];
 
 /** Colunas de inventário que uma loja pode creditar (allowlist anti mass-assignment). */
 export const INVENTORY_KEYS = [
@@ -52,6 +67,7 @@ export const INVENTORY_KEYS = [
   "maxPotions",
   "revives",
   ...EVOLUTION_ITEM_VALUES,
+  ...STATUS_ITEM_KEYS,
 ] as const;
 
 export const variantSchema = z.enum(VARIANT_VALUES);
@@ -405,6 +421,12 @@ export const battleActionSchema = z.discriminatedUnion("action", [
     ball: ballSchema,
   }),
   z.object({ action: z.literal("flee"), battleId: idSchema }),
+  // Fase 8.4: item em batalha (poção ou cura de status) — consome o turno.
+  z.object({
+    action: z.literal("use_item"),
+    battleId: idSchema,
+    item: z.enum(BATTLE_ITEM_VALUES),
+  }),
 ]);
 
 export const battleQuerySchema = z.object({ battleId: idSchema });

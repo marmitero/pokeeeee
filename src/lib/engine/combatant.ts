@@ -5,9 +5,11 @@ import {
   movesAtLevel,
   moveSlots,
   type DelugeVariant,
+  type MoveEffect,
   type PokemonMove,
 } from "../pokedex";
 import type { Combatant } from "./damage";
+import { normalizeStatus, type StatusCondition } from "./status";
 
 /**
  * Construção dos combatentes de uma batalha (Fase 2).
@@ -26,6 +28,8 @@ export interface BattleMove {
   accuracy: number;
   category: string;
   description: string;
+  /** Efeito de status (Fase 8.4) — secundário num golpe de dano, principal num golpe de Status. */
+  effect?: MoveEffect;
 }
 
 export interface SideState extends Combatant {
@@ -36,6 +40,23 @@ export interface SideState extends Combatant {
   moves: BattleMove[];
   /** Id em `user_pokemon`; `null` para oponente (selvagem / ginásio). */
   userPokemonId: number | null;
+  /** Status de batalha (Fase 8.4). Persistido em `user_pokemon.status`. */
+  status: StatusCondition;
+  /** SLP: turnos restantes · TOX: turnos já sofridos · demais: 0. */
+  statusTurns: number;
+}
+
+/** Projeção de um `PokemonMove` do catálogo para o formato que o estado da batalha guarda. */
+export function toBattleMove(move: PokemonMove): BattleMove {
+  return {
+    name: move.name,
+    type: move.type,
+    power: move.power,
+    accuracy: move.accuracy,
+    category: move.category,
+    description: move.description,
+    ...(move.effect ? { effect: { ...move.effect } } : {}),
+  };
 }
 
 type UserPokemonRow = {
@@ -57,27 +78,21 @@ type UserPokemonRow = {
   move3: string;
   move4: string;
   xp: number;
+  /** Opcionais para linhas legadas/testes anteriores à 8.4 — ausência = sem status. */
+  status?: string;
+  statusTurns?: number;
 };
 
 function movesOf(row: UserPokemonRow): BattleMove[] {
   return [row.move1, row.move2, row.move3, row.move4]
     .filter(Boolean)
-    .map((name) => {
-      const move = getMoveByName(name);
-      return {
-        name: move.name,
-        type: move.type,
-        power: move.power,
-        accuracy: move.accuracy,
-        category: move.category,
-        description: move.description,
-      };
-    });
+    .map((name) => toBattleMove(getMoveByName(name)));
 }
 
 /** Combatente a partir de um Pokémon do jogador (status já persistidos). */
 export function sideFromUserPokemon(row: UserPokemonRow): SideState {
   const species = getPokemonSpecies(row.pokedexId);
+  const status = normalizeStatus(row.status);
 
   return {
     pokedexId: row.pokedexId,
@@ -96,6 +111,10 @@ export function sideFromUserPokemon(row: UserPokemonRow): SideState {
     speed: row.speed,
     moves: movesOf(row),
     userPokemonId: row.id,
+    status,
+    // Veneno grave recomeça do 1/16 ao entrar em campo (troca ou batalha nova);
+    // o sono mantém os turnos que faltam.
+    statusTurns: status === "TOX" ? 0 : Math.max(0, row.statusTurns ?? 0),
   };
 }
 
@@ -129,15 +148,10 @@ export function sideFromSpecies(
     speed: stats.speed,
     // Fase 6.1: golpes do NÍVEL, não o conjunto de fim de jogo. Antes um
     // Rattata selvagem de nível 3 vinha com o mesmo Lança-Chamas de um lvl 100.
-    moves: movesAtLevel(species, level).map((m) => ({
-      name: m.name,
-      type: m.type,
-      power: m.power,
-      accuracy: m.accuracy,
-      category: m.category,
-      description: m.description,
-    })),
+    moves: movesAtLevel(species, level).map(toBattleMove),
     userPokemonId: null,
+    status: "NONE",
+    statusTurns: 0,
   };
 }
 
@@ -155,6 +169,8 @@ export function toCombatant(side: SideState): Combatant {
     spAttack: side.spAttack,
     spDefense: side.spDefense,
     speed: side.speed,
+    // Fase 8.4: a queimadura corta o dano físico pela metade em `computeDamage`.
+    status: side.status,
   };
 }
 
@@ -169,14 +185,7 @@ export function refreshMovesForLevel(side: SideState, level: number): string[] {
   const species = getPokemonSpecies(side.pokedexId);
   const before = new Set(side.moves.map((m) => m.name));
 
-  side.moves = movesAtLevel(species, level).map((m) => ({
-    name: m.name,
-    type: m.type,
-    power: m.power,
-    accuracy: m.accuracy,
-    category: m.category,
-    description: m.description,
-  }));
+  side.moves = movesAtLevel(species, level).map(toBattleMove);
 
   return side.moves.map((m) => m.name).filter((name) => !before.has(name));
 }
@@ -192,6 +201,7 @@ export function moveNamesForDb(side: SideState) {
       category: m.category as PokemonMove["category"],
       description: m.description,
       sfx: "slash" as const,
+      ...(m.effect ? { effect: m.effect } : {}),
     }))
   );
 }

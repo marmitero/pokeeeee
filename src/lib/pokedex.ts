@@ -13,6 +13,24 @@ export type DelugeVariant =
   | "Dark"
   | "Ghostly";
 
+/**
+ * Efeito de status de um golpe (Fase 8.4).
+ *
+ * - Golpe de **dano** com `effect`: efeito secundário — `chance`% de aplicar
+ *   o status **depois** de acertar e causar dano (Brasa 10% queima, Golpe
+ *   Corporal 30% paralisa). Números da Gen III (Bulbapedia).
+ * - Golpe de **Status** (`category: "Status"`, poder 0): o efeito é o golpe
+ *   inteiro — `chance` é 100 e a precisão do golpe decide se pega (Onda
+ *   Trovão 100, Hipnose 60). `typeChart` marca os poucos golpes de status que
+ *   respeitam imunidade de tipo (Onda Trovão não afeta tipo Terra).
+ */
+export interface MoveEffect {
+  status: "PSN" | "TOX" | "BRN" | "PAR" | "SLP" | "FRZ";
+  /** Porcentagem inteira 1–100. */
+  chance: number;
+  typeChart?: boolean;
+}
+
 export interface PokemonMove {
   name: string;
   type: string;
@@ -21,6 +39,7 @@ export interface PokemonMove {
   category: "Physical" | "Special" | "Status";
   description: string;
   sfx: "flame" | "thunder" | "water" | "slash" | "beam" | "heal";
+  effect?: MoveEffect;
 }
 
 /**
@@ -178,6 +197,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Um jato de fogo ardente que pode queimar o oponente.",
     sfx: "flame",
+    effect: { status: "BRN", chance: 10 },
   },
   DragonClaw: {
     name: "Garra Dragão",
@@ -205,6 +225,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Descarga elétrica de 100.000 volts.",
     sfx: "thunder",
+    effect: { status: "PAR", chance: 10 },
   },
   SolarBeam: {
     name: "Raio Solar",
@@ -250,6 +271,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Feixe gélido que pode congelar o alvo.",
     sfx: "beam",
+    effect: { status: "FRZ", chance: 10 },
   },
   DarkPulse: {
     name: "Pulso Sombrio",
@@ -376,6 +398,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Joga o corpo inteiro sobre o oponente.",
     sfx: "slash",
+    effect: { status: "PAR", chance: 30 },
   },
   Ember: {
     name: "Brasa",
@@ -385,6 +408,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Cospe pequenas chamas na direção do alvo.",
     sfx: "flame",
+    effect: { status: "BRN", chance: 10 },
   },
   FireFang: {
     name: "Presa de Fogo",
@@ -394,6 +418,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Morde o alvo com presas envoltas em chamas.",
     sfx: "flame",
+    effect: { status: "BRN", chance: 10 },
   },
   Bubble: {
     name: "Bolha",
@@ -430,6 +455,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Uma descarga elétrica fraca, porém certeira.",
     sfx: "thunder",
+    effect: { status: "PAR", chance: 10 },
   },
   Spark: {
     name: "Faísca",
@@ -439,6 +465,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Avança envolto em uma carga elétrica crepitante.",
     sfx: "thunder",
+    effect: { status: "PAR", chance: 30 },
   },
   Confusion: {
     name: "Confusão",
@@ -484,6 +511,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Uma língua espectral lambe o alvo e o arrepia.",
     sfx: "slash",
+    effect: { status: "PAR", chance: 30 },
   },
   Bite: {
     name: "Mordida",
@@ -556,6 +584,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Um sopro poderoso que sacode o oponente.",
     sfx: "beam",
+    effect: { status: "PAR", chance: 30 },
   },
   RockPolish: {
     name: "Rocha Rolante",
@@ -590,6 +619,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Um raio brutal cai do céu; pode fazer o alvo hesitar.",
     sfx: "thunder",
+    effect: { status: "PAR", chance: 30 },
   },
   PoisonSting: {
     name: "Ferrão",
@@ -599,6 +629,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Perfura o alvo com um ferrão venenoso.",
     sfx: "slash",
+    effect: { status: "PSN", chance: 30 },
   },
   Sludge: {
     name: "Lodo",
@@ -608,6 +639,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Arremessa lama suja no alvo.",
     sfx: "water",
+    effect: { status: "PSN", chance: 30 },
   },
   SludgeBomb: {
     name: "Bomba de Lodo",
@@ -617,6 +649,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Explode lodo tóxico que pode envenenar o alvo.",
     sfx: "beam",
+    effect: { status: "PSN", chance: 30 },
   },
   FuryCutter: {
     name: "Corte Fúria",
@@ -807,6 +840,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Envolve o corpo em chamas e rola sobre o oponente.",
     sfx: "flame",
+    effect: { status: "BRN", chance: 10 },
   },
   FirePunch: {
     name: "Soco de Fogo",
@@ -816,6 +850,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Um punho envolto em chamas, golpe pesado e certeiro.",
     sfx: "flame",
+    effect: { status: "BRN", chance: 10 },
   },
   FireBlast: {
     name: "Explosão de Fogo",
@@ -825,6 +860,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Uma flor de fogo colossal explode sobre o alvo.",
     sfx: "flame",
+    effect: { status: "BRN", chance: 10 },
   },
   Overheat: {
     name: "Superaquecimento",
@@ -948,6 +984,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Um soco carregado com alta tensão.",
     sfx: "thunder",
+    effect: { status: "PAR", chance: 10 },
   },
   Discharge: {
     name: "Descarga",
@@ -957,6 +994,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Solta toda a carga acumulada de uma vez.",
     sfx: "thunder",
+    effect: { status: "PAR", chance: 30 },
   },
   WildCharge: {
     name: "Carga Selvagem",
@@ -1055,6 +1093,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Dois ferrões seguidos disparados em rajada.",
     sfx: "slash",
+    effect: { status: "PSN", chance: 20 },
   },
   SilverWind: {
     name: "Vento Prateado",
@@ -1252,6 +1291,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Uma baforada de neve seca e congelante.",
     sfx: "beam",
+    effect: { status: "FRZ", chance: 10 },
   },
   AuroraBeam: {
     name: "Raio Aurora",
@@ -1270,6 +1310,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Um soco com o punho coberto de gelo.",
     sfx: "beam",
+    effect: { status: "FRZ", chance: 10 },
   },
   IceFang: {
     name: "Presa de Gelo",
@@ -1279,6 +1320,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Mordida com mandíbulas cristalizadas de geada.",
     sfx: "slash",
+    effect: { status: "FRZ", chance: 10 },
   },
   Blizzard: {
     name: "Nevasca",
@@ -1288,6 +1330,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Special",
     description: "Uma tormenta de neve engole o campo de batalha.",
     sfx: "beam",
+    effect: { status: "FRZ", chance: 10 },
   },
 
   // Voador
@@ -1355,6 +1398,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Mordida que injeta veneno concentrado.",
     sfx: "slash",
+    effect: { status: "TOX", chance: 30 },
   },
   PoisonJab: {
     name: "Estocada Venenosa",
@@ -1364,6 +1408,7 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     category: "Physical",
     description: "Avança com o ferrão encharcado de toxina.",
     sfx: "slash",
+    effect: { status: "PSN", chance: 30 },
   },
 
   // Aço
@@ -1452,6 +1497,100 @@ export const ALL_MOVES: Record<string, PokemonMove> = {
     description: "Um clarão rosa intenso inunda o oponente.",
     sfx: "beam",
   },
+
+  // ─── Golpes de status (Fase 8.4) — precisão da Gen III ───────────────────
+  // Poder 0: não causam dano; o efeito é o golpe inteiro. A IA do oponente
+  // usa golpe de status só quando o alvo ainda não tem status (battle-service).
+  ThunderWave: {
+    name: "Onda Trovão",
+    type: "Electric",
+    power: 0,
+    accuracy: 100,
+    category: "Status",
+    description: "Uma onda elétrica fraca que paralisa o alvo. Não afeta tipo Terra.",
+    sfx: "thunder",
+    effect: { status: "PAR", chance: 100, typeChart: true },
+  },
+  StunSpore: {
+    name: "Pó Paralisante",
+    type: "Grass",
+    power: 0,
+    accuracy: 75,
+    category: "Status",
+    description: "Esporos que paralisam o alvo.",
+    sfx: "heal",
+    effect: { status: "PAR", chance: 100 },
+  },
+  WillOWisp: {
+    name: "Fogo-Fátuo",
+    type: "Fire",
+    power: 0,
+    accuracy: 75,
+    category: "Status",
+    description: "Chamas fantasmagóricas que queimam o alvo.",
+    sfx: "flame",
+    effect: { status: "BRN", chance: 100 },
+  },
+  Toxic: {
+    name: "Tóxico",
+    type: "Poison",
+    power: 0,
+    accuracy: 85,
+    category: "Status",
+    description: "Envenena gravemente: o dano cresce a cada turno.",
+    sfx: "water",
+    effect: { status: "TOX", chance: 100 },
+  },
+  PoisonPowder: {
+    name: "Pó Venenoso",
+    type: "Poison",
+    power: 0,
+    accuracy: 75,
+    category: "Status",
+    description: "Uma nuvem de pó tóxico que envenena o alvo.",
+    sfx: "heal",
+    effect: { status: "PSN", chance: 100 },
+  },
+  SleepPowder: {
+    name: "Pó do Sono",
+    type: "Grass",
+    power: 0,
+    accuracy: 75,
+    category: "Status",
+    description: "Esporos soníferos fazem o alvo adormecer.",
+    sfx: "heal",
+    effect: { status: "SLP", chance: 100 },
+  },
+  Spore: {
+    name: "Esporo",
+    type: "Grass",
+    power: 0,
+    accuracy: 100,
+    category: "Status",
+    description: "Uma nuvem de esporos que nunca falha em adormecer o alvo.",
+    sfx: "heal",
+    effect: { status: "SLP", chance: 100 },
+  },
+  Hypnosis: {
+    name: "Hipnose",
+    type: "Psychic",
+    power: 0,
+    accuracy: 60,
+    category: "Status",
+    description: "Sugestão hipnótica que induz o alvo ao sono.",
+    sfx: "beam",
+    effect: { status: "SLP", chance: 100 },
+  },
+  Sing: {
+    name: "Canção",
+    type: "Normal",
+    power: 0,
+    accuracy: 55,
+    category: "Status",
+    description: "Uma canção de ninar que faz o alvo dormir.",
+    sfx: "beam",
+    effect: { status: "SLP", chance: 100 },
+  },
 };
 
 /** Tipo do catálogo de golpes — usado por `pokedex-gen1.ts` sem ciclo de módulos. */
@@ -1474,6 +1613,8 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 1, move: ALL_MOVES.VineWhip },
       { level: 7, move: ALL_MOVES.RazorLeaf },
       { level: 13, move: ALL_MOVES.PoisonSting },
+      { level: 13, move: ALL_MOVES.PoisonPowder },
+      { level: 15, move: ALL_MOVES.SleepPowder },
       { level: 18, move: ALL_MOVES.MegaDrain },
       { level: 24, move: ALL_MOVES.Sludge },
       { level: 32, move: ALL_MOVES.EnergyBall },
@@ -1504,6 +1645,8 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 1, move: ALL_MOVES.VineWhip },
       { level: 7, move: ALL_MOVES.RazorLeaf },
       { level: 13, move: ALL_MOVES.PoisonSting },
+      { level: 13, move: ALL_MOVES.PoisonPowder },
+      { level: 15, move: ALL_MOVES.SleepPowder },
       { level: 18, move: ALL_MOVES.MegaDrain },
       { level: 24, move: ALL_MOVES.Sludge },
       { level: 32, move: ALL_MOVES.EnergyBall },
@@ -1531,6 +1674,7 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 1, move: ALL_MOVES.Tackle },
       { level: 1, move: ALL_MOVES.VineWhip },
       { level: 7, move: ALL_MOVES.RazorLeaf },
+      { level: 15, move: ALL_MOVES.SleepPowder },
       { level: 16, move: ALL_MOVES.Sludge },
       { level: 24, move: ALL_MOVES.EnergyBall },
       { level: 34, move: ALL_MOVES.Earthquake },
@@ -1728,6 +1872,7 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 1, move: ALL_MOVES.Tackle },
       { level: 1, move: ALL_MOVES.ThunderShock },
       { level: 6, move: ALL_MOVES.QuickAttack },
+      { level: 10, move: ALL_MOVES.ThunderWave },
       { level: 12, move: ALL_MOVES.ShockWave },
       { level: 18, move: ALL_MOVES.Spark },
       { level: 26, move: ALL_MOVES.Thunderbolt },
@@ -1870,6 +2015,7 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
     learnset: [
       { level: 1, move: ALL_MOVES.Lick },
       { level: 1, move: ALL_MOVES.Astonish },
+      { level: 1, move: ALL_MOVES.Hypnosis },
       { level: 14, move: ALL_MOVES.Sludge },
       { level: 22, move: ALL_MOVES.ShadowBall },
       { level: 32, move: ALL_MOVES.SludgeBomb },
@@ -1923,6 +2069,7 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
     learnset: [
       { level: 1, move: ALL_MOVES.Tackle },
       { level: 1, move: ALL_MOVES.WaterGun },
+      { level: 1, move: ALL_MOVES.Sing },
       { level: 10, move: ALL_MOVES.IceShard },
       { level: 16, move: ALL_MOVES.BodySlam },
       { level: 24, move: ALL_MOVES.WaterPulse },
@@ -2094,6 +2241,7 @@ const POKEDEX_BASE: PokemonSpeciesData[] = [
       { level: 1, move: ALL_MOVES.Confusion },
       { level: 1, move: ALL_MOVES.DisarmingVoice },
       { level: 10, move: ALL_MOVES.Psybeam },
+      { level: 11, move: ALL_MOVES.Hypnosis },
       { level: 18, move: ALL_MOVES.DrainingKiss },
       { level: 26, move: ALL_MOVES.DazzlingGleam },
       { level: 34, move: ALL_MOVES.ShadowBall },

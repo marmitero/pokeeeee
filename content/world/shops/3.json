@@ -69,6 +69,17 @@
       "stock": 5
     },
     {
+      "itemKey": "fullHeals",
+      "name": "Cura Total",
+      "description": "Cura qualquer problema de status.",
+      "category": "potion",
+      "buyPrice": 600,
+      "sellPrice": 300,
+      "iconEmoji": "✨",
+      "isPremium": false,
+      "stock": 50
+    },
+    {
       "itemKey": "kingsRock",
       "name": "Rocha do Rei",
       "description": "Usado fora de batalha para evoluir certas espécies.",

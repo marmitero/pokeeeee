@@ -136,6 +136,14 @@ export const users = pgTable("users", {
   razorFang: integer("razor_fang").notNull().default(0),
   dubiousDisc: integer("dubious_disc").notNull().default(0),
   reaperCloth: integer("reaper_cloth").notNull().default(0),
+  // inventory – status cures (Fase 8.4: veneno/queimadura/paralisia/sono/gelo)
+  antidotes: integer("antidotes").notNull().default(0),
+  paralyzeHeals: integer("paralyze_heals").notNull().default(0),
+  awakenings: integer("awakenings").notNull().default(0),
+  burnHeals: integer("burn_heals").notNull().default(0),
+  iceHeals: integer("ice_heals").notNull().default(0),
+  fullHeals: integer("full_heals").notNull().default(0),
+  fullRestores: integer("full_restores").notNull().default(0),
   // progress
   currentMapId: integer("current_map_id").notNull().default(1),
   playerX: integer("player_x").notNull().default(8),
@@ -160,7 +168,7 @@ export const users = pgTable("users", {
 }, (table) => [
   check("users_role_check", sql`${table.role} IN ('player', 'moderator', 'admin')`),
   check("users_money_nonnegative", sql`${table.money} >= 0`),
-  check("users_inventory_nonnegative", sql`${table.pokeballs} >= 0 AND ${table.greatballs} >= 0 AND ${table.ultraballs} >= 0 AND ${table.masterballs} >= 0 AND ${table.potions} >= 0 AND ${table.superPotions} >= 0 AND ${table.maxPotions} >= 0 AND ${table.revives} >= 0 AND ${table.fireStone} >= 0 AND ${table.waterStone} >= 0 AND ${table.thunderStone} >= 0 AND ${table.leafStone} >= 0 AND ${table.moonStone} >= 0 AND ${table.sunStone} >= 0 AND ${table.shinyStone} >= 0 AND ${table.metalCoat} >= 0 AND ${table.kingsRock} >= 0 AND ${table.dragonScale} >= 0 AND ${table.upgrade} >= 0 AND ${table.duskStone} >= 0 AND ${table.dawnStone} >= 0 AND ${table.ovalStone} >= 0 AND ${table.protector} >= 0 AND ${table.electirizer} >= 0 AND ${table.magmarizer} >= 0 AND ${table.razorClaw} >= 0 AND ${table.razorFang} >= 0 AND ${table.dubiousDisc} >= 0 AND ${table.reaperCloth} >= 0`),
+  check("users_inventory_nonnegative", sql`${table.pokeballs} >= 0 AND ${table.greatballs} >= 0 AND ${table.ultraballs} >= 0 AND ${table.masterballs} >= 0 AND ${table.potions} >= 0 AND ${table.superPotions} >= 0 AND ${table.maxPotions} >= 0 AND ${table.revives} >= 0 AND ${table.fireStone} >= 0 AND ${table.waterStone} >= 0 AND ${table.thunderStone} >= 0 AND ${table.leafStone} >= 0 AND ${table.moonStone} >= 0 AND ${table.sunStone} >= 0 AND ${table.shinyStone} >= 0 AND ${table.metalCoat} >= 0 AND ${table.kingsRock} >= 0 AND ${table.dragonScale} >= 0 AND ${table.upgrade} >= 0 AND ${table.duskStone} >= 0 AND ${table.dawnStone} >= 0 AND ${table.ovalStone} >= 0 AND ${table.protector} >= 0 AND ${table.electirizer} >= 0 AND ${table.magmarizer} >= 0 AND ${table.razorClaw} >= 0 AND ${table.razorFang} >= 0 AND ${table.dubiousDisc} >= 0 AND ${table.reaperCloth} >= 0 AND ${table.antidotes} >= 0 AND ${table.paralyzeHeals} >= 0 AND ${table.awakenings} >= 0 AND ${table.burnHeals} >= 0 AND ${table.iceHeals} >= 0 AND ${table.fullHeals} >= 0 AND ${table.fullRestores} >= 0`),
   check("users_progress_nonnegative", sql`${table.wins} >= 0 AND ${table.losses} >= 0 AND ${table.elo} >= 0`),
   check("users_position_check", sql`${table.playerX} BETWEEN 0 AND 63 AND ${table.playerY} BETWEEN 0 AND 63`),
 ]);
@@ -210,6 +218,11 @@ export const userPokemon = pgTable("user_pokemon", {
   partySlot: integer("party_slot"),
   isStarter: boolean("is_starter").notNull().default(false),
   caughtAt: timestamp("caught_at").defaultNow(),
+  // Fase 8.4 — status de batalha persistente (NONE|PSN|TOX|BRN|PAR|SLP|FRZ).
+  // Persiste depois da batalha até Centro Pokémon ou item, como no GBA.
+  status: text("status").notNull().default("NONE"),
+  // SLP: turnos restantes de sono · TOX: turnos já sofridos · demais: 0.
+  statusTurns: integer("status_turns").notNull().default(0),
 }, (table) => [
   index("user_pokemon_user_id_idx").on(table.userId),
   uniqueIndex("user_pokemon_party_slot_unique").on(table.userId, table.partySlot).where(sql`${table.partySlot} IS NOT NULL`),
@@ -219,6 +232,7 @@ export const userPokemon = pgTable("user_pokemon", {
   check("user_pokemon_hp_check", sql`${table.maxHp} > 0 AND ${table.hp} BETWEEN 0 AND ${table.maxHp}`),
   check("user_pokemon_stats_check", sql`${table.attack} > 0 AND ${table.defense} > 0 AND ${table.spAttack} > 0 AND ${table.spDefense} > 0 AND ${table.speed} > 0`),
   check("user_pokemon_party_slot_check", sql`${table.partySlot} IS NULL OR ${table.partySlot} BETWEEN 1 AND 6`),
+  check("user_pokemon_status_check", sql`${table.status} IN ('NONE', 'PSN', 'TOX', 'BRN', 'PAR', 'SLP', 'FRZ') AND ${table.statusTurns} >= 0`),
 ]);
 
 // ─── MAPS ─────────────────────────────────────────────────────────────────

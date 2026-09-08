@@ -19,7 +19,12 @@
  *   Great Ball: 16% / 27% / 35%   ·   Ultra Ball: 20% / 34% / 43%
  * Lendário (Rayquaza, catchRate 10): 4% com HP cheio, 14% com Ultra Ball a 10%.
  * Master Ball é sempre 100%.
+ *
+ * Fase 8.4: o status do alvo multiplica `a` como na Gen III — sono/congelado
+ * ×2, paralisia/veneno/queimadura ×1,5 (`captureStatusBonus`).
  */
+
+import { captureStatusBonus, type StatusCondition } from "./status";
 
 export type BallKey = "pokeballs" | "greatballs" | "ultraballs" | "masterballs";
 
@@ -45,13 +50,14 @@ export function captureChance(
   catchRate: number,
   hp: number,
   maxHp: number,
-  ball: BallKey
+  ball: BallKey,
+  status: StatusCondition = "NONE"
 ): number {
   if (ball === "masterballs") return 1;
   if (maxHp <= 0) return MAX_CHANCE;
 
   const a =
-    ((3 * maxHp - 2 * Math.max(0, hp)) * catchRate * BALL_BONUS[ball]) /
+    ((3 * maxHp - 2 * Math.max(0, hp)) * catchRate * BALL_BONUS[ball] * captureStatusBonus(status)) /
     (3 * maxHp);
 
   if (a <= 0) return MIN_CHANCE;

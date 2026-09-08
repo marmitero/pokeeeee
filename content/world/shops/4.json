@@ -3,6 +3,39 @@
   "shopId": 4,
   "items": [
     {
+      "itemKey": "antidotes",
+      "name": "Antídoto",
+      "description": "Cura veneno (inclusive o grave).",
+      "category": "potion",
+      "buyPrice": 100,
+      "sellPrice": 50,
+      "iconEmoji": "🧫",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
+      "itemKey": "awakenings",
+      "name": "Despertador",
+      "description": "Acorda um Pokémon adormecido.",
+      "category": "potion",
+      "buyPrice": 250,
+      "sellPrice": 125,
+      "iconEmoji": "⏰",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
+      "itemKey": "burnHeals",
+      "name": "Anti-Queimadura",
+      "description": "Cura queimadura.",
+      "category": "potion",
+      "buyPrice": 250,
+      "sellPrice": 125,
+      "iconEmoji": "🧯",
+      "isPremium": false,
+      "stock": 99
+    },
+    {
       "itemKey": "dawnStone",
       "name": "Pedra do Amanhecer",
       "description": "Usado fora de batalha para evoluir certas espécies.",
@@ -144,6 +177,17 @@
       "iconEmoji": "🥚",
       "isPremium": false,
       "stock": 3
+    },
+    {
+      "itemKey": "paralyzeHeals",
+      "name": "Anti-Paralisia",
+      "description": "Cura paralisia.",
+      "category": "potion",
+      "buyPrice": 200,
+      "sellPrice": 100,
+      "iconEmoji": "💛",
+      "isPremium": false,
+      "stock": 99
     },
     {
       "itemKey": "pokeballs",

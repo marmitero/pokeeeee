@@ -1,5 +1,6 @@
 import type { PokemonMove } from "../pokedex";
 import { effectivenessLabel, typeMultiplier } from "./types";
+import { BURN_PHYSICAL_MULT, type StatusCondition } from "./status";
 
 /**
  * O mínimo que a fórmula de dano precisa de um golpe.
@@ -13,6 +14,8 @@ export interface DamageMove {
   power: number;
   accuracy: number;
   category: string;
+  /** Presente nos golpes de Status com efeito real (8.4); ausente em dado legado. */
+  effect?: unknown;
 }
 
 /**
@@ -39,6 +42,8 @@ export interface Combatant {
   spAttack: number;
   spDefense: number;
   speed: number;
+  /** Fase 8.4: queimadura corta o dano físico pela metade. Opcional para chamadores antigos. */
+  status?: StatusCondition;
 }
 
 export interface DamageResult {
@@ -97,11 +102,13 @@ export function computeDamage(
     return { damage: 0, missed: true, critical: false, multiplier: 1, label: null };
   }
 
-  // Golpes de status existem no catálogo, mas ainda não têm efeito próprio.
+  // Golpe de Status (Fase 8.4): não causa dano — o efeito é aplicado pelo
+  // motor de turno (`battle-service`/`pvp-service`) via `applyMoveEffect`.
+  // Sem efeito declarado (dado legado), continua sendo "nada aconteceu".
   if (move.category === "Status") {
     return {
       damage: 0, missed: false, critical: false, multiplier: 1,
-      label: "Mas nada aconteceu...",
+      label: move.effect ? null : "Mas nada aconteceu...",
     };
   }
 
@@ -112,6 +119,8 @@ export function computeDamage(
   const stab = attacker.types.includes(move.type) ? STAB_MULT : 1;
   const multiplier = typeMultiplier(move.type, defender.types);
   const random = MIN_RANDOM + rng() * (MAX_RANDOM - MIN_RANDOM);
+  // Fase 8.4 (Gen III): atacante queimado causa metade do dano físico.
+  const burn = attacker.status === "BRN" && move.category === "Physical" ? BURN_PHYSICAL_MULT : 1;
 
   if (multiplier === 0) {
     return { damage: 0, missed: false, critical: false, multiplier: 0,
@@ -125,6 +134,7 @@ export function computeDamage(
     stab *
     multiplier *
     (critical ? CRIT_MULT : 1) *
+    burn *
     random;
 
   return {

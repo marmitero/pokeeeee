@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { DELUGE_VARIANTS, getPokemonSpecies } from "@/lib/pokedex";
+import { DELUGE_VARIANTS, getMoveByName, getPokemonSpecies } from "@/lib/pokedex";
 import { retroSfx } from "@/lib/sound";
 import { Swords, Send } from "lucide-react";
 import type { BattleView } from "@/lib/battle-service";
 import { api } from "@/lib/api-client";
+import { StatusTag } from "@/components/battle/StatusTag";
+import { BattleItemBar } from "@/components/battle/BattleItemBar";
 
 export interface ArenaChatMessage {
   id?: number;
@@ -18,6 +20,8 @@ interface BattleArenaModalProps {
   /** Batalha selvagem criada pelo servidor. `null` = só a arena/chat. */
   battleId: number | null;
   username: string;
+  /** Inventário do jogador (o `user` público) — para a barra de itens (8.4). */
+  inventory?: Record<string, unknown> | null;
   onStateChange: (user: unknown, party: unknown[]) => void;
   onBattleEnd: () => void;
 }
@@ -67,6 +71,7 @@ async function callBattle(
 export function BattleArenaModal({
   battleId,
   username,
+  inventory,
   onStateChange,
   onBattleEnd,
 }: BattleArenaModalProps) {
@@ -130,9 +135,27 @@ export function BattleArenaModal({
     if (!battle || busy || finished) return;
     setBusy(true);
     setError(null);
-    retroSfx.playAttack("flame");
+    // Som do golpe pelo catálogo (Onda Trovão soa como trovão, pós como cura).
+    const moveName = battle.state.player.moves[moveIndex]?.name;
+    retroSfx.playAttack(moveName ? getMoveByName(moveName).sfx : "flame");
 
     const res = await callBattle({ action: "attack", battleId: battle.id, moveIndex });
+    setBusy(false);
+    if ("error" in res) {
+      setError(res.error);
+      return;
+    }
+    applyResult(res);
+  };
+
+  // Fase 8.4: poção / cura de status no Pokémon ativo — consome o turno.
+  const doUseItem = async (item: string) => {
+    if (!battle || busy || finished) return;
+    setBusy(true);
+    setError(null);
+    retroSfx.playAttack("heal");
+
+    const res = await callBattle({ action: "use_item", battleId: battle.id, item });
     setBusy(false);
     if ("error" in res) {
       setError(res.error);
@@ -245,6 +268,7 @@ export function BattleArenaModal({
                       {opponentVariantCfg.label}
                     </span>
                     <span className="font-['Press_Start_2P'] text-[10px] text-slate-400">LV.{opponent.level}</span>
+                    <StatusTag status={opponent.status} />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[9px] text-amber-400">HP</span>
@@ -289,6 +313,7 @@ export function BattleArenaModal({
                       {playerVariantCfg.label}
                     </span>
                     <span className="font-['Press_Start_2P'] text-[10px] text-slate-400">LV.{player.level}</span>
+                    <StatusTag status={player.status} />
                   </div>
                   <div className="mt-2 flex items-center gap-2">
                     <span className="font-['Press_Start_2P'] text-[9px] text-amber-400">HP</span>
@@ -351,19 +376,30 @@ export function BattleArenaModal({
                         onClick={() => doAttack(i)}
                         className="border-2 border-slate-600 bg-gradient-to-r from-slate-800 to-slate-900 px-3 py-2.5 text-left font-['Press_Start_2P'] text-[10px] text-amber-300 shadow-[3px_3px_0px_#000] hover:border-amber-400 hover:brightness-125 disabled:opacity-40"
                       >
-                        ⚡ {m.name}
+                        {m.category === "Status" ? "✨" : "⚡"} {m.name}
                         <span className="ml-1 text-[8px] text-slate-500">
-                          {m.type} {m.power}
+                          {m.type} {m.category === "Status" ? "STATUS" : m.power}
                         </span>
                       </button>
                     ))}
                   </div>
                 </div>
 
+                {!finished && (
+                  <BattleItemBar
+                    inventory={inventory}
+                    playerHp={player.hp}
+                    playerMaxHp={player.maxHp}
+                    playerStatus={player.status}
+                    disabled={busy || player.hp <= 0}
+                    onUse={doUseItem}
+                  />
+                )}
+
                 {battle?.kind === "wild" && !finished && (
                   <div>
                     <div className="mb-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300">
-                      CAPTURAR (a chance depende do HP restante e do catchRate):
+                      CAPTURAR (a chance depende do HP restante, do catchRate e do status):
                     </div>
                     <div className="grid grid-cols-4 gap-2">
                       {(["pokeballs", "greatballs", "ultraballs", "masterballs"] as const).map((ball) => (

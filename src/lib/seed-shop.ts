@@ -2,6 +2,7 @@ import { db } from "@/db";
 import { shopItems } from "@/db/schema";
 import { and, eq, ne } from "drizzle-orm";
 import { EVOLUTION_ITEM_EMOJI, EVOLUTION_ITEM_LABEL, type EvolutionItemKey } from "./evolution-items";
+import { STATUS_ITEMS, type StatusItemKey } from "./status-items";
 
 /**
  * Catálogo das lojas.
@@ -64,24 +65,54 @@ function consumable(
   };
 }
 
+/**
+ * Item de cura de status (Fase 8.4). Categoria `potion` — fica na mesma aba
+ * "POÇÕES & ITENS" da loja e pode ser vendido pela metade, como as poções.
+ * Preços da Gen III (escala 1:1 com a Poção a 300).
+ */
+function cure(itemKey: StatusItemKey, stock: number): ConsumableSpec {
+  const spec = STATUS_ITEMS[itemKey];
+  return {
+    itemKey,
+    name: spec.name,
+    description: spec.description,
+    category: "potion",
+    buyPrice: spec.buyPrice,
+    iconEmoji: spec.iconEmoji,
+    stock,
+  };
+}
+
 /** Consumíveis por loja (o tier sobe com a cidade). */
 const SHOP_CONSUMABLES: Record<number, ConsumableSpec[]> = {
+  // Curas de status (8.4) seguem a curva dos jogos de GBA: Antídoto e
+  // Anti-Paralisia desde a 1ª loja (Viridian vendia os dois), Despertador e
+  // Anti-Queimadura da 2ª, Descongelante nas Ilhas Glaciais (mapa 10, onde o
+  // gelo começa), Cura Total da metade do jogo e Restaurador Total só com as
+  // Masterballs (lojas 9–11).
   1: [
     consumable("ball", "pokeballs", 99),
     consumable("potion", "potions", 99),
     consumable("potion", "revives", 10),
+    cure("antidotes", 99),
+    cure("paralyzeHeals", 99),
   ],
   2: [
     consumable("ball", "pokeballs", 99),
     consumable("ball", "greatballs", 50),
     consumable("potion", "superPotions", 99),
     consumable("potion", "revives", 20),
+    cure("antidotes", 99),
+    cure("paralyzeHeals", 99),
+    cure("awakenings", 99),
+    cure("burnHeals", 99),
   ],
   3: [
     consumable("ball", "ultraballs", 30),
     consumable("potion", "maxPotions", 20),
     consumable("ball", "masterballs", 5),
     consumable("potion", "revives", 30),
+    cure("fullHeals", 50),
   ],
   // ── Etapa C: lojas das cidades ──
   4: [ // mapa 5 — Litoral de Vermilion
@@ -90,47 +121,69 @@ const SHOP_CONSUMABLES: Record<number, ConsumableSpec[]> = {
     consumable("potion", "potions", 99),
     consumable("potion", "superPotions", 60),
     consumable("potion", "revives", 25),
+    cure("antidotes", 99),
+    cure("paralyzeHeals", 99),
+    cure("awakenings", 99),
+    cure("burnHeals", 99),
   ],
   5: [ // mapa 10 — Ilhas Glaciais
     consumable("ball", "greatballs", 80),
     consumable("ball", "ultraballs", 40),
     consumable("potion", "superPotions", 80),
     consumable("potion", "revives", 30),
+    cure("antidotes", 99),
+    cure("paralyzeHeals", 99),
+    cure("awakenings", 99),
+    cure("burnHeals", 99),
+    cure("iceHeals", 99),
   ],
   6: [ // mapa 15 — Fossa Abissal
     consumable("ball", "greatballs", 80),
     consumable("ball", "ultraballs", 50),
     consumable("potion", "superPotions", 80),
     consumable("potion", "revives", 35),
+    cure("antidotes", 99),
+    cure("paralyzeHeals", 99),
+    cure("awakenings", 99),
+    cure("burnHeals", 99),
+    cure("iceHeals", 99),
   ],
   7: [ // mapa 20 — Santuário Celeste
     consumable("ball", "ultraballs", 60),
     consumable("potion", "superPotions", 99),
     consumable("potion", "maxPotions", 30),
     consumable("potion", "revives", 40),
+    cure("fullHeals", 60),
   ],
   8: [ // mapa 25 — Forja Abandonada
     consumable("ball", "ultraballs", 70),
     consumable("potion", "maxPotions", 40),
     consumable("potion", "revives", 45),
+    cure("fullHeals", 70),
   ],
   9: [ // mapa 30 — Recife da Tempestade
     consumable("ball", "ultraballs", 80),
     consumable("ball", "masterballs", 6),
     consumable("potion", "maxPotions", 50),
     consumable("potion", "revives", 50),
+    cure("fullHeals", 80),
+    cure("fullRestores", 20),
   ],
   10: [ // mapa 35 — Farol do Fim
     consumable("ball", "ultraballs", 90),
     consumable("ball", "masterballs", 8),
     consumable("potion", "maxPotions", 60),
     consumable("potion", "revives", 60),
+    cure("fullHeals", 90),
+    cure("fullRestores", 30),
   ],
   11: [ // mapa 40 — Coroa do Mundo
     consumable("ball", "ultraballs", 99),
     consumable("ball", "masterballs", 10),
     consumable("potion", "maxPotions", 80),
     consumable("potion", "revives", 80),
+    cure("fullHeals", 99),
+    cure("fullRestores", 40),
   ],
 };
 
@@ -162,11 +215,11 @@ const STONE_SPECS: Array<{ itemKey: EvolutionItemKey; buyPrice: number; stock: n
 export const SHOP_IDS = Object.keys(SHOP_CONSUMABLES).map(Number);
 
 export async function ensureShopSeeded() {
-  // B10 (Fase 3): o \"Antídoto\" tinha `itemKey: \"potions\"` — comprar um antídoto
-  // creditava uma Poção. Não existe sistema de status (veneno/queimadura/
-  // paralisia) para ele curar, então o item foi **removido** em vez de
-  // reaproveitado. A limpeza abaixo é idempotente e cobre bancos já semeados;
-  // quando o sistema de status chegar (8.4), o item volta com coluna própria.
+  // B10 (Fase 3): o "Antídoto" legado tinha `itemKey: "potions"` — comprar um
+  // antídoto creditava uma Poção. Foi removido; a 8.4 trouxe o item de volta
+  // com coluna própria (`antidotes`). A limpeza continua, idempotente, para
+  // bancos antigos que ainda carreguem a linha errada (o insert abaixo é por
+  // `shopId:itemKey`, então o Antídoto novo nunca colide com o legado).
   await db
     .delete(shopItems)
     .where(and(eq(shopItems.name, "Antídoto"), eq(shopItems.itemKey, "potions")));

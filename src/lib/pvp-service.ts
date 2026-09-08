@@ -2,8 +2,9 @@ import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { pvpBattles, userPokemon, users } from "@/db/schema";
 import { getPokemonSpecies, getMoveByName } from "@/lib/pokedex";
-import { computeDamage } from "@/lib/engine/damage";
-import { sideFromUserPokemon, toCombatant, type SideState } from "@/lib/engine/combatant";
+import { sideFromUserPokemon, type SideState } from "@/lib/engine/combatant";
+import { endOfTurn, performStrike } from "@/lib/engine/turn";
+import { effectiveSpeed, normalizeStatus } from "@/lib/engine/status";
 import { badRequest, forbidden, notFound } from "@/lib/api";
 
 /**
@@ -158,12 +159,16 @@ function otherKey(key: SideKey): SideKey {
   return key === "p1" ? "p2" : "p1";
 }
 
-/** Compatibilidade com salas criadas antes do PvP em equipes. */
+/** Compatibilidade com salas criadas antes do PvP em equipes (e antes da 8.4, sem status). */
 function normalizeState(raw: PvpState): PvpState {
   for (const key of ["p1", "p2"] as SideKey[]) {
     const side = raw[key];
     side.teamPokemonIds ??= side.userPokemonId ? [side.userPokemonId] : [];
     side.rematchRequested ??= false;
+    if (side.snapshot) {
+      side.snapshot.status = normalizeStatus(side.snapshot.status);
+      side.snapshot.statusTurns = Math.max(0, side.snapshot.statusTurns ?? 0);
+    }
   }
   return raw;
 }
@@ -176,6 +181,7 @@ function opponentPublic(side: PvpSide) {
     maxHp: side.snapshot.maxHp,
     variant: side.snapshot.variant,
     pokedexId: side.snapshot.pokedexId,
+    status: side.snapshot.status,
   };
 }
 
@@ -371,15 +377,22 @@ async function resolveExchange(tx: Tx, state: PvpState) {
     }
   }
 
-  // 2) Ordem dos golpes pela velocidade; empate → aleatório.
-  const p1First =
-    state.p1.snapshot.speed === state.p2.snapshot.speed
-      ? Math.random() < 0.5
-      : state.p1.snapshot.speed > state.p2.snapshot.speed;
+  // 2) Ordem dos golpes pela velocidade **efetiva** (paralisia ×0,25 — 8.4);
+  //    empate → aleatório.
+  const s1 = effectiveSpeed(state.p1.snapshot);
+  const s2 = effectiveSpeed(state.p2.snapshot);
+  const p1First = s1 === s2 ? Math.random() < 0.5 : s1 > s2;
 
   const order: Array<[SideKey, SideKey]> = p1First
     ? [["p1", "p2"], ["p2", "p1"]]
     : [["p2", "p1"], ["p1", "p2"]];
+
+  const faint = (key: SideKey) => {
+    const side = state[key];
+    if (side.snapshot.hp > 0 || side.needsSwitch) return;
+    state.log = pushLog(state.log, `${side.snapshot.displayName} desmaiou!`);
+    side.needsSwitch = true;
+  };
 
   for (const [atkKey, defKey] of order) {
     const attacker = state[atkKey];
@@ -393,29 +406,21 @@ async function resolveExchange(tx: Tx, state: PvpState) {
     const move = attacker.snapshot.moves[action.moveIndex];
     if (!move) continue;
 
-    const result = computeDamage(
-      toCombatant(attacker.snapshot),
-      toCombatant(defender.snapshot),
-      move
-    );
+    // Fase 8.4: mesmo motor de golpe do PvE — sono/gelo/paralisia, efeitos
+    // secundários, golpes de Status e descongelar por golpe de Fogo.
+    const result = performStrike(attacker.snapshot, defender.snapshot, move);
+    state.log = pushLog(state.log, ...result.log);
 
-    state.log = pushLog(
-      state.log,
-      `${attacker.snapshot.displayName} usou ${move.name}!` + (result.missed ? " Mas errou!" : "")
-    );
-
-    if (result.missed) continue;
-    if (result.critical) state.log = pushLog(state.log, "Golpe crítico!");
-    if (result.label) state.log = pushLog(state.log, result.label);
-    state.log = pushLog(state.log, `Causou ${result.damage} de dano.`);
-
-    defender.snapshot.hp = Math.max(0, defender.snapshot.hp - result.damage);
-
-    if (defender.snapshot.hp <= 0) {
-      state.log = pushLog(state.log, `${defender.snapshot.displayName} desmaiou!`);
-      defender.needsSwitch = true;
-    }
+    faint(defKey);
   }
+
+  // 2b) Fim de turno: veneno / queimadura, mais rápido primeiro (Gen III).
+  const residual = endOfTurn(
+    (p1First ? ["p1", "p2"] : ["p2", "p1"]).map((k) => state[k as SideKey].snapshot)
+  );
+  state.log = pushLog(state.log, ...residual.log);
+  faint("p1");
+  faint("p2");
 
   // 3) Limpa as ações travadas e avança o turno.
   state.p1.committed = null;
@@ -428,15 +433,24 @@ async function resolveExchange(tx: Tx, state: PvpState) {
   state.phase = needsSwitch ? "SWITCH" : "ACTION";
 }
 
-/** Grava o HP dos dois lados em `user_pokemon` — o dano persiste (decisão 2). */
+/**
+ * Grava o HP dos dois lados em `user_pokemon` — o dano persiste (decisão 2).
+ * Desde a 8.4 o status também persiste (desmaiar limpa; o contador do veneno
+ * grave recomeça ao entrar em campo, então só o sono guarda turnos).
+ */
 async function persistHp(tx: Tx, state: PvpState) {
   for (const key of ["p1", "p2"] as SideKey[]) {
     const side = state[key];
     if (side.userId === 0 || side.userPokemonId === 0) continue;
 
+    const snap = side.snapshot;
     await tx
       .update(userPokemon)
-      .set({ hp: side.snapshot.hp })
+      .set({
+        hp: snap.hp,
+        status: snap.hp > 0 ? snap.status : "NONE",
+        statusTurns: snap.hp > 0 && snap.status === "SLP" ? snap.statusTurns : 0,
+      })
       .where(
         and(eq(userPokemon.id, side.userPokemonId), eq(userPokemon.userId, side.userId))
       );
