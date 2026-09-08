@@ -37,9 +37,18 @@
 
 - `boss_fights(id, user_id, arena_map_id CHECK 20/40, week_id, day, status,
   boss_pokedex_id, boss_level, stone_claimed, legendary_granted, …)`.
-- `battles.kind` passa a aceitar `"boss"`.
+- `battles.kind` passa a aceitar `"boss"` (`battles_kind_check`).
 - Companheiro `docs/supabase-production-0010-runtime.sql`: idempotente, validado
   **2×** em clone `TEMPLATE` (conferência `1·1·3·true·1·11` nas duas).
+- **Incidente 2026-09-08**: após o merge, o script one-off de renumeração de
+  `game_maps` (ids 1–3,38–54,75–94 → 1–40) foi baseado no bootstrap antigo
+  (`battles_kind_check IN ('wild','gym')`) e recriou a constraint sem `'boss'`.
+  Resultado: `GET /api/boss` ok (só lê `boss_fights`), mas `POST /api/battle
+  start_boss` falhava com `check constraint "battles_kind_check" violated`
+  → 500 → UI mostrava "Erro na batalha". Reparo idempotente em
+  `docs/supabase-production-0010-reparo-pos-renumeracao.sql` (DROP/ADD com
+  `'wild','gym','boss'` + conferência). Validado localmente reproduzindo o bug
+  e o fix (constraint antiga → falha esperada, após reparo → Kyurem nv 100).
 
 ## Testes
 

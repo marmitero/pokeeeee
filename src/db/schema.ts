@@ -52,7 +52,7 @@ export interface NpcDefinition {
   id: string;
   x: number;
   y: number;
-  type: "shop" | "gym" | "healer" | "info";
+  type: "shop" | "gym" | "healer" | "info" | "boss";
   name: string;
   shopId?: number;
   gymId?: number;
