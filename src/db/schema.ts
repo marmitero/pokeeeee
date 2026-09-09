@@ -388,6 +388,36 @@ export const pvpBattles = pgTable("pvp_battles", {
   check("pvp_battles_players_distinct", sql`${table.player2Id} IS NULL OR ${table.player1Id} <> ${table.player2Id}`),
 ]);
 
+// ─── TEMPORADA PVP RANQUEADA (Etapa C, 8.5) ────────────────────────────────
+
+/**
+ * Resultado da temporada semanal da Arena ranqueada.
+ *
+ * Fechamento **preguiçoso** (padrão do projeto, sem cron): na 1ª chamada da
+ * semana nova (`GET /api/pvp?ranking=1` ou `join_ranked`), a semana anterior
+ * é fechada — uma linha por jogador do top 10 (por ELO, entre quem tem ≥ 10
+ * partidas ranqueadas), com o ELO final, a colocação e a recompensa entregue
+ * na hora (Pk$ + Cura Total + Restaurador Total).
+ *
+ * - `weekId` = `YYYY-Www` ISO UTC (mesmo `weekIdOf` do boss);
+ * - `eloFinal`/`rank` são o retrato da temporada (auditoria);
+ * - `rewardClaimed` marca a entrega da recompensa (auto-grant no fechamento).
+ */
+export const pvpSeasons = pgTable("pvp_seasons", {
+  id: serial("id").primaryKey(),
+  weekId: text("week_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  eloFinal: integer("elo_final").notNull(),
+  rank: integer("rank").notNull(),
+  rewardClaimed: boolean("reward_claimed").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("pvp_seasons_week_user_unique").on(table.weekId, table.userId),
+  index("pvp_seasons_week_rank_idx").on(table.weekId, table.rank),
+  check("pvp_seasons_rank_check", sql`${table.rank} >= 1`),
+  check("pvp_seasons_elo_check", sql`${table.eloFinal} >= 0`),
+]);
+
 // ─── BATALHAS (motor autoritativo — Fase 2) ───────────────────────────────
 
 /**
