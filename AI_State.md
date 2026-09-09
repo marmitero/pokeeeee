@@ -80,6 +80,14 @@
 > combinada do roadmap: 8.4 → 8.5 → 8.6 → 8.7 → Etapa D. Pendência nova
 > abaixo: #18 (8.4 em produção).**
 >
+> **2026-09-08 — o mantenedor validou em produção a pendência #18 (8.4 —
+> status de batalha): SQL 0011 colado no Supabase antes do merge, PR #17
+> mergeado em `main` (squash `3e223d2`), Vercel `Ready`; no navegador, loja 1
+> com Antídoto/Anti-Paralisia, Pikachu nv 12 + Onda Trovão → "está
+> paralisado!" + etiqueta PAR, barra ITENS curando e gastando o turno,
+> Pokémon Box com a etiqueta, Centro Pokémon limpa, PvP com Pó do Sono. A
+> **8.4 está em produção**.**
+>
 > | # | O que testar | Como | Origem | Status |
 > |---|---|---|---|---|
 > | 1 | **Batalha selvagem**: pisar na grama alta, ver o sprite do oponente, as barras de HP, o log com "É super efetivo!", os 4 golpes com tipo/poder, e o botão FUGIR | Login → andar até a grama alta (WASD) | Fase 2 | ✅ 2026-09-06 |
@@ -98,7 +106,8 @@
 > | 14 | **Hoenn em produção (6.4-C)**: abrir a vitrine de sprites e conferir 387 espécies; capturar/dar via GM um Treecko e subir ao nível 16 para ver `★ … evoluiu para Grovyle!` | catchbound.vercel.app | Fase 6.4-C/§4.29 | ✅ 2026-09-06 |
 > | 15 | **Sinnoh em produção (6.4-D)**: **antes do merge** colar `docs/supabase-production-0008-runtime.sql` no SQL Editor (conferência: `sinnoh_columns 7 · check_exists 1 · runtime_grants 4 · migrations 9`); após o deploy, abrir a loja 3 (Pico Celeste) e ver os 7 itens novos (🪖 Protetor, 🔋 Eletrizador, 🌋 Magmatizador, 🪝 Garra Afiada, 🦷 Presa Afiada, 💽 Disco Dúbio, 🕯️ Manto do Ceifador); via GM dar um Rhydon + 1 Protetor, usar no Pokémon Box → `★ Rhydon evoluiu para Rhyperior!`; dar um Riolu lv19 e vencer uma batalha → Lucario; vitrine de sprites com 493 espécies (2958 sprites). Encontros de Sinnoh **ainda não existem no mundo** (decisão do mantenedor) — use as Ferramentas GM | catchbound.vercel.app | Fase 6.4-D/§4.30 | ✅ 2026-09-07 (validado em produção pelo mantenedor) |
 | 16 | **Unova em produção (6.4-E)**: **sem SQL novo** (reutiliza pedras); após o deploy, vitrine de sprites com 649 espécies (3894 sprites); via GM dar Snivy lv16 → vencer batalha → Servine (lv17) → lv36 → Serperior; dar Pansage + Pedra de Folha → Pokémon Box → usar pedra → Simisage; Boldore lv39 → Gigalith (proxy troca lv40); Woobat lv24 → Swoobat | catchbound.vercel.app | Fase 6.4-E/§4.31 | ✅ 2026-09-07 (mantenedor declarou concluída) |
-| 18 | **Status de batalha em produção (8.4)**: **antes do merge** colar `docs/supabase-production-0011-runtime.sql` no SQL Editor (conferência: `status_columns 2 · cure_columns 7 · status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`); após o deploy: loja 1 lista 🧫 Antídoto (100) e 💛 Anti-Paralisia (200); via GM dar um Pikachu nv 12 → grama do mapa 1 → usar ✨ Onda Trovão → log "está paralisado!" + etiqueta **PAR** amarela na caixa de HP do selvagem; ser envenenado/queimado por um selvagem e ver a barra "ITENS (usar gasta o turno)" → usar Antídoto → turno passa e etiqueta some; fugir com status → Pokémon Box mostra a etiqueta → Centro Pokémon (✚) limpa; PvP amistoso: Pó do Sono de um Bulbasaur nv 15 adormece o adversário ("está dormindo profundamente") | catchbound.vercel.app | Fase 8.4/§4.36 | ⬜ |
+| 18 | **Status de batalha em produção (8.4)**: **antes do merge** colar `docs/supabase-production-0011-runtime.sql` no SQL Editor (conferência: `status_columns 2 · cure_columns 7 · status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`); após o deploy: loja 1 lista 🧫 Antídoto (100) e 💛 Anti-Paralisia (200); via GM dar um Pikachu nv 12 → grama do mapa 1 → usar ✨ Onda Trovão → log "está paralisado!" + etiqueta **PAR** amarela na caixa de HP do selvagem; ser envenenado/queimado por um selvagem e ver a barra "ITENS (usar gasta o turno)" → usar Antídoto → turno passa e etiqueta some; fugir com status → Pokémon Box mostra a etiqueta → Centro Pokémon (✚) limpa; PvP amistoso: Pó do Sono de um Bulbasaur nv 15 adormece o adversário ("está dormindo profundamente") | catchbound.vercel.app | Fase 8.4/§4.36 | ✅ 2026-09-08 |
+| 19 | **Arena PvP ranqueada em produção (8.5)**: **antes do merge** colar `docs/supabase-production-0012-runtime.sql` no SQL Editor (conferência: `rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 · indexes 2 · checks 2 · migrations 13`); após o deploy: abrir ARENA PVP → aba RANQUEADA → "BUSCAR RIVAL RANQUEADO" com 2 contas (pareia sozinho; no fim do duelo o ELO muda); aba RANKING → top 50 + a posição do jogador (aparece quem tiver 10+ partidas); desistir antes do turno 3 paga ½ K ao vencedor | catchbound.vercel.app | Fase 8.5/§4.37 | ⬜ |
 | 17 | **Chat no jogo em produção (8.8)**: **antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); após o deploy, 💬 GLOBAL/LOCAL/PRIVADO + `/w` + badge de não-lidas | catchbound.vercel.app | Fase 8.8/§4.32 | ✅ 2026-09-07 (mantenedor declarou concluída) |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -166,7 +175,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a0809a-pokeeeee` (Fase 8.4 — Status de batalha; o `main` está em `c65401d` — merge do PR #16, reparo pós-8.3)
+**Branch da sessão atual:** `arena/01a081db-pokeeeee` (Fase 8.5 — Arena PvP ranqueada; o `main` está em `3e223d2` — merge do PR #17, 8.4 em produção)
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -201,8 +210,8 @@ scripts/world-export.mts      # banco → content/world/     (npm run world:expo
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
 ```
 
-### Banco de dados — 13 tabelas
-`users` · `sessions` · `user_pokemon` (+ `status`/`status_turns`, 8.4) · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `chat_messages` · `email_verification_codes` (2026-09-06) · `battles` · `boss_fights` (8.3) · `rate_limits`. Migrations **0000–0011**.
+### Banco de dados — 14 tabelas
+`users` · `sessions` · `user_pokemon` (+ `status`/`status_turns`, 8.4) · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `pvp_seasons` (8.5) · `chat_messages` · `email_verification_codes` (2026-09-06) · `battles` · `boss_fights` (8.3) · `rate_limits`. Migrations **0000–0012**.
 
 ### Conteúdo seedado
 **649 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh + 494–649 Unova, com learnset e linhas evolutivas completas — 6.4-E) · **142 golpes** (133 + 9 de Status na 8.4; 27 com efeito secundário) · 6 variantes · **40 mapas temáticos (6.4-A → 7.1, cadeia 1↔40)** — as **649** espécies distribuídas, cada uma em exatamente um mapa · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
@@ -224,7 +233,8 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | Loja (Antídoto) | ✅ **Voltou na 8.4** com coluna própria (`antidotes`) + 6 curas irmãs; o legado `itemKey: "potions"` continua sendo limpo pelo seed |
 | **Status de batalha (8.4)** | ✅ **Servidor** — PSN/TOX/BRN/PAR/SLP/FRZ em PvE e PvP, persistem em `user_pokemon.status` até Centro/item; `use_item` em batalha consome o turno |
 | Editor de Mundos | ✅ Funciona — melhor parte do projeto, sem autorização |
-| PvP real | ⬜ Ainda não existe (Fase 4); a arena/chat funcionam |
+| PvP amistoso | ✅ **Servidor** (Fase 4) — turnos às cegas, polling 2,5 s, dano/status persistidos, revanche |
+| **Arena PvP ranqueada (8.5)** | ✅ **Servidor** — ELO K32/24 (piso 100, só em `ranked`), fila `join_ranked` por ELO, ranking top 50 (`GET /api/pvp?ranking=1`), temporada semanal (`pvp_seasons`, fechamento preguiçoso), antifarm (3×/dia por par, mínimo 10 partidas, forfeit cedo ½ K, mesmo IP não pareia) |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
 | Pacote de Sprites | ✅ Funciona (vitrine) — 649 espécies × 6 variantes (3894 sprites) |
 
@@ -283,11 +293,11 @@ resposta) mas toda request seguinte devolvia 401. Com `none` o cookie exige
 ### PvP assíncrono (Fase 4)
 | Módulo | Responsabilidade |
 |---|---|
-| `src/lib/pvp-service.ts` | Orquestração: salas, turno às cegas, resolução atômica, timeout |
-| `src/components/PvpLobby.tsx` | Criar/entrar em sala escolhendo o Pokémon |
-| `src/components/PvpArena.tsx` | Batalha com polling de 2,5 s |
-| `pvp_battles.mode` | `"friendly"` (hoje) \| `"ranked"` (Arena futura) |
-| `users.elo` | Existe (default 1000) mas **dormente** — só a Arena escreverá |
+| `src/lib/pvp-service.ts` | Orquestração: salas, turno às cegas, resolução atômica, timeout · **8.5: fila ranked, ELO, ranking, temporada** |
+| `src/components/PvpLobby.tsx` | Criar/entrar em sala escolhendo o Pokémon · **8.5: abas SALAS/RANQUEADA/RANKING** |
+| `src/components/PvpArena.tsx` | Batalha com polling de 2,5 s · **8.5: modo ranqueado + espera de fila** |
+| `pvp_battles.mode` | `"friendly"` (amistoso) \| `"ranked"` (Arena, ELO) |
+| `users.elo` | ELO do jogador (default 1000) — escrito **só** pela Arena ranqueada |
 
 Amistoso atualiza `wins`/`losses` e o dano persiste; **não** mexe em ELO nem em ranking.
 
@@ -395,11 +405,11 @@ Promoção: `npm run db:set-role -- <username> <papel>` (sem endpoint HTTP, de p
   - [x] Resolução no servidor com lock de linha (`SELECT ... FOR UPDATE`)
   - [x] Ação travada **às cegas** — o estado expõe só `opponentCommitted: boolean`
   - [x] Sub-estado `SWITCH`, forfeit e timeout preguiçoso de 60 s
-  - [x] `users.elo` (default 1000) **dormente** — amistoso não escreve nele
-  - [x] `pvp_battles.mode` = `"friendly"` | `"ranked"` (Arena futura sem retrabalho)
+  - [x] `users.elo` (default 1000) — amistoso não escreve nele; a Arena ranqueada (8.5) sim
+  - [x] `pvp_battles.mode` = `"friendly"` | `"ranked"`
   - [x] `create_room`/`join_room` agora usam `pokemonId` (fim do vetor hp/attack 9999)
   - [x] Regressão corrigida: `users.losses` voltou a ser incrementado no PvE
-  - [ ] _Futuro:_ **Arena PvP ranqueada** — ranking global, ELO, recompensas por posição
+  - [x] **Arena PvP ranqueada** ✅ 2026-09-08 — ranking global, ELO, recompensas por posição (8.5)
 
 - [x] **FASE 5 — Infraestrutura e qualidade** ✅ 2026-08-26 (detalhes na seção 3)
   - [x] **⚡ Rate limit real**: store no **Postgres** (tabela `rate_limits`), compartilhado
@@ -496,16 +506,19 @@ Etapa B assim que o primeiro lote de mapas existir.
       (15.000+100×nv) + **1 pedra à escolha** + **1/1200 o lendário nv 5**.
       Migration **0010** (`boss_fights` + `kind='boss'`) + companheiro idempotente
       validado 2×. Captura/fuga bloqueadas. Docs: `docs/FASE-8-ARENA-BOSS.md`.
-- [x] **8.4 — Status de batalha** ✅ 2026-09-08 (sandbox; pendência #18 em
-      produção): PSN/TOX/BRN/PAR/SLP/FRZ com regras da Gen III em PvE + PvP,
+- [x] **8.4 — Status de batalha** ✅ 2026-09-08 (sandbox + produção —
+      pendência #18 ✅ 2026-09-08): PSN/TOX/BRN/PAR/SLP/FRZ com regras da Gen III em PvE + PvP,
       persistentes em `user_pokemon.status` (**migration 0011** + companheiro
       `docs/supabase-production-0011-runtime.sql`), 9 golpes de Status + 27
       efeitos secundários em 107 learnsets, 7 itens de cura na loja (Antídoto
       de volta, com coluna própria), `use_item` dentro da batalha, etiqueta de
       status e barra de itens nas 4 telas de luta. Docs: `docs/FASE-8-STATUS.md`.
-- [ ] **8.5 — Arena PvP ranqueada** (era a 6.6): `users.elo` já existe dormente
-      e `pvp_battles.mode` já aceita `"ranked"`. Falta ranking global,
-      pareamento, recompensa por posição e antifarm.
+- [x] **8.5 — Arena PvP ranqueada** ✅ 2026-09-08 (era a 6.6): ELO K32/K24
+      (piso 100, só em `ranked`), fila `join_ranked` com janela de ELO e hash de
+      IP, ranking global top 50 (`GET /api/pvp?ranking=1`), temporada semanal
+      com recompensas (tabela `pvp_seasons`, migration **0012** + companheiro),
+      antifarm (3×/dia por par, mínimo 10 partidas, forfeit cedo ½ K).
+      Docs: `docs/FASE-8-ARENA-PVP.md`.
 - [ ] **8.6 — NPCs de missão**: tipo de NPC novo (hoje só `shop`/`gym`),
       máquina de estado de missão por jogador (**tabela nova**), diálogo com
       ramificação, recompensa e travas de progresso. É o maior item da etapa.
@@ -528,6 +541,57 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 8.5 — Arena PvP ranqueada: ELO, fila de pareamento, ranking top 50 e temporada semanal com recompensas (2026-09-08, Etapa C)
+
+**Pedido do mantenedor:** a 8.5 — Arena PvP ranqueada — com o spec combinado:
+ELO (K 32/24, piso 100, só em `mode = "ranked"`), pareamento por fila (`join_ranked`),
+ranking global (top 50 + posição), temporada semanal com recompensas (tabela nova
+`pvp_seasons` + migration 0012 + companheiro) e antifarm (3×/dia por par, mínimo
+10 partidas, forfeit cedo ½ K, mesmo IP não pareia).
+
+**ELO (`src/lib/elo.ts`, puro):** `kFactor` (32, 24 acima de 2000), `applyElo`
+com piso 100, `halfKForWinner` para o vencedor de forfeit antes do turno 3,
+`eloMatchWindow` (150 → +50 a cada 30 s) e `hashIp` (FNV-1a, base 36). O ELO é
+atualizado **só** em `pvp_battles.mode = "ranked"`, dentro da transação do
+`FINISHED` (`awardResult`), com o antifarm `rankedMatchesBetweenToday` (cap 3).
+
+**Fila (`joinRanked`):** procura sala `WAITING` ranked com `|elo − meu|` dentro
+da janela por idade do anfitrião e `hash_ip` diferente; senão cria
+(`createRankedRoom`). `listWaitingRooms` devolve só amistosas; `join_room` em
+sala ranked → 400. `closeSeasonIfNeeded` roda antes do pareamento.
+
+**Ranking (`getRanking`):** top 50 por ELO (≥ 10 partidas) + posição do jogador
+(`you.position` null antes das 10), via raw SQL com `rankedMatchCount` correlato.
+
+**Temporada (`src/lib/pvp-season.ts`):** mesma semana ISO do boss (`weekIdOf`);
+fechamento preguiçoso com advisory lock (`pg_advisory_xact_lock`), fotografia o
+top 10 em `pvp_seasons` e paga na hora (1º 50.000+5+5, 2º 30.000+3+3, 3º
+20.000+2+2, 4º–10º 10.000+1+1); idempotente (não paga duas vezes).
+
+**Banco:** migration **0012** (`pvp_seasons` com unique week/user, índice
+week/rank, checks rank ≥ 1 / elo_final ≥ 0; `users.elo` já existia — sem
+migration) + companheiro `docs/supabase-production-0012-runtime.sql` idempotente
+(RLS + policy runtime/backup + grants + journal), **validado 2× num banco
+prodsim** (0000–0011 + papéis + RLS): conferência idêntica `rls_on 1 ·
+runtime_privs 4 · runtime_policy 1 · backup_policy 1 · indexes 2 · checks 2 ·
+migrations 13`; checks e policies provados.
+
+**UI:** `PvpLobby.tsx` reescrito com abas **SALAS / RANQUEADA / RANKING**;
+`PvpArena.tsx` mostra o modo ranqueado e a espera de fila ("procurando rival de
+ELO próximo").
+
+**Testes:** `elo.test.ts` (11) + `pvp-season.test.ts` (5) + integração
+`pvp-ranked.integration.test.ts` (8: pareamento, ELO distante, mesmo IP,
+join_room em ranked, forfeit cedo ½ K, antifarm 3×, ranking + posição null,
+fechamento da temporada + idempotência). Suíte completa: **374 unit + 141
+integração**, `npm run check` verde (lint + typecheck + unit + build, 17 rotas).
+
+**Pós-merge (ordem):** ① colar o companheiro **0012** no Supabase SQL Editor
+(production) **antes** do merge → ② merge → ③ deploy Vercel `Ready` → ④ validar
+a pendência **#19** (fila/ranking/ELO/forfeit ½ K).
+
+**Próxima:** 8.6 — NPCs de missão (ver §5). Aguardando.
 
 ### ✅ FASE 8.4 — Status de batalha: veneno/queimadura/paralisia/sono/gelo com regras da Gen III, 7 itens de cura e item em batalha (2026-09-08, Etapa C, entrega C)
 
@@ -593,6 +657,16 @@ seeda os itens sozinha no 1º acesso → ⑤ validar a pendência #18.
 
 **Próxima:** 8.5 — Arena PvP ranqueada (ver §5). Aguardando confirmação do
 mantenedor.
+
+**✅ Validação em produção (2026-09-08, pelo mantenedor):** SQL 0011 colado no
+Supabase **antes** do merge → conferência OK (`status_columns 2 · cure_columns 7
+· status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`); PR
+#17 mergeado em `main` (squash `3e223d2`, commits do PR `c9cfc52` + `533d6b9`);
+Vercel `Ready`; pendência **#18 validada** (loja 1 com Antídoto/Anti-Paralisia,
+Pikachu nv 12 + Onda Trovão → "está paralisado!" + etiqueta PAR, barra ITENS
+curando e gastando o turno, Pokémon Box com a etiqueta, Centro Pokémon limpa,
+PvP com Pó do Sono). **8.4 fechada em produção.** Backup de produção ("Verify
+restoration") continua **adiado** por decisão do mantenedor.
 
 ### ✅ FASE 8.3 — Arena Boss: lendário semanal nv 80–100 nos mapas 20 e 40, 2 tentativas/dia, pedra à escolha + 1/1200 (2026-09-07, Etapa C, entrega B)
 
@@ -3007,60 +3081,109 @@ companheiro foi provado em Postgres 18 local, e a UI (etiquetas, barra de
 itens, ✨ nos golpes de Status, curas no Pokémon Box) só por build/tipos, não
 no navegador. Pendência #18 cobre as duas coisas.
 
+### 4.37 Fase 8.5 — Arena PvP ranqueada (2026-09-08, sandbox)
+
+> Comandos abaixo são do **sandbox do agente** (evidência), não tarefa do
+> mantenedor. Os passos dele estão na pendência #19 e em §5.
+
+**Ambiente:** `npm ci` · `cp -n .env.example .env` · `npm run db:local`
+(PostgreSQL 18.4 embutido, `127.0.0.1:5432/app_db`, processo
+`postgresql-local-a3df6b69`) · `npx drizzle-kit migrate` → 0000–0012 aplicadas.
+
+**Migration 0012 gerada e aplicada:**
+```
+npx drizzle-kit generate --name pvp_ranked_seasons
+  → drizzle/0012_pvp_ranked_seasons.sql (pvp_seasons: week_id/user_id/elo_final/
+    rank/reward_claimed + FK + unique(week_id,user_id) + idx(week_id,rank) +
+    checks rank ≥ 1 / elo_final ≥ 0)
+npx drizzle-kit migrate → [✓] migrations applied successfully!
+sha256sum drizzle/0012_pvp_ranked_seasons.sql
+  → 23966907c8990e92430df3c664d3095e4af788751d557d567749b9f77101d776
+drizzle/meta/_journal.json → idx 12 · when 1788886197168 · tag 0012_pvp_ranked_seasons
+```
+
+**Unit do ELO e da temporada:**
+```
+npx vitest run src/lib/elo.test.ts src/lib/pvp-season.test.ts
+  → 2 arquivos · 16 testes ✓
+     elo.test.ts (11): simetria, K 32/24, piso 100, vitória ½ K, janela
+       crescente, hash de IP estável
+     pvp-season.test.ts (5): semana ISO, semana anterior, recompensas por
+       colocação, constantes MIN_RANKED_MATCHES/SEASON_TOP_RANKS
+```
+
+**Integração nova (8):**
+```
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+npx vitest run --config vitest.integration.config.mts tests/integration/pvp-ranked.integration.test.ts
+  → 1 arquivo · 8 testes ✓ (1315 ms)
+```
+
+**Companheiro de produção validado num banco prodsim** (`app_db_prodsim_0012`,
+migrations 0000–0011 aplicadas dos arquivos + journal Drizzle + papéis
+`catchbound_runtime`/`catchbound_backup` + RLS ligado em todas as tabelas; o
+SQL inteiro colado **2×**):
+```
+rodada 1: rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 ·
+          indexes 2 · checks 2 · migrations 13
+rodada 2: idêntico (idempotente; journal não duplicou)
+INSERT rank=0  → ERRO pvp_seasons_rank_check ✓
+INSERT elo=-1 → ERRO pvp_seasons_elo_check ✓
+SET ROLE catchbound_runtime + INSERT  → ok (policy de escrita) ✓
+SET ROLE catchbound_backup + SELECT   → ok (policy de leitura) ✓
+```
+
+**Suíte completa:**
+```
+npm run lint        → 0 problemas (ajuste: loadRanking passou a receber o
+                       setter por parâmetro — react-hooks/set-state-in-effect)
+npm run typecheck   → 0 erros
+npx vitest run      → 28 arquivos · 374 testes ✓ (358 + 16 novos)
+npm run test:integration
+  → 13 arquivos · 141 testes ✓ (133 + 8 novos)
+npm run build       → 17 rotas (nenhuma rota nova — join_ranked e ranking
+                       vivem em /api/pvp)
+```
+
+**O que NÃO foi validado aqui:** Supabase (bloqueado no sandbox) — o
+companheiro 0012 foi provado em Postgres 18 local (prodsim) — e a UI (abas
+SALAS/RANQUEADA/RANKING, espera da fila) só por build/tipos, não no navegador.
+Pendência #19 cobre as duas coisas.
+
 ## 5. Qual a próxima etapa a ser aplicada
 
-### 🅲 Etapa C (2026-09-08): 8.4 entregue — **PR #17 aberto** (entrega C, https://github.com/marmitero/pokeeeee/pull/17) · próxima = **8.5 Arena PvP ranqueada**
+### 🅲 Etapa C (2026-09-08): 8.4 **em produção** (PR #17, pendência #18 ✅) · **8.5 Arena PvP ranqueada implementada no sandbox** · próxima = **8.6 — NPCs de missão**
 
-**Estado desta rodada:** status de batalha completo (motor, catálogo, banco,
-loja, rotas, UI, testes) — `npm run check` verde (358 unit + build), 133 de
-integração verdes, migration **0011** + companheiro validado 2×.
+**Estado desta rodada:** a 8.4 está em produção (PR #17, `3e223d2`) e a **8.5
+— Arena PvP ranqueada** foi implementada e validada no sandbox (unit 16 novos,
+integração 8 novos, suíte 374 unit + 141 integração, `npm run check` verde).
+O que resta da 8.5 é a **entrega**: PR + SQL 0012 antes do merge + pendência
+#19. A implementação está em `src/lib/elo.ts` · `src/lib/pvp-season.ts` ·
+`pvp-service.ts` · `route.ts` · `validation.ts` · `PvpLobby.tsx` ·
+`PvpArena.tsx` · `drizzle/0012` · `docs/supabase-production-0012-runtime.sql`
+(detalhe em `docs/FASE-8-ARENA-PVP.md`).
 
-🌐 **Passos do mantenedor (tudo pela interface), nesta ordem:**
+**Passos do mantenedor (ordem da entrega, tudo pela interface):**
+1. **SQL antes do merge** — colar `docs/supabase-production-0012-runtime.sql`
+   no SQL Editor do Supabase (production); conferência esperada:
+   `rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 ·
+   indexes 2 · checks 2 · migrations 13`.
+2. **Merge** do PR da 8.5 (branch `arena/01a081db-pokeeeee`).
+3. **Vercel** → aguardar deploy `Ready`.
+4. **Pendência #19** — navegador: ARENA PVP → aba RANQUEADA → buscar rival com
+   2 contas (pareia sozinho, ELO muda no fim); aba RANKING (top 50 + posição);
+   desistir antes do turno 3 (½ K ao vencedor).
 
-1. **Supabase → SQL Editor (production)**: colar **inteiro**
-   `docs/supabase-production-0011-runtime.sql` (botão *Copy raw* no GitHub) e
-   executar. Conferência esperada: `status_columns 2 · cure_columns 7 ·
-   status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`.
-   Fazer **antes** do merge (o código antigo ignora as colunas; o novo precisa
-   delas).
-2. **Merge do PR** (Create a merge commit).
-3. **Vercel**: aguardar deploy de `main` (`Ready`). Nada de workflow: as lojas
-   seedam os itens de cura sozinhas no primeiro `GET /api/shop`.
-4. **Navegador**: pendência **#18** (loja 1 com Antídoto/Anti-Paralisia,
-   Pikachu nv 12 + Onda Trovão → etiqueta PAR, barra ITENS, Centro limpa, PvP
-   com Pó do Sono).
+**Depois da 8.5:** 8.6 — NPCs de missão (tabela nova, máquina de estado de
+missão por jogador, diálogo ramificado, recompensa, travas de progresso) →
+8.7 — treinadores de rota → Etapa D (9.1 rebranding, 9.2 legal, 9.3 remetente,
+9.4 premium). Backup de produção (Verify restoration) continua **adiado** por
+decisão do mantenedor.
 
-**Próxima etapa: 8.5 — Arena PvP ranqueada** (só após confirmação do
-mantenedor). O que já existe: `users.elo` (default 1000, dormente),
-`pvp_battles.mode` aceita `"ranked"`, motor de troca com lock e status.
-Plano:
-- **ELO**: K-factor 32 (24 acima de 2000), atualizado **só** em `ranked`,
-  dentro da mesma transação do `FINISHED` (forfeit e timeout contam);
-  `users.elo` já existe — sem migration para ele.
-- **Pareamento**: fila `ranked` em vez de código de sala — `join_ranked`
-  procura sala `WAITING` com `|elo − meu| ≤ 150` (janela cresce +50 a cada
-  30 s de espera), senão cria. Sem WebSocket: o polling atual de 2,5 s serve.
-- **Ranking global**: `GET /api/pvp?ranking=1` → top 50 por ELO + posição do
-  jogador; página/aba "RANKING" no lobby PvP com estética Press Start 2P.
-- **Recompensa por posição**: temporada semanal (mesmo `weekIdOf` do boss);
-  fechamento preguiçoso na 1ª chamada da semana nova (padrão do timeout do
-  PvP, sem cron): top 1/2/3/10 ganham Pk$ + Cura Total/Restaurador Total;
-  precisa de **tabela nova `pvp_seasons`** (week_id, user_id, elo_final,
-  rank, reward_claimed) → **migration 0012 + companheiro** (regra do
-  incidente 2026-09-06).
-- **Antifarm**: mesmo par de contas só pontua 3× por dia; conta com menos de
-  10 partidas não aparece no top; derrota por forfeit antes do turno 3 conta
-  como derrota cheia para quem desistiu e vitória reduzida (½ K) para o outro;
-  mesmo IP (hash) não pareia.
-- **Testes**: unit do ELO (simetria, K, piso 100) + integração do pareamento,
-  do ranking e da recompensa semanal.
-
-Depois: 8.6 NPCs de missão (tabela nova) → 8.7 treinadores de rota → Etapa D
-(rebranding 9.1, decisão legal 9.2, remetente 9.3, premium 9.4). Backup de
-produção (Verify restoration) continua **adiado** por decisão do mantenedor.
-
-**Antes de começar:** reler este arquivo inteiro (regra do protocolo) e
-`docs/PROMPT-NOVA-CONVERSA.md`.
+**Antes de começar a 8.6:** reler este arquivo inteiro (regra do protocolo) e
+`docs/PROMPT-NOVA-CONVERSA.md`; pedir confirmação do mantenedor (a 8.5 ainda
+não está em produção).
 
 ---
 
@@ -3123,6 +3246,8 @@ produção (Verify restoration) continua **adiado** por decisão do mantenedor.
 | 2026-09-07 | **Fase 7.1 — Mundo até 40 mapas + redistribuição das 649 espécies**: `world-layout.ts` (40 mapas como dados), `world-distribute.ts` (gerador determinístico: alvo por rank, varredura mapa-a-mapa, afinidade de bioma, teto de desvio, pesos em agenda geométrica, piso de nível de evolução), `world-encounters.ts` (artefato gerado commitado), `default-world.ts` virou renderizador, bandas reescaladas M2 6–20 → M40 86–100 (mapa 1 travado em 3–10), 40 JSONs em `content/world/maps/`, workflow `World activation` 20→40 + `world:distribute:check`, +20 guardas de teste | ✅ Concluída e validada no sandbox · ⬜ PR + ativação em produção | `docs/FASE-7-MUNDO.md` · §3/§4.33 · 22/308 unit · 9/112 integração · build 15 rotas |
 | 2026-09-08 | **Fase 8.3 — Arena Boss** (PR #15 A+B) + **incidente `battles_kind_check` pós-renumeração** (PR #16 reparo + `ensureDefaultMapsSeeded`) | ✅ Merged (`c65401d`) · ✅ validado em produção pelo mantenedor 2026-09-08 (pendências A/B/C) | `docs/FASE-8-ARENA-BOSS.md` · `docs/supabase-production-0010-*.sql` · §3/§4.35 |
 | 2026-09-08 | **Fase 8.4 — Status de batalha**: PSN/TOX/BRN/PAR/SLP/FRZ (Gen III) em PvE + PvP, `engine/status.ts` + `engine/turn.ts`, 9 golpes de Status + 27 efeitos em 107 learnsets, migration **0011** (`user_pokemon.status/status_turns` + 7 colunas de cura) + `docs/supabase-production-0011-runtime.sql` validado 2×, 7 itens de cura nas lojas por progressão, `POST /api/battle use_item` (consome turno), etiqueta de status + barra ITENS nas 4 telas, curas no Pokémon Box | ✅ Concluída e validada no sandbox · 🔵 **PR #17 aberto** (`c9cfc52`) · ⬜ SQL 0011 antes do merge + pendência #18 em produção | `docs/FASE-8-STATUS.md` · §3/§4.36 · 26/358 unit · 12/133 integração · `drizzle/0011` |
+| 2026-09-08 | **8.4 validada em produção pelo mantenedor** — SQL 0011 colado no Supabase antes do merge, PR #17 mergeado em `main` (squash `3e223d2`, commits `c9cfc52`+`533d6b9`), Vercel `Ready`; pendência **#18 ✅** (loja 1 com Antídoto/Anti-Paralisia, Pikachu nv 12 + Onda Trovão → "está paralisado!" + etiqueta PAR, barra ITENS curando e gastando turno, Pokémon Box com etiqueta, Centro limpa, PvP com Pó do Sono) | ✅ 8.4 fechada em produção · próxima = **8.5 Arena PvP ranqueada** | cabeçalho + §2 + §3 + §5 · PR #17 |
+| 2026-09-08 | **Fase 8.5 — Arena PvP ranqueada**: ELO K32/K24 (piso 100, só em `ranked`, ½ K no forfeit cedo), fila `join_ranked` (janela 150+50/30s, hash de IP), ranking top 50 (`GET /api/pvp?ranking=1`), temporada semanal (`pvp_seasons`, fechamento preguiçoso + recompensas 1/2/3/10), antifarm (3×/dia por par, mínimo 10, mesmo IP não pareia), migration **0012** + `docs/supabase-production-0012-runtime.sql` (prodsim 2×), UI abas SALAS/RANQUEADA/RANKING | ✅ Concluída e validada no sandbox · ⬜ PR + SQL 0012 antes do merge + pendência **#19** | `docs/FASE-8-ARENA-PVP.md` · §3/§4.37 · 28/374 unit · 13/141 integração · `drizzle/0012` |
 | — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.

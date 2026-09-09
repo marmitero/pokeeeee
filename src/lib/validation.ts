@@ -254,6 +254,12 @@ export const pvpActionSchema = z.discriminatedUnion("action", [
     roomCode: roomCodeSchema,
     pokemonIds: z.array(idSchema).min(1).max(3),
   }),
+  // Arena ranqueada (8.5): entra na fila — o servidor pareia por ELO (janela
+  // ±150, +50 a cada 30 s) e abre uma sala se não houver rival compatível.
+  z.object({
+    action: z.literal("join_ranked"),
+    pokemonIds: z.array(idSchema).min(1).max(3),
+  }),
   z.object({
     action: z.literal("submit_turn"),
     roomCode: roomCodeSchema,

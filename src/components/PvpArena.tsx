@@ -32,6 +32,7 @@ interface SideView {
 
 interface BattleView {
   roomCode: string;
+  mode: "friendly" | "ranked";
   status: "WAITING" | "ACTIVE" | "FINISHED" | "ABANDONED";
   turn: number;
   phase: "ACTION" | "SWITCH";
@@ -165,6 +166,7 @@ export function PvpArena({
   const finished = view.status === "FINISHED" || view.status === "ABANDONED";
   const waiting = view.status === "WAITING";
   const mustSwitch = view.yourNeedsSwitch;
+  const ranked = view.mode === "ranked";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-3 backdrop-blur-md">
@@ -178,7 +180,7 @@ export function PvpArena({
                 ARENA PVP • SALA {view.roomCode}
               </span>
               <p className="font-['VT323'] text-base text-slate-400">
-                Amistoso — não conta para o ranking · Turno {view.turn}
+                {ranked ? "RANQUEADA — vale ELO e ranking" : "Amistoso — não conta para o ranking"} · Turno {view.turn}
               </p>
             </div>
           </div>
@@ -240,10 +242,16 @@ export function PvpArena({
           <div className="flex flex-1 flex-col items-center justify-center gap-4 p-10 text-center">
             <div className="text-5xl">⏳</div>
             <p className="font-['Press_Start_2P'] text-xs text-amber-400">AGUARDANDO RIVAL</p>
-            <p className="font-['VT323'] text-xl text-slate-400">
-              Compartilhe o código <span className="text-amber-300">{view.roomCode}</span> para
-              alguém entrar.
-            </p>
+            {ranked ? (
+              <p className="font-['VT323'] text-xl text-slate-400">
+                Procurando um rival de ELO próximo na fila ranqueada...
+              </p>
+            ) : (
+              <p className="font-['VT323'] text-xl text-slate-400">
+                Compartilhe o código <span className="text-amber-300">{view.roomCode}</span> para
+                alguém entrar.
+              </p>
+            )}
           </div>
         ) : (
           <>

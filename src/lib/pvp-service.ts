@@ -1,11 +1,19 @@
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import { and, asc, eq, gte, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { pvpBattles, userPokemon, users } from "@/db/schema";
+import { pvpBattles, pvpSeasons, userPokemon, users } from "@/db/schema";
 import { getPokemonSpecies, getMoveByName } from "@/lib/pokedex";
 import { sideFromUserPokemon, type SideState } from "@/lib/engine/combatant";
 import { endOfTurn, performStrike } from "@/lib/engine/turn";
 import { effectiveSpeed, normalizeStatus } from "@/lib/engine/status";
 import { badRequest, forbidden, notFound } from "@/lib/api";
+import { applyElo, eloMatchWindow, ELO_FLOOR } from "@/lib/elo";
+import {
+  MIN_RANKED_MATCHES,
+  previousWeekId,
+  SEASON_TOP_RANKS,
+  seasonRewardForRank,
+} from "@/lib/pvp-season";
+import { weekIdOf } from "@/lib/boss-rotation";
 
 /**
  * PvP assíncrono por turnos (Fase 4).
@@ -43,6 +51,8 @@ export interface PvpSide {
   committed: CommittedAction | null;
   needsSwitch: boolean;
   rematchRequested: boolean;
+  /** Hash do IP (8.5, só ranqueado): mesmo IP não pareia. Ausente em salas antigas. */
+  ipHash?: string;
 }
 
 export interface PvpState {
@@ -61,6 +71,14 @@ export type SideKey = "p1" | "p2";
 /** Segundos até o turno ser resolvido automaticamente para o lado ausente. */
 export const TURN_TIMEOUT_SEC = 60;
 const MAX_LOG = 60;
+
+// ─── Arena ranqueada (8.5) ────────────────────────────────────────────────
+/** Forfeit antes do turno 3 = derrota cheia p/ quem desistiu, vitória ½ K p/ o outro. */
+export const EARLY_FORFEIT_TURN = 3;
+/** Mesmo par de contas só pontua (mexe em ELO) 3× por dia. */
+export const PAIR_DAILY_CAP = 3;
+/** Tamanho do ranking devolvido (top 50). */
+export const MAX_RANKING_ENTRIES = 50;
 
 // ─── Visão pública ────────────────────────────────────────────────────────
 
@@ -289,47 +307,193 @@ export async function createRoom(
 
 export async function joinRoom(userId: number, username: string, roomCode: string, pokemonIds: number[]) {
   const team = await loadTeamSelection(userId, pokemonIds);
-  const pokemonId = team.ids[0];
   const snapshot = team.first;
 
   return db.transaction(async (tx) => {
     const room = await lockRoom(tx, roomCode);
 
     if (room.status !== "WAITING") throw badRequest("Esta sala não está mais aguardando.");
+    if (room.mode === "ranked") {
+      throw badRequest("Salas ranqueadas usam a fila — entre pela busca ranqueada.");
+    }
     if (room.player1Id === userId) throw badRequest("Você não pode entrar na própria sala.");
     if (room.player2Id !== null) throw badRequest("Sala já está cheia.");
 
-    const state = normalizeState(room.battleState as unknown as PvpState);
-    state.p2 = {
+    return joinExistingRoom(tx, room, userId, username, team, snapshot);
+  });
+}
+
+/** Preenche o lado 2 de uma sala `WAITING` e a torna `ACTIVE`. */
+async function joinExistingRoom(
+  tx: Tx,
+  room: {
+    id: number;
+    battleState: unknown;
+  },
+  userId: number,
+  username: string,
+  team: { ids: number[]; first: SideState },
+  snapshot: SideState,
+  ipHash?: string
+) {
+  const state = normalizeState(room.battleState as unknown as PvpState);
+  state.p2 = {
+    userId,
+    username,
+    userPokemonId: team.ids[0],
+    teamPokemonIds: team.ids,
+    snapshot,
+    committed: null,
+    needsSwitch: false,
+    rematchRequested: false,
+    ...(ipHash ? { ipHash } : {}),
+  };
+  state.log = pushLog(
+    state.log,
+    `⚡ ${username} entrou na arena! A batalha contra ${state.p1.username} começou.`
+  );
+  state.turnStartedAt = new Date().toISOString();
+  state.version += 1;
+
+  const [updated] = await tx
+    .update(pvpBattles)
+    .set({
+      player2Id: userId,
+      player2Username: username,
+      status: "ACTIVE",
+      battleState: state as unknown as Record<string, unknown>,
+      updatedAt: new Date(),
+    })
+    .where(eq(pvpBattles.id, room.id))
+    .returning();
+
+  return updated;
+}
+
+// ─── Fila ranqueada (8.5) ──────────────────────────────────────────────────
+
+async function roomCodeExistsIn(tx: Tx, roomCode: string): Promise<boolean> {
+  const rows = await tx
+    .select({ id: pvpBattles.id })
+    .from(pvpBattles)
+    .where(eq(pvpBattles.roomCode, roomCode));
+  return rows.length > 0;
+}
+
+/** Abre uma sala ranqueada `WAITING` nova (o rival chega pela fila). */
+async function createRankedRoom(
+  tx: Tx,
+  userId: number,
+  username: string,
+  myElo: number,
+  team: { ids: number[]; first: SideState },
+  snapshot: SideState,
+  ipHash: string
+) {
+  let roomCode = generateRoomCode();
+  for (let tries = 0; tries < CODE_MAX_TRIES && (await roomCodeExistsIn(tx, roomCode)); tries++) {
+    roomCode = generateRoomCode();
+  }
+  if (await roomCodeExistsIn(tx, roomCode)) {
+    throw badRequest("Não foi possível gerar um código de sala. Tente novamente.");
+  }
+
+  const state: PvpState = {
+    turn: 1,
+    phase: "ACTION",
+    p1: {
       userId,
       username,
-      userPokemonId: pokemonId,
+      userPokemonId: team.ids[0],
       teamPokemonIds: team.ids,
       snapshot,
       committed: null,
       needsSwitch: false,
       rematchRequested: false,
-    };
-    state.log = pushLog(
-      state.log,
-      `⚡ ${username} entrou na arena! A batalha contra ${state.p1.username} começou.`
-    );
-    state.turnStartedAt = new Date().toISOString();
-    state.version += 1;
+      ipHash,
+    },
+    p2: {
+      userId: 0,
+      username: "",
+      userPokemonId: 0,
+      teamPokemonIds: [],
+      snapshot: { ...snapshot, hp: 0, userPokemonId: null },
+      committed: null,
+      needsSwitch: false,
+      rematchRequested: false,
+    },
+    log: [`${username} entrou na fila ranqueada (ELO ${myElo}) e aguarda um rival!`],
+    version: 1,
+    turnStartedAt: new Date().toISOString(),
+  };
 
-    const [updated] = await tx
-      .update(pvpBattles)
-      .set({
-        player2Id: userId,
-        player2Username: username,
-        status: "ACTIVE",
-        battleState: state as unknown as Record<string, unknown>,
-        updatedAt: new Date(),
-      })
-      .where(eq(pvpBattles.id, room.id))
-      .returning();
+  const [room] = await tx
+    .insert(pvpBattles)
+    .values({
+      roomCode,
+      mode: "ranked",
+      player1Id: userId,
+      player1Username: username,
+      status: "WAITING",
+      currentTurnPlayerId: userId,
+      battleState: state as unknown as Record<string, unknown>,
+    })
+    .returning();
 
-    return updated;
+  return room;
+}
+
+/**
+ * Entra na fila ranqueada (8.5): procura uma sala `WAITING` com
+ * `|elo − meu| ≤ janela` (150, +50 a cada 30 s de espera do anfitrião) e
+ * mesmo-IP bloqueado; se não achar, abre uma sala nova e aguarda.
+ *
+ * O fechamento preguiçoso da temporada anterior roda ANTES do pareamento,
+ * para o 1º jogo da semana nova não poluir o ELO que será fotografado.
+ */
+export async function joinRanked(
+  userId: number,
+  username: string,
+  pokemonIds: number[],
+  ipHash: string
+) {
+  const team = await loadTeamSelection(userId, pokemonIds);
+  const snapshot = team.first;
+
+  const [me] = await db.select({ elo: users.elo }).from(users).where(eq(users.id, userId));
+  const myElo = me?.elo ?? ELO_FLOOR;
+
+  return db.transaction(async (tx) => {
+    await closeSeasonIfNeeded(tx, new Date());
+
+    const candidates = await tx
+      .select()
+      .from(pvpBattles)
+      .where(and(eq(pvpBattles.mode, "ranked"), eq(pvpBattles.status, "WAITING")))
+      .orderBy(asc(pvpBattles.createdAt))
+      .for("update");
+
+    for (const room of candidates) {
+      if (room.player1Id === userId) continue;
+
+      const st = normalizeState(room.battleState as unknown as PvpState);
+      if (st.p1.ipHash && st.p1.ipHash === ipHash) continue; // mesmo IP não pareia
+
+      const [p1] = await tx
+        .select({ elo: users.elo })
+        .from(users)
+        .where(eq(users.id, room.player1Id));
+      const p1Elo = p1?.elo ?? ELO_FLOOR;
+
+      const ageSec = room.createdAt
+        ? (Date.now() - room.createdAt.getTime()) / 1000
+        : 0;
+      if (Math.abs(p1Elo - myElo) <= eloMatchWindow(ageSec)) {
+        return joinExistingRoom(tx, room, userId, username, team, snapshot, ipHash);
+      }
+    }
+
+    return createRankedRoom(tx, userId, username, myElo, team, snapshot, ipHash);
   });
 }
 
@@ -548,7 +712,7 @@ export async function submitTurn(
     }
 
     if (status === "FINISHED" && winnerId !== null && loserId !== null) {
-      await awardResult(tx, winnerId, loserId, room.mode as PvpMode);
+      await awardResult(tx, winnerId, loserId, room.mode as PvpMode, { turn: state.turn });
     }
 
     await tx
@@ -565,16 +729,29 @@ export async function submitTurn(
   });
 }
 
+export interface AwardOptions {
+  /** Foi desistência (aplica a regra do forfeit antes do turno 3). */
+  forfeit?: boolean;
+  /** Turno em que a batalha terminou (para a regra do forfeit cedo). */
+  turn?: number;
+}
+
 /**
  * Registra o resultado: `wins` para o vencedor, `losses` para o perdedor.
  *
- * Amistoso **não** toca em `users.elo` (decisão do mantenedor — o ELO só será
- * atualizado pela futura Arena ranqueada). Há teste garantindo isso.
- *
- * `mode` é aceito e deliberadamente não usado ainda: quando a Arena chegar, o
- * ramo `"ranked"` atualiza `elo` aqui, sem tocar em mais nada.
+ * Amistoso **não** toca em `users.elo` (decisão do mantenedor). Ranqueado (8.5)
+ * atualiza o ELO aqui, dentro da mesma transação do `FINISHED`:
+ *  - K 32 (24 acima de 2000), piso 100 — cálculo puro em `src/lib/elo.ts`;
+ *  - forfeit antes do turno 3: derrota cheia p/ quem desistiu, vitória ½ K;
+ *  - antifarm: mesmo par de contas só pontua `PAIR_DAILY_CAP`× por dia.
  */
-async function awardResult(tx: Tx, winnerId: number, loserId: number, mode: PvpMode) {
+async function awardResult(
+  tx: Tx,
+  winnerId: number,
+  loserId: number,
+  mode: PvpMode,
+  opts: AwardOptions = {}
+) {
   await tx
     .update(users)
     .set({ wins: sql`${users.wins} + 1` })
@@ -585,10 +762,49 @@ async function awardResult(tx: Tx, winnerId: number, loserId: number, mode: PvpM
     .set({ losses: sql`${users.losses} + 1` })
     .where(eq(users.id, loserId));
 
-  if (mode === "ranked") {
-    // Intencionalmente vazio na Fase 4: amistoso não mexe em ELO.
-    // A Arena ranqueada implementará o cálculo aqui.
-  }
+  if (mode !== "ranked") return;
+
+  const playedToday = await rankedMatchesBetweenToday(tx, winnerId, loserId);
+  if (playedToday >= PAIR_DAILY_CAP) return;
+
+  const [w] = await tx
+    .select({ elo: users.elo })
+    .from(users)
+    .where(eq(users.id, winnerId))
+    .for("update");
+  const [l] = await tx
+    .select({ elo: users.elo })
+    .from(users)
+    .where(eq(users.id, loserId))
+    .for("update");
+  if (!w || !l) return;
+
+  const halfForWinner = opts.forfeit === true && (opts.turn ?? 1) < EARLY_FORFEIT_TURN;
+  const next = applyElo(w.elo, l.elo, { halfKForWinner: halfForWinner });
+
+  await tx.update(users).set({ elo: next.winner }).where(eq(users.id, winnerId));
+  await tx.update(users).set({ elo: next.loser }).where(eq(users.id, loserId));
+}
+
+/** Partidas ranqueadas encerradas hoje entre os dois (antifarm). */
+async function rankedMatchesBetweenToday(tx: Tx, a: number, b: number): Promise<number> {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const rows = await tx
+    .select({ id: pvpBattles.id })
+    .from(pvpBattles)
+    .where(
+      and(
+        eq(pvpBattles.mode, "ranked"),
+        eq(pvpBattles.status, "FINISHED"),
+        gte(pvpBattles.createdAt, start),
+        or(
+          and(eq(pvpBattles.player1Id, a), eq(pvpBattles.player2Id, b)),
+          and(eq(pvpBattles.player1Id, b), eq(pvpBattles.player2Id, a))
+        )
+      )
+    );
+  return rows.length;
 }
 
 export async function switchPokemon(userId: number, roomCode: string, pokemonId: number) {
@@ -643,7 +859,10 @@ export async function forfeit(userId: number, roomCode: string) {
     );
     state.version += 1;
 
-    await awardResult(tx, winnerId, loserId, room.mode as PvpMode);
+    await awardResult(tx, winnerId, loserId, room.mode as PvpMode, {
+      forfeit: true,
+      turn: state.turn,
+    });
 
     await tx
       .update(pvpBattles)
@@ -739,7 +958,7 @@ export async function getState(userId: number, roomCode: string): Promise<PvpPub
         if (!p1Ok || !p2Ok) {
           const winnerId = !p1Ok ? state.p2.userId : state.p1.userId;
           const loserId = !p1Ok ? state.p1.userId : state.p2.userId;
-          await awardResult(tx, winnerId, loserId, room.mode as PvpMode);
+          await awardResult(tx, winnerId, loserId, room.mode as PvpMode, { turn: state.turn });
           await tx
             .update(pvpBattles)
             .set({
@@ -787,6 +1006,7 @@ export async function getState(userId: number, roomCode: string): Promise<PvpPub
 }
 
 export async function listWaitingRooms() {
+  // Só amistosas: as ranqueadas vivem na fila (`join_ranked`), não nesta lista.
   const rows = await db
     .select({
       roomCode: pvpBattles.roomCode,
@@ -794,9 +1014,145 @@ export async function listWaitingRooms() {
       createdAt: pvpBattles.createdAt,
     })
     .from(pvpBattles)
-    .where(eq(pvpBattles.status, "WAITING"));
+    .where(and(eq(pvpBattles.status, "WAITING"), eq(pvpBattles.mode, "friendly")));
 
   return rows;
+}
+
+// ─── Ranking e temporada (8.5) ────────────────────────────────────────────
+
+/** Fragmento SQL que conta as partidas ranqueadas encerradas de um usuário (por alias). */
+function rankedMatchCount(alias: string) {
+  return sql`(SELECT count(*)::int FROM pvp_battles b
+    WHERE b.mode = 'ranked' AND b.status = 'FINISHED'
+      AND (b.player1_id = ${sql.raw(alias)}.id OR b.player2_id = ${sql.raw(alias)}.id))`;
+}
+
+/**
+ * Fechamento preguiçoso da temporada anterior (sem cron — padrão do projeto).
+ *
+ * Na 1ª chamada da semana nova (ranking ou fila), a semana anterior é
+ * fotografada: os top 10 por ELO entre quem tem ≥ `MIN_RANKED_MATCHES`
+ * partidas ranqueadas ganham uma linha em `pvp_seasons` e a recompensa na hora
+ * (Pk$ + Cura Total + Restaurador Total, por colocação).
+ *
+ * Um advisory lock por semana serializa concorrência: dois closes simultâneos
+ * não duplicam a entrega.
+ */
+async function closeSeasonIfNeeded(tx: Tx, now: Date): Promise<void> {
+  const prev = previousWeekId(now);
+
+  await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${"pvp_season_" + prev}))`);
+
+  const already = await tx
+    .select({ id: pvpSeasons.id })
+    .from(pvpSeasons)
+    .where(eq(pvpSeasons.weekId, prev))
+    .limit(1);
+  if (already.length > 0) return;
+
+  const top = await tx.execute(sql`
+    SELECT u.id AS user_id, u.elo AS elo
+    FROM users u
+    WHERE ${rankedMatchCount("u")} >= ${MIN_RANKED_MATCHES}
+    ORDER BY u.elo DESC, u.id ASC
+    LIMIT ${SEASON_TOP_RANKS}
+  `);
+
+  const rows = top.rows as Array<{ user_id: number; elo: number }>;
+  for (let i = 0; i < rows.length; i++) {
+    const { user_id, elo } = rows[i];
+    const rank = i + 1;
+    const reward = seasonRewardForRank(rank);
+
+    await tx
+      .insert(pvpSeasons)
+      .values({ weekId: prev, userId: user_id, eloFinal: elo, rank, rewardClaimed: true })
+      .onConflictDoNothing();
+
+    await tx
+      .update(users)
+      .set({
+        money: sql`${users.money} + ${reward.money}`,
+        fullHeals: sql`${users.fullHeals} + ${reward.fullHeals}`,
+        fullRestores: sql`${users.fullRestores} + ${reward.fullRestores}`,
+      })
+      .where(eq(users.id, user_id));
+  }
+}
+
+export interface RankingEntry {
+  position: number;
+  username: string;
+  elo: number;
+  matches: number;
+}
+
+export interface RankingView {
+  weekId: string;
+  top: RankingEntry[];
+  /** `position: null` = o jogador ainda não atingiu as `MIN_RANKED_MATCHES` partidas. */
+  you: {
+    username: string;
+    elo: number;
+    matches: number;
+    position: number | null;
+  };
+}
+
+/**
+ * Ranking global (8.5): top 50 por ELO entre quem tem ≥ `MIN_RANKED_MATCHES`
+ * partidas ranqueadas, mais a posição do próprio jogador. A leitura dispara o
+ * fechamento preguiçoso da temporada anterior.
+ */
+export async function getRanking(userId: number): Promise<RankingView> {
+  const now = new Date();
+  const weekId = weekIdOf(now);
+
+  await db.transaction(async (tx) => {
+    await closeSeasonIfNeeded(tx, now);
+  });
+
+  const [me] = await db
+    .select({ id: users.id, elo: users.elo, username: users.username })
+    .from(users)
+    .where(eq(users.id, userId));
+  if (!me) throw forbidden("Sessão inválida.");
+
+  const top = await db.execute(sql`
+    SELECT u.username, u.elo, ${rankedMatchCount("u")} AS matches
+    FROM users u
+    WHERE ${rankedMatchCount("u")} >= ${MIN_RANKED_MATCHES}
+    ORDER BY u.elo DESC, u.id ASC
+    LIMIT ${MAX_RANKING_ENTRIES}
+  `);
+
+  const my = await db.execute(sql`
+    SELECT
+      (SELECT count(*)::int FROM users u2
+        WHERE ${rankedMatchCount("u2")} >= ${MIN_RANKED_MATCHES}
+          AND (u2.elo > ${me.elo} OR (u2.elo = ${me.elo} AND u2.id < ${me.id}))) AS above,
+      ${rankedMatchCount("u")} AS matches
+    FROM users u
+    WHERE u.id = ${me.id}
+  `);
+
+  const topRows = top.rows as Array<{ username: string; elo: number; matches: number }>;
+  const myRow = (my.rows[0] ?? { above: 0, matches: 0 }) as {
+    above: number;
+    matches: number;
+  };
+
+  return {
+    weekId,
+    top: topRows.map((r, i) => ({ position: i + 1, ...r })),
+    you: {
+      username: me.username,
+      elo: me.elo,
+      matches: myRow.matches,
+      position: myRow.matches >= MIN_RANKED_MATCHES ? myRow.above + 1 : null,
+    },
+  };
 }
 
 // ─── Utilidades para o cliente montar o combatente local ──────────────────

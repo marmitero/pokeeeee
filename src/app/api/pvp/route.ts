@@ -3,13 +3,16 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { chatMessages, users } from "@/db/schema";
 import { requireUser } from "@/lib/session";
-import { enforceRateLimit } from "@/lib/rate-limit";
+import { enforceRateLimit, clientIp } from "@/lib/rate-limit";
 import { pvpActionSchema } from "@/lib/validation";
 import { parse, publicUser, routeError } from "@/lib/api";
+import { hashIp } from "@/lib/elo";
 import {
   createRoom,
   forfeit,
+  getRanking,
   getState,
+  joinRanked,
   joinRoom,
   listWaitingRooms,
   requestRematch,
@@ -43,6 +46,12 @@ export async function GET(req: Request) {
     if (roomCode) {
       const view = await getState(user.id, roomCode);
       return NextResponse.json({ battle: view });
+    }
+
+    // Ranking global da Arena ranqueada (8.5): top 50 + posição do jogador.
+    if (searchParams.get("ranking") === "1") {
+      const ranking = await getRanking(user.id);
+      return NextResponse.json({ ranking });
     }
 
     // Sem roomCode: chat global + salas aguardando.
@@ -109,6 +118,16 @@ export async function POST(req: Request) {
         user.username,
         input.roomCode,
         input.pokemonIds
+      );
+      return NextResponse.json({ roomCode: room.roomCode, room });
+    }
+
+    if (input.action === "join_ranked") {
+      const room = await joinRanked(
+        user.id,
+        user.username,
+        input.pokemonIds,
+        hashIp(clientIp(req))
       );
       return NextResponse.json({ roomCode: room.roomCode, room });
     }
