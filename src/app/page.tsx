@@ -22,11 +22,16 @@ import { ShopModal } from "@/components/ShopModal";
 import { BossModal } from "@/components/BossModal";
 import { GymModal } from "@/components/GymModal";
 import { ChatWidget } from "@/components/ChatWidget";
+import { MapPlayers, type MapPlayer } from "@/components/MapPlayers";
+import { PlayerMenu, type MenuPlayer } from "@/components/PlayerMenu";
 import {
   Map, Volume2, VolumeX, Swords, Sparkles, User,
   Heart, Compass, LogOut, Package, ShoppingBag, Shield,
 } from "lucide-react";
 import { api, clearToken } from "@/lib/api-client";
+
+/** Intervalo do polling de presença (8.9) — padrão do jogo, sem WebSocket. */
+const PRESENCE_POLL_MS = 2500;
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -213,6 +218,10 @@ export default function DelugeRPGPage() {
   const [pvpLobby, setPvpLobby] = useState(false);
   const [pvpRoom, setPvpRoom] = useState<string | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  // Presença multiplayer (8.9): outros jogadores no mapa + menu de interação.
+  const [nearbyPlayers, setNearbyPlayers] = useState<MapPlayer[]>([]);
+  const [playerMenu, setPlayerMenu] = useState<MenuPlayer | null>(null);
+  const [whisperTarget, setWhisperTarget] = useState<{ username: string; nonce: number } | null>(null);
 
   const anyModalOpen =
     showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || !!bossCtx ||
@@ -498,6 +507,84 @@ export default function DelugeRPGPage() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [movePlayer, anyModalOpen]);
+
+  // ── Presença multiplayer (8.9) ────────────────────────────────────────
+  // Polling de 2,5 s: publica a própria posição e recebe os outros jogadores
+  // do mesmo mapa. Silencioso — falha de rede não pode travar a tela.
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    const tick = async () => {
+      try {
+        const res = await api("/api/presence", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ currentMapId, playerX, playerY }),
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (Array.isArray(data.players)) setNearbyPlayers(data.players as MapPlayer[]);
+      } catch {
+        /* presença é best-effort */
+      }
+    };
+
+    tick();
+    const timer = setInterval(tick, PRESENCE_POLL_MS);
+    return () => clearInterval(timer);
+  }, [isLoggedIn, currentMapId, playerX, playerY]);
+
+  // Abre o whisper com um treinador (menu de interação → PM).
+  const openWhisper = useCallback((username: string) => {
+    setWhisperTarget({ username, nonce: Date.now() });
+  }, []);
+
+  // Desafio (8.9): cria uma sala PvP amistosa e sussurra o código ao alvo.
+  const handleDuel = useCallback(
+    async (target: MenuPlayer) => {
+      const usable = party.filter((m) => m.hp > 0).slice(0, 3).map((m) => m.id);
+      if (usable.length === 0) {
+        showBanner("⚠️ Nenhum Pokémon em condições para um duelo.");
+        return;
+      }
+      try {
+        const res = await api("/api/pvp", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ action: "create_room", pokemonIds: usable }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showBanner(`⚠️ ${data.error ?? "Não foi possível criar o duelo."}`);
+          return;
+        }
+        const roomCode = data.roomCode as string;
+        await api("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({
+            channel: "whisper",
+            recipientUsername: target.username,
+            message: `⚔️ ${user.username} te desafiou para um duelo! Entre na sala ${roomCode} (ARENA PVP → SALAS).`,
+          }),
+        }).catch(() => {});
+        setPvpLobby(false);
+        setPvpRoom(roomCode);
+        showBanner(`⚔️ Duelo criado! Sala ${roomCode} sussurrada para ${target.username}.`);
+      } catch {
+        showBanner("⚠️ Falha de rede ao criar o duelo.");
+      }
+    },
+    [party, user.username, showBanner]
+  );
+
+  // Outro jogador na MESMA célula → botão 👤 (mobile) ao lado do D-pad.
+  const playerOnSameTile = nearbyPlayers.find(
+    (p) => p.playerX === playerX && p.playerY === playerY
+  );
 
   // ── Render helpers ────────────────────────────────────────────────────
   const avatarEmoji = playerDir === "up" ? "🧗" : playerDir === "left" || playerDir === "right" ? "🏃" : "🧑‍🚀";
@@ -830,6 +917,14 @@ export default function DelugeRPGPage() {
                 );
               })
             )}
+
+            {/* Outros jogadores (8.9) */}
+            <MapPlayers
+              players={nearbyPlayers}
+              mapWidth={currentMap?.width ?? 16}
+              mapHeight={currentMap?.height ?? 16}
+              onInteract={(p) => setPlayerMenu(p)}
+            />
           </div>
 
           {/* D-Pad & Legend */}
@@ -846,6 +941,17 @@ export default function DelugeRPGPage() {
                 <button onClick={() => movePlayer(1, 0, "right")}
                   className="h-10 w-12 border-2 border-amber-400 bg-slate-800 font-['Press_Start_2P'] text-xs text-amber-300 shadow-[2px_2px_0px_#000] active:translate-y-0.5">▶</button>
               </div>
+
+              {/* 8.9: interagir com o jogador na mesma célula (mobile) */}
+              {playerOnSameTile && (
+                <button
+                  onClick={() => setPlayerMenu(playerOnSameTile)}
+                  title={`Interagir com ${playerOnSameTile.username}`}
+                  className="mb-2 flex h-10 items-center gap-1 border-2 border-cyan-400 bg-cyan-950/70 px-2 font-['Press_Start_2P'] text-[8px] text-cyan-200 shadow-[2px_2px_0px_#000] active:translate-y-0.5"
+                >
+                  👤 {playerOnSameTile.username}
+                </button>
+              )}
             </div>
             {/* Quick NPCs legend */}
             <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-['IBM_Plex_Mono'] text-[10px] text-slate-300">
@@ -998,6 +1104,16 @@ export default function DelugeRPGPage() {
         />
       )}
 
+      {/* MENU DE INTERAÇÃO COM JOGADOR — 8.9 */}
+      {playerMenu && (
+        <PlayerMenu
+          player={playerMenu}
+          onClose={() => setPlayerMenu(null)}
+          onMessage={openWhisper}
+          onDuel={(p) => void handleDuel(p)}
+        />
+      )}
+
       {/* CHAT NO JOGO — 8.8 (global/local/whisper) */}
       <ChatWidget
         currentMapId={currentMapId}
@@ -1005,6 +1121,7 @@ export default function DelugeRPGPage() {
         userId={user.id}
         username={user.username}
         isLoggedIn={isLoggedIn}
+        whisperTarget={whisperTarget}
       />
     </div>
   );

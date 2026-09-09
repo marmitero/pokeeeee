@@ -31,9 +31,21 @@ interface Props {
   userId: number;
   username: string;
   isLoggedIn: boolean;
+  /**
+   * 8.9: pedido externo de abrir um whisper (menu de interação do mapa).
+   * Quando o `nonce` muda, abre o painel já no canal privado com o alvo.
+   */
+  whisperTarget?: { username: string; nonce: number } | null;
 }
 
-export function ChatWidget({ currentMapId, currentMapName, userId, username, isLoggedIn }: Props) {
+export function ChatWidget({
+  currentMapId,
+  currentMapName,
+  userId,
+  username,
+  isLoggedIn,
+  whisperTarget = null,
+}: Props) {
   const [collapsed, setCollapsed] = useState(true);
   const [channel, setChannel] = useState<ChatChannel>("global");
   const [globalMsgs, setGlobalMsgs] = useState<ChatMessage[]>([]);
@@ -183,6 +195,15 @@ export function ChatWidget({ currentMapId, currentMapName, userId, username, isL
       lastIds.current.whisperConv = whisperWith;
     }
   }, [whisperWith, channel, isLoggedIn, fetchChannel]);
+
+  // 8.9: pedido externo de whisper (menu de interação do mapa).
+  useEffect(() => {
+    if (!isLoggedIn || !whisperTarget) return;
+    setWhisperWith(whisperTarget.username);
+    setChannel("whisper");
+    setCollapsed(false);
+    setUnread((u) => ({ ...u, whisper: 0 }));
+  }, [isLoggedIn, whisperTarget]);
 
   useEffect(() => {
     scrollToBottom();

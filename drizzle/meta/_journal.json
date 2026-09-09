@@ -92,6 +92,13 @@
       "when": 1788886197168,
       "tag": "0012_pvp_ranked_seasons",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788980195288,
+      "tag": "0013_presence_friends",
+      "breakpoints": true
     }
   ]
 }

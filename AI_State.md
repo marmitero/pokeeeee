@@ -108,6 +108,7 @@
 | 16 | **Unova em produção (6.4-E)**: **sem SQL novo** (reutiliza pedras); após o deploy, vitrine de sprites com 649 espécies (3894 sprites); via GM dar Snivy lv16 → vencer batalha → Servine (lv17) → lv36 → Serperior; dar Pansage + Pedra de Folha → Pokémon Box → usar pedra → Simisage; Boldore lv39 → Gigalith (proxy troca lv40); Woobat lv24 → Swoobat | catchbound.vercel.app | Fase 6.4-E/§4.31 | ✅ 2026-09-07 (mantenedor declarou concluída) |
 | 18 | **Status de batalha em produção (8.4)**: **antes do merge** colar `docs/supabase-production-0011-runtime.sql` no SQL Editor (conferência: `status_columns 2 · cure_columns 7 · status_check 1 · inventory_check 1 · runtime_grants 8 · migrations 12`); após o deploy: loja 1 lista 🧫 Antídoto (100) e 💛 Anti-Paralisia (200); via GM dar um Pikachu nv 12 → grama do mapa 1 → usar ✨ Onda Trovão → log "está paralisado!" + etiqueta **PAR** amarela na caixa de HP do selvagem; ser envenenado/queimado por um selvagem e ver a barra "ITENS (usar gasta o turno)" → usar Antídoto → turno passa e etiqueta some; fugir com status → Pokémon Box mostra a etiqueta → Centro Pokémon (✚) limpa; PvP amistoso: Pó do Sono de um Bulbasaur nv 15 adormece o adversário ("está dormindo profundamente") | catchbound.vercel.app | Fase 8.4/§4.36 | ✅ 2026-09-08 |
 | 19 | **Arena PvP ranqueada em produção (8.5)**: **antes do merge** colar `docs/supabase-production-0012-runtime.sql` no SQL Editor (conferência: `rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 · indexes 2 · checks 2 · migrations 13`); após o deploy: abrir ARENA PVP → aba RANQUEADA → "BUSCAR RIVAL RANQUEADO" com 2 contas (pareia sozinho; no fim do duelo o ELO muda); aba RANKING → top 50 + a posição do jogador (aparece quem tiver 10+ partidas); desistir antes do turno 3 paga ½ K ao vencedor | catchbound.vercel.app | Fase 8.5/§4.37 | ⬜ |
+| 20 | **Presença multiplayer + interação em produção (8.9)**: **antes do merge** colar `docs/supabase-production-0013-runtime.sql` no SQL Editor (conferência: `rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 · indexes 3 · checks 1 · last_seen_col 1 · migrations 14`); após o deploy: logar com 2 contas no MESMO mapa → cada um vê o crachá do outro; clicar no outro (ou botão 👤 ao pisar na mesma célula) → menu ➕ amigo / 💬 PM (abre sussurro) / ⚔️ desafiar (cria sala PvP e sussurra o código) | catchbound.vercel.app | Fase 8.9/§4.39 | ⬜ |
 | 17 | **Chat no jogo em produção (8.8)**: **antes do merge** colar `docs/supabase-production-0009-runtime.sql` no SQL Editor (conferência: `chat_columns 2 · channel_check 1 · indexes 3 · migrations 10`); após o deploy, 💬 GLOBAL/LOCAL/PRIVADO + `/w` + badge de não-lidas | catchbound.vercel.app | Fase 8.8/§4.32 | ✅ 2026-09-07 (mantenedor declarou concluída) |
 >
 > **Conta de admin para teste:** `admin` / `admin12345`
@@ -175,7 +176,7 @@
 > Rotacionar em Project Settings → Database → Reset database password.
 
 **Projeto:** `marmitero/pokeeeee` — Pokémon Deluge RPG
-**Branch da sessão atual:** `arena/01a081db-pokeeeee` (Fase 8.5 — Arena PvP ranqueada; o `main` está em `3e223d2` — merge do PR #17, 8.4 em produção)
+**Branch da sessão atual:** `arena/01a08723-pokeeeee` (fix #19 do pareamento da 8.5 + **8.9 presença multiplayer**; o `main` está em `3e223d2` — merge do PR #17, 8.4 em produção)
 **Documento de origem:** [`AUDITORIA.md`](./AUDITORIA.md) (auditoria completa de 2026-08-25)
 
 ---
@@ -210,8 +211,8 @@ scripts/world-export.mts      # banco → content/world/     (npm run world:expo
 scripts/world-import.mts      # content/world/ → banco     (npm run world:import [-- --dry-run])
 ```
 
-### Banco de dados — 14 tabelas
-`users` · `sessions` · `user_pokemon` (+ `status`/`status_turns`, 8.4) · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `pvp_seasons` (8.5) · `chat_messages` · `email_verification_codes` (2026-09-06) · `battles` · `boss_fights` (8.3) · `rate_limits`. Migrations **0000–0012**.
+### Banco de dados — 15 tabelas
+`users` (+ `last_seen_at`, 8.9) · `sessions` · `user_pokemon` (+ `status`/`status_turns`, 8.4) · `game_maps` · `shop_items` · `gym_leaders` · `user_badges` · `pvp_battles` · `pvp_seasons` (8.5) · `chat_messages` · `email_verification_codes` (2026-09-06) · `battles` · `boss_fights` (8.3) · `rate_limits` · `friendships` (8.9). Migrations **0000–0013**.
 
 ### Conteúdo seedado
 **649 espécies** (1–151 Kanto + 152–251 Johto + 252–386 Hoenn + 387–493 Sinnoh + 494–649 Unova, com learnset e linhas evolutivas completas — 6.4-E) · **142 golpes** (133 + 9 de Status na 8.4; 27 com efeito secundário) · 6 variantes · **40 mapas temáticos (6.4-A → 7.1, cadeia 1↔40)** — as **649** espécies distribuídas, cada uma em exatamente um mapa · 3 líderes de ginásio · **32 itens de loja** (11 base + 21 de evolução) · 10 tipos de tile · 21 itens de evolução como colunas de `users` (14 da 0007 + 7 da 0008)
@@ -237,6 +238,8 @@ scripts/world-import.mts      # content/world/ → banco     (npm run world:impo
 | **Arena PvP ranqueada (8.5)** | ✅ **Servidor** — ELO K32/24 (piso 100, só em `ranked`), fila `join_ranked` por ELO, ranking top 50 (`GET /api/pvp?ranking=1`), temporada semanal (`pvp_seasons`, fechamento preguiçoso), antifarm (3×/dia por par, mínimo 10 partidas, forfeit cedo ½ K, mesmo IP não pareia) |
 | Chat global | ✅ **FUNCIONA** (B11 corrigido) — busca ao abrir, polling 5s, mensagens renderizadas |
 | Pacote de Sprites | ✅ Funciona (vitrine) — 649 espécies × 6 variantes (3894 sprites) |
+| **Presença multiplayer (8.9)** | ✅ **Servidor** — heartbeat `POST /api/presence` (rate limit 60/min) devolve os players do mesmo mapa online nos últimos 30 s; crachás no mapa (`MapPlayers`) com clique → menu de interação |
+| **Amizade (8.9)** | ✅ **Servidor** — tabela `friendships` (par canônico, idempotente); `GET /api/friends` + `POST /api/friends {add\|remove}` |
 
 ### Direção de arte (preservar — é o ativo mais valioso)
 Pixel art 16-bit + overlay CRT. **Zero assets binários no repo**: 48 GIFs animados Gen V via CDN (`raw.githubusercontent.com/PokeAPI/sprites`). 5 das 6 variantes são **filtros CSS em runtime** sobre o sprite base. Tipografia Press Start 2P (HUD) / VT323 (diálogos) / IBM Plex Mono (dados). **Áudio 100% sintetizado via Web Audio API**, sem arquivos de som.
@@ -525,6 +528,18 @@ Etapa B assim que o primeiro lote de mapas existir.
 - [ ] **8.7 — Treinadores de rota** (NPCs de batalha não-ginásio), reusando o
       motor de ginásio.
 - [x] **8.8 — Chat dentro do jogo** ✅ 2026-09-07: agora existe **no mundo** — widget 💬 no HUD, 3 canais GLOBAL (servidor todo), LOCAL (mesmo mapa, `map_id`), PRIVADO (whisper, `recipient_id`, só remetente/destinatário, `/w <nome> <msg>`), recolhível com badge de não-lidas, estética Press Start 2P/CRT, polling 4s com `afterId`, reusa tabela + moderação + rate limit. Migration 0009 + `docs/supabase-production-0009-runtime.sql`
+- [x] **8.9 — Presença multiplayer + interação no mapa** ✅ 2026-09-09 (pedido
+      do mantenedor, **em paralelo ao fix #19**): VER os outros jogadores no
+      mapa e INTERAGIR quando em cima de outro player — desktop: clicar no
+      player; mobile: botão 👤 ao lado das setas. Opções: ➕ adicionar amigo,
+      💬 mandar PM (reusa o whisper da 8.8), ⚔️ desafiar/duelo (reusa o PvP) e,
+      futuramente, trocar itens/Pokémon (**fora desta rodada**). Presença por
+      **polling de 2,5 s** (`PRESENCE_POLL_MS`, sem WebSocket), posição via
+      `users.currentMapId/playerX/playerY` + heartbeat
+      (`PRESENCE_ONLINE_MS = 30 s`); **tabela nova `friendships`** (par
+      canônico `least/greatest`, unique index, check distinto) +
+      `users.last_seen_at` → migration **0013** +
+      `docs/supabase-production-0013-runtime.sql`.
 
 #### 🅳 ETAPA D — Antes de divulgar (bloqueia monetização)
 
@@ -541,6 +556,56 @@ Etapa B assim que o primeiro lote de mapas existir.
 ---
 
 ## 3. Qual foi a última etapa aplicada
+
+### ✅ FASE 8.9 — Presença multiplayer + interação no mapa (ver players, menu ➕ amigo / 💬 PM / ⚔️ desafio) (2026-09-09, Etapa C)
+
+**Pedido do mantenedor (2026-09-09):** em paralelo ao fix #19, implementar a
+8.9 com escopo fechado: **VER** os outros jogadores no mapa e **INTERAGIR**
+quando em cima de outro player — desktop: clicar no player; mobile: botão 👤 ao
+lado das setas. Opções: ➕ adicionar amigo, 💬 mandar PM (reusa o whisper da
+8.8), ⚔️ desafiar/duelo (reusa o PvP). **Troca de itens/Pokémon fica fora
+desta rodada.** Presença por **polling 2–3 s** (sem WebSocket).
+
+**Banco (migration 0013 + companheiro):** `users.last_seen_at`
+(`timestamp with time zone DEFAULT to_timestamp(0)`) + tabela nova
+**`friendships`** — `user_a_id`/`user_b_id` FK users (par canônico
+menor-primeiro, quem pediu não importa), `unique (user_a_id, user_b_id)`,
+`check (user_a_id <> user_b_id)`, índices por lado, `created_at`. Companheiro
+`docs/supabase-production-0013-runtime.sql` idempotente (RLS + policy
+runtime/backup + grants + journal), **validado 2× num prodsim** — conferência
+`rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 ·
+indexes 3 · checks 1 · last_seen_col 1 · migrations 14`.
+
+**Presença (`src/lib/presence.ts`):** `heartbeat(userId, mapId, x, y)` grava a
+posição + `last_seen_at = now()`; `nearbyPlayers(userId, mapId)` devolve os
+online nos últimos `PRESENCE_ONLINE_MS = 30_000` do mesmo mapa (menos o
+próprio), com username + posição + amizade; `listFriends`/`addFriend`/
+`removeFriend` (add/remove idempotentes pelo par canônico). Rota
+`POST /api/presence` (auth + rate limit 60/min) devolve `{players}`.
+
+**Amizade (`src/app/api/friends/route.ts`):** `GET` lista amigos;
+`POST {action:"add"|"remove", username}` devolve `{added|removed, isFriend}`;
+alvo inexistente → 404; a si mesmo → 400.
+
+**UI:** `src/components/MapPlayers.tsx` (crachás dos players na posição em % da
+grade; clique → menu), `src/components/PlayerMenu.tsx` (menu fixo ➕ amigo /
+💬 PM / ⚔️ desafiar), `ChatWidget.tsx` aceita `whisperTarget` externo (abre o
+whisper já no alvo), `src/app/page.tsx` faz polling `PRESENCE_POLL_MS = 2500`,
+renderiza os crachás + botão 👤 mobile (pisa na mesma célula de outro player)
+e o `handleDuel` (cria sala PvP amistosa e sussurra o código ao alvo).
+Avatares extraídos para `src/lib/avatars.ts` (fonte única dos 4 emojis).
+
+**Testes:** `tests/integration/presence.integration.test.ts` (7: heartbeat
+devolve players do mesmo mapa, isolamento por mapa, expiração por
+`last_seen_at`, add/remove amigo idempotente, listFriends, 404 alvo
+inexistente, 400 self). Suíte completa: **374 unit + 151 integração**
+(28 unit files + 15 integração files), `npm run check` verde (lint + tsc +
+unit + build com `/api/presence` e `/api/friends`).
+
+**Pós-merge (ordem):** ① colar o companheiro **0013** no Supabase SQL Editor
+(production) **antes** do merge → ② merge → ③ deploy Vercel `Ready` → ④ validar
+a pendência **#20** (2 contas no mesmo mapa se veem; clique/👤 → menu ➕/💬/⚔️).
+Validação em §4.39.
 
 ### ✅ FASE 8.5 — Arena PvP ranqueada: ELO, fila de pareamento, ranking top 50 e temporada semanal com recompensas (2026-09-08, Etapa C)
 
@@ -3151,7 +3216,166 @@ companheiro 0012 foi provado em Postgres 18 local (prodsim) — e a UI (abas
 SALAS/RANQUEADA/RANKING, espera da fila) só por build/tipos, não no navegador.
 Pendência #19 cobre as duas coisas.
 
+### 4.38 Fix do bug de pareamento da 8.5 — higiene de salas `WAITING` fantasmas (2026-09-09, sandbox)
+
+> Comandos abaixo são do **sandbox do agente** (evidência), não tarefa do
+> mantenedor. Os passos dele seguem em §5.
+
+**Causa-raiz (segunda, após a decisão de MANTER o antifarm de mesmo-IP):** salas
+ranqueadas `WAITING` órfãs. Sair da tela de espera (SAIR / trocar de aba /
+fechar a aba) não cancelava a fila, e uma nova busca **pulava a própria sala**
+(`player1Id === userId → continue`) e criava uma segunda — o rival seguinte
+entrava na sala antiga (dono ausente) e o dono ficava preso na nova: "não se
+acham". Reproduzido em `tests/integration/repro-stale.integration.test.ts`
+(descartável, depois removido): A busca → `DLG-SRGDF`; A busca de novo →
+`DLG-LLHMJ` (duplicou); B entra em `DLG-SRGDF` (fantasma) enquanto A fica
+`WAITING` em `DLG-LLHMJ`.
+
+**Correção (sem migration; antifarm de mesmo-IP intacto):**
+1. `pvp-service.ts` — `joinRanked` **abandona as salas `WAITING` do próprio
+   usuário antes de varrer a fila** (`abandonOwnRankedQueue`), e **expira
+   preguiçosamente salas sem heartbeat recente** (`RANKED_QUEUE_HEARTBEAT_MS
+   = 10 s`, `RANKED_QUEUE_STALE_MS = 45 s`) — o dono vivo faz heartbeat no
+   `getState` (atualiza `updated_at`), então esperar muito é legítimo (a janela
+   de ELO cresce); quem sumiu vira `ABANDONED`.
+2. Ação nova `leave_queue` (`validation.ts` + `pvp/route.ts` + `leaveRanked`)
+   para cancelar a fila ao sair da tela de espera.
+3. `PvpArena.tsx` chama `leave_queue` ao sair/desmontar durante a espera
+   ranqueada.
+
+**Testes:** novo `tests/integration/pvp-ranked-queue.integration.test.ts`
+(3: reentrada não cria fantasma e B pareia com a sala viva; `leave_queue`
+cancela; sala sem heartbeat é abandonada) + baseline
+`pvp-ranked.integration.test.ts` (8) continuam verdes.
+
+```bash
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+npx vitest run --config vitest.integration.config.mts \
+  tests/integration/pvp-ranked-queue.integration.test.ts
+→ 3 passed
+
+# baseline não regrediu
+npx vitest run --config vitest.integration.config.mts \
+  tests/integration/pvp-ranked.integration.test.ts
+→ 8 passed
+
+npx tsc --noEmit → 0 erros
+npx eslint src/lib/pvp-service.ts src/lib/validation.ts \
+  src/app/api/pvp/route.ts src/components/PvpArena.tsx \
+  tests/integration/pvp-ranked-queue.integration.test.ts → limpo
+```
+
+**O que NÃO foi validado aqui:** Supabase (bloqueado no sandbox) e a UI no
+navegador (o `leave_queue` no SAIR da espera ranqueada) — pendência #19 cobre.
+
+### 4.39 Fase 8.9 — Presença multiplayer + interação (2026-09-09, sandbox)
+
+> Comandos abaixo são do **sandbox do agente** (evidência), não tarefa do
+> mantenedor. Os passos dele estão na pendência #20 e em §5.
+
+**Ambiente:** `npm ci` · `cp -n .env.example .env` · `npm run db:local`
+(PostgreSQL 18.4 embutido, `127.0.0.1:5432/app_db`) · `npx drizzle-kit
+migrate` → 0000–0013 aplicadas.
+
+**Migration 0013 gerada e aplicada:**
+```
+npx drizzle-kit generate --name presence_friends
+  → drizzle/0013_presence_friends.sql (users.last_seen_at + tabela friendships)
+npx drizzle-kit migrate → [✓] migrations applied successfully!
+sha256sum drizzle/0013_presence_friends.sql
+  → 5b728d561e526461b94d65e9d9fb6e3488a6385b043880a3d82ded694e2900b7
+drizzle/meta/_journal.json → idx 13 · when 1788980195288 · tag 0013_presence_friends
+```
+
+**Companheiro de produção validado num banco prodsim** (`app_db_prodsim_0013`,
+migrations 0000–0012 aplicadas dos arquivos + journal Drizzle + papéis
+`catchbound_runtime`/`catchbound_backup` + RLS ligado em todas as tabelas; o
+SQL inteiro colado **2×**):
+```
+rodada 1: rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 ·
+          indexes 3 · checks 1 · last_seen_col 1 · migrations 14
+rodada 2: idêntico (idempotente; journal não duplicou)
+INSERT friendships least=greatest  → ERRO friendships_least_less_than_greatest ✓
+SET ROLE catchbound_runtime + INSERT friendships → ok (policy de escrita) ✓
+SET ROLE catchbound_backup + SELECT friendships    → ok (policy de leitura) ✓
+```
+
+**Integração nova (7):**
+```
+TEST_PG_URL=postgresql://postgres:postgres@127.0.0.1:5432/postgres \
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db \
+npx vitest run --config vitest.integration.config.mts \
+  tests/integration/presence.integration.test.ts
+  → 1 arquivo · 7 testes ✓
+     (heartbeat devolve os players do mesmo mapa; isolamento por mapa;
+      expiração por last_seen_at; add/remove amigo idempotente; listFriends;
+      404 alvo inexistente; 400 self)
+```
+
+**Suíte completa:**
+```
+npm run lint        → 0 problemas
+npm run typecheck   → 0 erros (npx tsc --noEmit limpo)
+npx vitest run      → 28 arquivos · 374 testes ✓
+npm run test:integration
+  → 15 arquivos · 151 testes ✓ (141 + 3 do pvp-ranked-queue + 7 presence)
+npm run build       → ✓ Compiled successfully (rotas incluem /api/presence e /api/friends)
+```
+
+**O que NÃO foi validado aqui:** Supabase (bloqueado no sandbox) — o
+companheiro 0013 foi provado em Postgres 18 local (prodsim) — e a UI
+(crachás, menu ➕/💬/⚔️, botão 👤 mobile) só por build/tipos, não no navegador.
+Pendência #20 cobre as duas coisas.
+
 ## 5. Qual a próxima etapa a ser aplicada
+
+### 🐞 Fix #19 + 8.9 prontos no sandbox — entrega (commit/push/PR) pendente (2026-09-09)
+
+**Estado:** a 8.5 está em produção (PR #18 mergeado; pendência #19 aberta com
+bug). Sintoma do mantenedor: **duas contas no mesmo nível, na aba RANQUEADA,
+não se acham / a batalha não inicia.**
+
+**Investigação (2026-09-09):** 1ª hipótese — o antifarm "mesmo IP não pareia"
+(`joinRanked`: `st.p1.ipHash === ipHash → continue`) — reproduzida (mesmo ELO +
+mesmo IP → 2 salas `WAITING`, nunca inicia; IPs diferentes → `ACTIVE`).
+**Decisão do mantenedor: MANTER o bloqueio de mesmo-IP.** Com isso, a causa real
+é a **2ª hipótese**, também confirmada: **salas `WAITING` fantasmas** — sair da
+espera sem cancelar deixava a sala na fila e uma nova busca criava uma segunda
+(pulando a própria); o rival seguinte caía na sala velha contra um dono ausente.
+Reproduzido e **corrigido** (ver §4.38).
+
+**Correção do #19 (sem migration, antifarm de IP intacto):**
+- `joinRanked` abandona as salas `WAITING` do próprio usuário antes de varrer a
+  fila, e expira preguiçosamente salas sem heartbeat recente (dono sumiu →
+  `ABANDONED`); heartbeat no `getState` (10 s) vs expiração (45 s) — esperar
+  muito continua legítimo (a janela de ELO cresce).
+- Ação nova `leave_queue` (cancela a fila) + `PvpArena` chama ao sair da espera
+  ranqueada.
+- Teste novo `pvp-ranked-queue.integration.test.ts` (3 ✓) + baseline (8 ✓).
+
+**8.9 implementada por completo** (ver §3 e §4.39): presença por polling 2,5 s
+(`POST /api/presence` + `last_seen_at`), amizade (`friendships` + `/api/friends`),
+UI de crachás + menu ➕ amigo / 💬 PM (whisper 8.8) / ⚔️ desafio (PvP), migration
+**0013** + `docs/supabase-production-0013-runtime.sql` validado 2× em prodsim.
+Troca de itens/Pokémon fica para depois (decisão do mantenedor).
+
+**Entrega (autorizada pelo mantenedor):** commit + push na branch da sessão
+(`arena/01a08723-pokeeeee`) e PR novo com **fix #19 + 8.9**. Passos do
+mantenedor, tudo pela interface:
+1. **SQL antes do merge** — colar `docs/supabase-production-0013-runtime.sql`
+   no SQL Editor do Supabase (production); conferência esperada:
+   `rls_on true · runtime_privs 4 · runtime_policy 1 · backup_policy 1 ·
+   indexes 3 · checks 1 · last_seen_col 1 · migrations 14`.
+2. **Merge** do PR.
+3. **Vercel** → aguardar deploy `Ready`.
+4. **Pendências #19 e #20** — navegador:
+   - #19: ARENA PVP → RANQUEADA → buscar com 2 contas (pareia sozinho, ELO
+     muda no fim); repetir "buscar → SAIR → buscar de novo"; RANKING (top 50
+     + posição); forfeit antes do turno 3 (½ K).
+   - #20: 2 contas no MESMO mapa → cada um vê o crachá do outro; clicar (ou 👤
+     ao pisar na mesma célula) → ➕ amigo / 💬 PM (abre whisper) / ⚔️ desafiar
+     (cria sala PvP e sussurra o código).
 
 ### 🅲 Etapa C (2026-09-08): 8.4 **em produção** (PR #17, pendência #18 ✅) · **8.5 Arena PvP ranqueada implementada no sandbox** · próxima = **8.6 — NPCs de missão**
 
@@ -3248,6 +3472,9 @@ não está em produção).
 | 2026-09-08 | **Fase 8.4 — Status de batalha**: PSN/TOX/BRN/PAR/SLP/FRZ (Gen III) em PvE + PvP, `engine/status.ts` + `engine/turn.ts`, 9 golpes de Status + 27 efeitos em 107 learnsets, migration **0011** (`user_pokemon.status/status_turns` + 7 colunas de cura) + `docs/supabase-production-0011-runtime.sql` validado 2×, 7 itens de cura nas lojas por progressão, `POST /api/battle use_item` (consome turno), etiqueta de status + barra ITENS nas 4 telas, curas no Pokémon Box | ✅ Concluída e validada no sandbox · 🔵 **PR #17 aberto** (`c9cfc52`) · ⬜ SQL 0011 antes do merge + pendência #18 em produção | `docs/FASE-8-STATUS.md` · §3/§4.36 · 26/358 unit · 12/133 integração · `drizzle/0011` |
 | 2026-09-08 | **8.4 validada em produção pelo mantenedor** — SQL 0011 colado no Supabase antes do merge, PR #17 mergeado em `main` (squash `3e223d2`, commits `c9cfc52`+`533d6b9`), Vercel `Ready`; pendência **#18 ✅** (loja 1 com Antídoto/Anti-Paralisia, Pikachu nv 12 + Onda Trovão → "está paralisado!" + etiqueta PAR, barra ITENS curando e gastando turno, Pokémon Box com etiqueta, Centro limpa, PvP com Pó do Sono) | ✅ 8.4 fechada em produção · próxima = **8.5 Arena PvP ranqueada** | cabeçalho + §2 + §3 + §5 · PR #17 |
 | 2026-09-08 | **Fase 8.5 — Arena PvP ranqueada**: ELO K32/K24 (piso 100, só em `ranked`, ½ K no forfeit cedo), fila `join_ranked` (janela 150+50/30s, hash de IP), ranking top 50 (`GET /api/pvp?ranking=1`), temporada semanal (`pvp_seasons`, fechamento preguiçoso + recompensas 1/2/3/10), antifarm (3×/dia por par, mínimo 10, mesmo IP não pareia), migration **0012** + `docs/supabase-production-0012-runtime.sql` (prodsim 2×), UI abas SALAS/RANQUEADA/RANKING | ✅ Concluída e validada no sandbox · ⬜ PR + SQL 0012 antes do merge + pendência **#19** | `docs/FASE-8-ARENA-PVP.md` · §3/§4.37 · 28/374 unit · 13/141 integração · `drizzle/0012` |
+| 2026-09-09 | **Investigação do bug de pareamento da 8.5 em produção** (pendência #19): 1ª hipótese = antifarm "mesmo IP não pareia" em `joinRanked` (duas contas do mesmo navegador nunca se acham, ambas presas em `WAITING`) — reproduzida (mesmo ELO+mesmo IP → 2 salas `WAITING`; IPs diferentes → `ACTIVE`); mantenedor decidiu **MANTER** o bloqueio. 2ª hipótese confirmada: **salas `WAITING` fantasmas** (sair sem cancelar + reentrada pulando a própria sala). **8.9 registrada em §2** | 🔍 investigação → ✅ corrigido (linha abaixo) | `AI_State.md` §2/§5 · `pvp-service.ts` (`joinRanked`) · `src/lib/elo.ts` (`hashIp`) · `tests/integration/pvp-ranked.integration.test.ts` |
+| 2026-09-09 | **Fix do pareamento da 8.5 (#19)** — mantendo o antifarm de mesmo-IP: `joinRanked` abandona as próprias salas `WAITING` antes da fila + expiração preguiçosa por heartbeat (`updated_at`, 10 s/45 s → `ABANDONED`); ação nova `leave_queue` (`validation.ts` + `pvp/route.ts` + `leaveRanked`) e `PvpArena` cancela a fila ao sair da espera ranqueada. **Sem migration.** Teste novo `pvp-ranked-queue.integration.test.ts` (3) + baseline `pvp-ranked.integration.test.ts` (8) verdes; tsc/eslint limpos | ✅ sandbox · ⬜ PR (sem SQL) + pendência #19 | `pvp-service.ts` · `validation.ts` · `pvp/route.ts` · `PvpArena.tsx` · `tests/integration/pvp-ranked-queue.integration.test.ts` · §4.38 |
+| 2026-09-09 | **Fase 8.9 — Presença multiplayer + interação no mapa**: `users.last_seen_at` + tabela `friendships` (par canônico, unique, check) via migration **0013** + `docs/supabase-production-0013-runtime.sql` (prodsim 2×); heartbeat `POST /api/presence` (rate limit 60/min, janela 30 s) com players do mesmo mapa; `GET/POST /api/friends` (add/remove idempotente, 404 alvo, 400 self); crachás `MapPlayers` + menu `PlayerMenu` (➕ amigo / 💬 PM via whisper 8.8 / ⚔️ desafio via PvP), botão 👤 mobile, polling 2,5 s, `whisperTarget` no ChatWidget, avatares em `src/lib/avatars.ts`. Troca de itens/Pokémon fica para depois | ✅ sandbox · ⬜ PR + SQL 0013 antes do merge + pendência **#20** | `src/lib/presence.ts` · `src/app/api/presence/route.ts` · `src/app/api/friends/route.ts` · `MapPlayers.tsx` · `PlayerMenu.tsx` · `drizzle/0013` · §3/§4.39 · 28/374 unit · 15/151 integração |
 | — | **Etapa B — Mundo até 100 mapas (7.2 41–60, 7.3 61–80, 7.4 81–100)** | ⬜ Próxima | `AI_State.md` §2/§5 · `docs/FASE-7-MUNDO.md` |
 
 > **Nota sobre o histórico git:** o `.git` do sandbox é resetado entre sessões.
