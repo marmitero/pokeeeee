@@ -73,6 +73,8 @@ export function PvpArena({
   const [picking, setPicking] = useState(false);
   const versionRef = useRef(0);
   const finishedRef = useRef(false);
+  // Ranqueada na espera: sair sem cancelar deixaria uma "sala fantasma" na fila.
+  const waitingRankedRef = useRef(false);
 
   const load = useCallback(
     async (
@@ -117,6 +119,37 @@ export function PvpArena({
     const timer = setInterval(tick, POLL_MS);
     return () => clearInterval(timer);
   }, [load]);
+
+  useEffect(() => {
+    waitingRankedRef.current = view?.status === "WAITING" && view.mode === "ranked";
+  }, [view]);
+
+  /** Sai da fila ranqueada (melhor esforço: reentrada e expiração cobrem falhas). */
+  const leaveQueue = useCallback(async () => {
+    try {
+      await api("/api/pvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ action: "leave_queue" }),
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  // Se o componente desmontar durante a espera ranqueada (SAIR/navegação),
+  // cancela a fila para não deixar sala fantasma.
+  useEffect(() => {
+    return () => {
+      if (waitingRankedRef.current) void leaveQueue();
+    };
+  }, [leaveQueue]);
+
+  const handleExit = useCallback(() => {
+    if (waitingRankedRef.current) void leaveQueue();
+    onExit();
+  }, [leaveQueue, onExit]);
 
   const call = async (body: Record<string, unknown>) => {
     setBusy(true);
@@ -185,7 +218,7 @@ export function PvpArena({
             </div>
           </div>
           <button
-            onClick={onExit}
+            onClick={handleExit}
             className="border-2 border-slate-600 bg-slate-800 px-3 py-1 font-['Press_Start_2P'] text-[10px] text-slate-200 hover:border-rose-500"
           >
             SAIR

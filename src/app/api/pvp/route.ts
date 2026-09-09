@@ -14,6 +14,7 @@ import {
   getState,
   joinRanked,
   joinRoom,
+  leaveRanked,
   listWaitingRooms,
   requestRematch,
   submitTurn,
@@ -130,6 +131,11 @@ export async function POST(req: Request) {
         hashIp(clientIp(req))
       );
       return NextResponse.json({ roomCode: room.roomCode, room });
+    }
+
+    if (input.action === "leave_queue") {
+      const result = await leaveRanked(user.id);
+      return NextResponse.json({ cancelled: result.cancelled });
     }
 
     // ── TURNO ────────────────────────────────────────────────────────────

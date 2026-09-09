@@ -280,6 +280,8 @@ export const pvpActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("forfeit"), roomCode: roomCodeSchema }),
   z.object({ action: z.literal("rematch"), roomCode: roomCodeSchema }),
   z.object({ action: z.literal("list_rooms") }),
+  // Sai da fila ranqueada (fecha as salas WAITING do usuário, se houver).
+  z.object({ action: z.literal("leave_queue") }),
 ]);
 
 export const pvpQuerySchema = z.object({ roomCode: roomCodeSchema });
@@ -453,6 +455,22 @@ export const bossClaimSchema = z.discriminatedUnion("action", [
     // Qualquer uma das 21 pedras/itens de evolução.
     item: z.enum(EVOLUTION_ITEM_VALUES),
   }),
+]);
+
+// ─── /api/presence (Fase 8.9) ─────────────────────────────────────────────
+
+/** Heartbeat de presença: o cliente publica a própria posição e recebe o mapa. */
+export const presenceHeartbeatSchema = z.object({
+  currentMapId: idSchema,
+  playerX: coordinateSchema,
+  playerY: coordinateSchema,
+});
+
+// ─── /api/friends (Fase 8.9) ──────────────────────────────────────────────
+
+export const friendActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("add"), username: usernameSchema }),
+  z.object({ action: z.literal("remove"), username: usernameSchema }),
 ]);
 
 // ─── /api/chat (Fase 8.8) ─────────────────────────────────────────────────

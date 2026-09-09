@@ -79,6 +79,17 @@ export const EARLY_FORFEIT_TURN = 3;
 export const PAIR_DAILY_CAP = 3;
 /** Tamanho do ranking devolvido (top 50). */
 export const MAX_RANKING_ENTRIES = 50;
+/**
+ * Sala ranqueada `WAITING` mantém `updated_at` vivo (heartbeat) enquanto o
+ * dono está na tela de espera. É a mesma filosofia do timeout de turno:
+ * preguiçoso, sem cron. A janela de ELO **cresce** com o tempo de espera, então
+ * não dá para expirar por `created_at` — esperar muito é legítimo. O que é
+ * inválido é uma sala cujo dono **parou de fazer polling**.
+ */
+/** Intervalo mínimo entre dois heartbeats (limita escritas no banco). */
+export const RANKED_QUEUE_HEARTBEAT_MS = 10_000;
+/** Sem heartbeat por mais que isso = dono sumiu → sala fantasma (ABANDONED). */
+export const RANKED_QUEUE_STALE_MS = 45_000;
 
 // ─── Visão pública ────────────────────────────────────────────────────────
 
@@ -443,6 +454,64 @@ async function createRankedRoom(
   return room;
 }
 
+/** Marca uma sala ranqueada `WAITING` como `ABANDONED` (com log). */
+async function markRankedRoomAbandoned(
+  tx: Tx,
+  room: { id: number; battleState: unknown },
+  reason: string
+) {
+  const state = normalizeState(room.battleState as unknown as PvpState);
+  state.log = pushLog(state.log, reason);
+  state.version += 1;
+
+  await tx
+    .update(pvpBattles)
+    .set({
+      status: "ABANDONED",
+      battleState: state as unknown as Record<string, unknown>,
+      updatedAt: new Date(),
+    })
+    .where(eq(pvpBattles.id, room.id));
+}
+
+/**
+ * Abandona todas as salas ranqueadas `WAITING` de que `userId` é dono (p1).
+ *
+ * Fecha o bug da "sala fantasma": o cliente saía da tela de espera sem
+ * cancelar e, ao buscar de novo, o `joinRanked` pulava a própria sala
+ * (`player1Id === userId → continue`) e criava uma segunda — o rival seguinte
+ * entrava na sala velha contra um dono ausente. Agora a reentrada (e o
+ * `leave_queue` explícito) fecha as salas antigas primeiro.
+ */
+async function abandonOwnRankedQueue(tx: Tx, userId: number): Promise<number> {
+  const rooms = await tx
+    .select({ id: pvpBattles.id, battleState: pvpBattles.battleState })
+    .from(pvpBattles)
+    .where(
+      and(
+        eq(pvpBattles.mode, "ranked"),
+        eq(pvpBattles.status, "WAITING"),
+        eq(pvpBattles.player1Id, userId)
+      )
+    )
+    .for("update");
+
+  for (const room of rooms) {
+    const state = normalizeState(room.battleState as unknown as PvpState);
+    await markRankedRoomAbandoned(tx, room, `${state.p1.username} saiu da fila ranqueada.`);
+  }
+
+  return rooms.length;
+}
+
+/** Sai da fila ranqueada (ação `leave_queue`) — fecha as salas `WAITING` do usuário. */
+export async function leaveRanked(userId: number): Promise<{ cancelled: number }> {
+  return db.transaction(async (tx) => {
+    const cancelled = await abandonOwnRankedQueue(tx, userId);
+    return { cancelled };
+  });
+}
+
 /**
  * Entra na fila ranqueada (8.5): procura uma sala `WAITING` com
  * `|elo − meu| ≤ janela` (150, +50 a cada 30 s de espera do anfitrião) e
@@ -466,6 +535,10 @@ export async function joinRanked(
   return db.transaction(async (tx) => {
     await closeSeasonIfNeeded(tx, new Date());
 
+    // Reentrada sem cancelar: fecha as salas `WAITING` antigas do próprio
+    // usuário antes de varrer a fila (evita a "sala fantasma" duplicada).
+    await abandonOwnRankedQueue(tx, userId);
+
     const candidates = await tx
       .select()
       .from(pvpBattles)
@@ -477,6 +550,20 @@ export async function joinRanked(
       if (room.player1Id === userId) continue;
 
       const st = normalizeState(room.battleState as unknown as PvpState);
+
+      // Expiração preguiçosa de salas fantasmas: o dono parou de fazer
+      // polling (heartbeat) há mais de `RANKED_QUEUE_STALE_MS`. Não dá para
+      // usar `created_at` — esperar muito na fila é legítimo (a janela cresce).
+      const lastBeat = room.updatedAt?.getTime() ?? room.createdAt?.getTime() ?? 0;
+      if (Date.now() - lastBeat > RANKED_QUEUE_STALE_MS) {
+        await markRankedRoomAbandoned(
+          tx,
+          room,
+          `${st.p1.username} abandonou a fila (sala fantasma).`
+        );
+        continue;
+      }
+
       if (st.p1.ipHash && st.p1.ipHash === ipHash) continue; // mesmo IP não pareia
 
       const [p1] = await tx
@@ -945,6 +1032,22 @@ export async function getState(userId: number, roomCode: string): Promise<PvpPub
     const room = await lockRoom(tx, roomCode);
     const state = normalizeState(room.battleState as unknown as PvpState);
     const key = sideKeyFor(state, userId);
+
+    // Heartbeat da fila ranqueada: enquanto o DONO (p1) está na tela de espera
+    // fazendo polling, mantém `updated_at` vivo — é o que separa um jogador
+    // esperando legitimamente de uma sala fantasma (dono sumiu). O `joinRanked`
+    // expira salas sem heartbeat recente.
+    if (
+      room.mode === "ranked" &&
+      room.status === "WAITING" &&
+      key === "p1" &&
+      Date.now() - (room.updatedAt?.getTime() ?? 0) > RANKED_QUEUE_HEARTBEAT_MS
+    ) {
+      await tx
+        .update(pvpBattles)
+        .set({ updatedAt: new Date() })
+        .where(eq(pvpBattles.id, room.id));
+    }
 
     // Timeout preguiçoso também roda na leitura: se ninguém mais abrir a tela,
     // a sala não fica pendurada para sempre.

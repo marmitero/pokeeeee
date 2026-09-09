@@ -164,6 +164,14 @@ export const users = pgTable("users", {
   premiumSkins: jsonb("premium_skins").notNull().default("[]"),
   // timestamps
   lastOnlineAt: timestamp("last_online_at").defaultNow(),
+  /**
+   * Presença multiplayer (8.9): heartbeat do polling de presença (2–3 s).
+   * Diferente de `last_online_at` (login/heal): este marca que o cliente está
+   * ATIVO agora — jogadores com `last_seen_at` recente aparecem no mapa.
+   * Default = epoch de propósito: só fica "visível" quem de fato envia
+   * heartbeat (cadastrar/login não é estar no mapa).
+   */
+  lastSeenAt: timestamp("last_seen_at").default(sql`to_timestamp(0)`),
   createdAt: timestamp("created_at").defaultNow(),
 }, (table) => [
   check("users_role_check", sql`${table.role} IN ('player', 'moderator', 'admin')`),
@@ -530,4 +538,26 @@ export const chatMessages = pgTable("chat_messages", {
     "chat_messages_channel_check",
     sql`${table.channel} IN ('global','local','whisper','arena-global')`
   ),
+]);
+
+// ─── AMIZADES (Etapa C, 8.9 — presença multiplayer) ──────────────────────
+
+/**
+ * Amizade entre dois treinadores (8.9).
+ *
+ * O par é armazenado em ordem canônica (`user_a_id < user_b_id`) — quem pediu
+ * e quem aceitou não importa, a amizade é bidirecional e única. O unique index
+ * no par é a fonte da verdade: `add` usa `onConflictDoNothing` (idempotente) e
+ * `remove` apaga pela mesma ordem canônica.
+ */
+export const friendships = pgTable("friendships", {
+  id: serial("id").primaryKey(),
+  userAId: integer("user_a_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userBId: integer("user_b_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  uniqueIndex("friendships_pair_unique").on(table.userAId, table.userBId),
+  index("friendships_user_a_idx").on(table.userAId),
+  index("friendships_user_b_idx").on(table.userBId),
+  check("friendships_distinct_check", sql`${table.userAId} <> ${table.userBId}`),
 ]);
