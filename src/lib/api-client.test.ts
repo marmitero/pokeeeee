@@ -96,6 +96,7 @@ describe("token com armazenamento bloqueado (iframe)", () => {
 
     const headers = new Headers(spy.mock.calls[0][1].headers);
     expect(headers.get("Authorization")).toBe("Bearer tok-iframe");
+    expect(spy.mock.calls[0][1].cache).toBe("no-store");
   }, LENTO);
 
   it("clearToken derruba a sessão mesmo sem storage", () => {

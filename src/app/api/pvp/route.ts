@@ -56,7 +56,10 @@ export async function GET(req: Request) {
 
     // Convites diretos do mapa (8.9): um recebido + o último enviado.
     if (searchParams.get("challenges") === "1") {
-      return NextResponse.json({ challenges: await getChallengeState(user.id) });
+      return NextResponse.json(
+        { challenges: await getChallengeState(user.id) },
+        { headers: { "Cache-Control": "no-store, max-age=0" } }
+      );
     }
 
     // Ranking global da Arena ranqueada (8.5): top 50 + posição do jogador.

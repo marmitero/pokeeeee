@@ -14,7 +14,7 @@ import {
   seasonRewardForRank,
 } from "@/lib/pvp-season";
 import { weekIdOf } from "@/lib/boss-rotation";
-import { PRESENCE_ONLINE_MS } from "@/lib/presence";
+import { PRESENCE_ONLINE_MS } from "@/lib/presence-online";
 import { CHALLENGE_COOLDOWN_MS, CHALLENGE_TTL_MS } from "@/lib/pvp-challenge";
 
 /**
@@ -350,7 +350,9 @@ export async function requestChallenge(challengerId: number, targetId: number) {
     const lowId = Math.min(challengerId, targetId);
     const highId = Math.max(challengerId, targetId);
     for (const lockedUserId of [lowId, highId]) {
-      await tx.execute(sql`SELECT pg_advisory_xact_lock(1::bigint, ${lockedUserId}::bigint)`);
+      // A sobrecarga de duas chaves é (int4, int4). (bigint, bigint) não existe
+      // no Postgres — o convite 500ava em silêncio e o popup nunca nascia.
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(1, ${lockedUserId}::int)`);
     }
 
     const now = new Date();
@@ -424,30 +426,34 @@ export async function requestChallenge(challengerId: number, targetId: number) {
 /** Lista o convite recebido e o último estado do convite enviado pelo jogador. */
 export async function getChallengeState(userId: number) {
   const now = new Date();
-  await db.transaction(async (tx) => {
-    const pending = await tx
-      .select({ id: pvpChallenges.id, expiresAt: pvpChallenges.expiresAt })
-      .from(pvpChallenges)
-      .where(and(eq(pvpChallenges.status, "PENDING"), or(eq(pvpChallenges.targetId, userId), eq(pvpChallenges.challengerId, userId))))
-      .for("update");
-
-    for (const challenge of pending) {
-      if (challenge.expiresAt <= now) {
-        await tx
-          .update(pvpChallenges)
-          .set({ status: "EXPIRED", updatedAt: now })
-          .where(eq(pvpChallenges.id, challenge.id));
-      }
-    }
-  });
+  // Expiração preguiçosa sem FOR UPDATE: o polling roda a cada ~1 s nos dois
+  // lados do convite, e travar a mesma linha nos dois clientes atrasava (ou
+  // falhava) a leitura do alvo — o desafiante via a espera local, o alvo não
+  // recebia o popup.
+  await db
+    .update(pvpChallenges)
+    .set({ status: "EXPIRED", updatedAt: now })
+    .where(
+      and(
+        eq(pvpChallenges.status, "PENDING"),
+        or(eq(pvpChallenges.targetId, userId), eq(pvpChallenges.challengerId, userId)),
+        sql`${pvpChallenges.expiresAt} <= ${now}`
+      )
+    );
 
   const rows = await db
     .select()
     .from(pvpChallenges)
     .where(or(eq(pvpChallenges.targetId, userId), eq(pvpChallenges.challengerId, userId)))
-    .orderBy(desc(pvpChallenges.createdAt));
+    .orderBy(desc(pvpChallenges.createdAt))
+    .limit(30);
 
-  const incoming = rows.find((row) => row.targetId === userId && row.status === "PENDING") ?? null;
+  const incoming =
+    rows.find((row) => {
+      if (row.targetId !== userId || row.status !== "PENDING") return false;
+      const expiresAt = row.expiresAt instanceof Date ? row.expiresAt.getTime() : new Date(row.expiresAt).getTime();
+      return expiresAt > now.getTime();
+    }) ?? null;
   const outgoing = rows.find(
     (row) =>
       row.challengerId === userId &&

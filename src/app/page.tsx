@@ -25,9 +25,10 @@ import { GymModal } from "@/components/GymModal";
 import { ChatWidget } from "@/components/ChatWidget";
 import { MapPlayers, type MapPlayer } from "@/components/MapPlayers";
 import { PlayerMenu, type MenuPlayer } from "@/components/PlayerMenu";
+import { FriendsPanel } from "@/components/FriendsPanel";
 import {
   Map, Volume2, VolumeX, Swords, Sparkles, User,
-  Heart, Compass, LogOut, Package, ShoppingBag, Shield,
+  Heart, Compass, LogOut, Package, Shield, Users,
 } from "lucide-react";
 import { api, clearToken } from "@/lib/api-client";
 import { mapsConnectedTo } from "@/lib/map-navigation";
@@ -231,11 +232,13 @@ export default function DelugeRPGPage() {
   const [outgoingChallenge, setOutgoingChallenge] = useState<ChallengeView | null>(null);
   const [challengeBusy, setChallengeBusy] = useState(false);
   const challengeNoticeRef = useRef<string>("");
+  const pvpRoomRef = useRef<string | null>(null);
   const [mobilePanel, setMobilePanel] = useState<"maps" | "team" | null>(null);
+  const [showFriends, setShowFriends] = useState(false);
 
   const anyModalOpen =
     showAuth || showMapEditor || showSprites || showBox || !!shopCtx || !!gymCtx || !!bossCtx ||
-    mobilePanel !== null || playerMenu !== null || battleState.active || pvpLobby || pvpRoom !== null || incomingChallenge !== null || outgoingChallenge !== null;
+    mobilePanel !== null || playerMenu !== null || battleState.active || pvpLobby || pvpRoom !== null || incomingChallenge !== null || outgoingChallenge !== null || showFriends;
 
   // O Editor de Mundos mexe no mundo compartilhado: só para administradores.
   // Escondemos a entrada na UI para o jogador não montar um mapa e levar 403.
@@ -522,6 +525,60 @@ export default function DelugeRPGPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [movePlayer, anyModalOpen]);
 
+  // Aplica o snapshot de convites (presença POST **e** GET /pvp?challenges=1).
+  // O desafiante via a espera local; o alvo só via o GET, que podia falhar
+  // em silêncio. Agora o mesmo estado chega no heartbeat que já desenha os
+  // crachás — se os dois se veem no mapa, o popup também chega.
+  const applyChallengeState = useCallback(
+    (challenges: { incoming?: ChallengeView | null; outgoing?: ChallengeView | null } | null | undefined) => {
+      if (!challenges) return;
+      const incoming = challenges.incoming ?? null;
+      const outgoing = challenges.outgoing ?? null;
+
+      if (incoming?.status === "PENDING") {
+        const noticeKey = `in:${incoming.id}`;
+        if (challengeNoticeRef.current !== noticeKey) {
+          challengeNoticeRef.current = noticeKey;
+          retroSfx.playEncounterFlash();
+          showBanner(`⚔️ ${incoming.challengerUsername} desafiou você para um duelo!`);
+        }
+        setIncomingChallenge(incoming);
+        setPvpLobby(false);
+        setPlayerMenu(null);
+        setShowFriends(false);
+      } else {
+        setIncomingChallenge(null);
+      }
+
+      if (outgoing?.status === "PENDING") {
+        setOutgoingChallenge(outgoing);
+      } else if (outgoing?.status === "ACCEPTED" && outgoing.roomCode) {
+        setOutgoingChallenge(null);
+        if (pvpRoomRef.current === null) {
+          setPvpLobby(false);
+          setPvpRoom(outgoing.roomCode);
+          showBanner(`⚔️ ${outgoing.targetUsername} aceitou o desafio!`);
+        }
+      } else if (outgoing && ["DECLINED", "EXPIRED", "CANCELLED"].includes(outgoing.status)) {
+        const noticeKey = `${outgoing.id}:${outgoing.status}`;
+        if (challengeNoticeRef.current !== noticeKey) {
+          challengeNoticeRef.current = noticeKey;
+          setOutgoingChallenge(null);
+          if (outgoing.status === "DECLINED") {
+            showBanner("❌ Seu desafio foi recusado. Aguarde 10 segundos para tentar novamente.");
+          } else if (outgoing.status === "EXPIRED") {
+            showBanner("⌛ O desafio expirou sem resposta.");
+          }
+        }
+      }
+    },
+    [showBanner]
+  );
+
+  useEffect(() => {
+    pvpRoomRef.current = pvpRoom;
+  }, [pvpRoom]);
+
   // ── Presença multiplayer (8.9) ────────────────────────────────────────
   // Polling de 2,5 s: publica a própria posição e recebe os outros jogadores
   // do mesmo mapa. Silencioso — falha de rede não pode travar a tela.
@@ -539,6 +596,7 @@ export default function DelugeRPGPage() {
         if (!res.ok) return;
         const data = await res.json();
         if (Array.isArray(data.players)) setNearbyPlayers(data.players as MapPlayer[]);
+        applyChallengeState(data.challenges);
       } catch {
         /* presença é best-effort */
       }
@@ -547,11 +605,11 @@ export default function DelugeRPGPage() {
     tick();
     const timer = setInterval(tick, PRESENCE_POLL_MS);
     return () => clearInterval(timer);
-  }, [isLoggedIn, currentMapId, playerX, playerY]);
+  }, [isLoggedIn, currentMapId, playerX, playerY, applyChallengeState]);
 
   // ── Convites PvP diretos ───────────────────────────────────────────────
-  // Polling serial (não setInterval): uma nova leitura só começa depois da
-  // anterior terminar, evitando uma fila de requests quando o banco oscilar.
+  // Polling serial extra (mais rápido que a presença) para o popup aparecer
+  // em menos de 1 s. O heartbeat já carrega o mesmo snapshot como fallback.
   useEffect(() => {
     if (!isLoggedIn) return;
 
@@ -560,36 +618,11 @@ export default function DelugeRPGPage() {
 
     const tick = async () => {
       try {
-        const res = await api("/api/pvp?challenges=1", { credentials: "same-origin" });
+        const res = await api("/api/pvp?challenges=1", { credentials: "same-origin", cache: "no-store" });
         if (!res.ok || disposed) return;
         const data = await res.json();
-        const incoming = (data.challenges?.incoming ?? null) as ChallengeView | null;
-        const outgoing = (data.challenges?.outgoing ?? null) as ChallengeView | null;
-
         if (disposed) return;
-        setIncomingChallenge(incoming?.status === "PENDING" ? incoming : null);
-
-        if (outgoing?.status === "PENDING") {
-          setOutgoingChallenge(outgoing);
-        } else if (outgoing?.status === "ACCEPTED" && outgoing.roomCode) {
-          setOutgoingChallenge(null);
-          if (pvpRoom === null) {
-            setPvpLobby(false);
-            setPvpRoom(outgoing.roomCode);
-            showBanner(`⚔️ ${outgoing.targetUsername} aceitou o desafio!`);
-          }
-        } else if (outgoing && ["DECLINED", "EXPIRED", "CANCELLED"].includes(outgoing.status)) {
-          const noticeKey = `${outgoing.id}:${outgoing.status}`;
-          if (challengeNoticeRef.current !== noticeKey) {
-            challengeNoticeRef.current = noticeKey;
-            setOutgoingChallenge(null);
-            if (outgoing.status === "DECLINED") {
-              showBanner("❌ Seu desafio foi recusado. Aguarde 10 segundos para tentar novamente.");
-            } else if (outgoing.status === "EXPIRED") {
-              showBanner("⌛ O desafio expirou sem resposta.");
-            }
-          }
-        }
+        applyChallengeState(data.challenges);
       } catch {
         // Convites são best-effort; o próximo ciclo tenta novamente.
       } finally {
@@ -602,7 +635,7 @@ export default function DelugeRPGPage() {
       disposed = true;
       if (timer) clearTimeout(timer);
     };
-  }, [isLoggedIn, pvpRoom, showBanner]);
+  }, [isLoggedIn, applyChallengeState]);
 
   // Abre o whisper com um treinador (menu de interação → PM).
   const openWhisper = useCallback((username: string) => {
@@ -792,6 +825,12 @@ export default function DelugeRPGPage() {
                 <Map className="h-3.5 w-3.5" /> EDITOR
               </button>
             )}
+            {isLoggedIn && (
+              <button onClick={() => { retroSfx.playStep(); setShowFriends(true); }}
+                className="flex items-center gap-1 border-2 border-cyan-400 bg-cyan-950 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000] hover:bg-cyan-900">
+                <Users className="h-3.5 w-3.5" /> AMIGOS
+              </button>
+            )}
             <button onClick={() => { retroSfx.playStep(); setPvpLobby(true); }}
               className="flex items-center gap-1 border-2 border-rose-500 bg-gradient-to-r from-rose-600 to-amber-600 px-2.5 py-1.5 font-['Press_Start_2P'] text-[9px] text-white shadow-[2px_2px_0px_#000] hover:brightness-110">
               <Swords className="h-3.5 w-3.5" /> PVP
@@ -819,10 +858,10 @@ export default function DelugeRPGPage() {
       )}
 
       {/* ── MAIN LAYOUT ─────────────────────────────────────────────────── */}
-      <main className="mx-auto grid max-w-7xl grid-cols-1 gap-5 p-4 lg:grid-cols-12">
+      <main className="mx-auto grid max-w-7xl grid-cols-1 items-start gap-5 p-4 lg:grid-cols-12 lg:items-start">
         {/* No celular o mapa fica sempre em primeiro plano; estes botões abrem
             os painéis laterais sem diminuir o tabuleiro. */}
-        <div className="fixed bottom-4 left-4 z-30 flex gap-2 lg:hidden">
+        <div className="fixed bottom-4 left-4 z-30 flex max-w-[calc(100vw-7rem)] flex-wrap gap-2 lg:hidden">
           <button
             onClick={() => setMobilePanel(mobilePanel === "maps" ? null : "maps")}
             className={`flex items-center gap-1 border-2 px-3 py-2 font-['Press_Start_2P'] text-[9px] shadow-[2px_2px_0px_#000] ${mobilePanel === "maps" ? "border-amber-400 bg-amber-500 text-slate-950" : "border-cyan-400 bg-slate-900 text-cyan-300"}`}
@@ -837,6 +876,15 @@ export default function DelugeRPGPage() {
           >
             <Package className="h-4 w-4" /> TIME
           </button>
+          {isLoggedIn && (
+            <button
+              onClick={() => setShowFriends(true)}
+              className="flex items-center gap-1 border-2 border-cyan-400 bg-slate-900 px-3 py-2 font-['Press_Start_2P'] text-[9px] text-cyan-300 shadow-[2px_2px_0px_#000]"
+              aria-label="Abrir amigos"
+            >
+              <Users className="h-4 w-4" /> AMIGOS
+            </button>
+          )}
         </div>
 
         {/* Left sidebar on desktop; its panels become independent mobile drawers. */}
@@ -844,8 +892,8 @@ export default function DelugeRPGPage() {
 
           {/* Map navigation */}
           <div className={mobilePanel === "maps"
-            ? "fixed inset-x-3 bottom-20 z-30 max-h-[62vh] overflow-y-auto border-4 border-amber-400 bg-slate-900 p-4 shadow-[4px_4px_0px_#000] lg:static lg:col-span-3 lg:order-1 lg:block lg:max-h-none lg:overflow-visible"
-            : "hidden border-4 border-amber-400 bg-slate-900 p-4 shadow-[4px_4px_0px_#000] lg:col-span-3 lg:order-1 lg:block"}>
+            ? "fixed inset-x-3 bottom-20 z-30 h-fit max-h-[62vh] overflow-y-auto border-4 border-amber-400 bg-slate-900 p-4 shadow-[4px_4px_0px_#000] lg:static lg:col-span-3 lg:order-1 lg:block lg:max-h-[calc(100vh-7rem)]"
+            : "hidden h-fit self-start border-4 border-amber-400 bg-slate-900 p-4 shadow-[4px_4px_0px_#000] lg:col-span-3 lg:order-1 lg:block lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"}>
             <div className="flex items-center justify-between border-b-2 border-slate-800 pb-2 mb-3">
               <h2 className="font-['Press_Start_2P'] text-[9px] text-amber-400">MAPAS INTERLIGADOS</h2>
               <div className="flex items-center gap-2">
@@ -922,8 +970,8 @@ export default function DelugeRPGPage() {
 
           {/* Party panel */}
           <div className={mobilePanel === "team"
-            ? "fixed inset-x-3 bottom-20 z-30 max-h-[62vh] overflow-y-auto border-4 border-slate-700 bg-slate-900 p-4 lg:static lg:col-span-3 lg:order-3 lg:block lg:max-h-none"
-            : "hidden border-4 border-slate-700 bg-slate-900 p-4 lg:col-span-3 lg:order-3 lg:block"}>
+            ? "fixed inset-x-3 bottom-20 z-30 h-fit max-h-[62vh] overflow-y-auto border-4 border-slate-700 bg-slate-900 p-4 lg:static lg:col-span-3 lg:order-3 lg:block lg:max-h-[calc(100vh-7rem)]"
+            : "hidden h-fit self-start border-4 border-slate-700 bg-slate-900 p-4 lg:col-span-3 lg:order-3 lg:block lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto"}>
             <div className="flex items-center justify-between border-b-2 border-slate-800 pb-2 mb-3">
               <h3 className="font-['Press_Start_2P'] text-[9px] text-amber-400">TIME ({party.length}/6)</h3>
               <div className="flex gap-2">
@@ -975,7 +1023,7 @@ export default function DelugeRPGPage() {
 
           {/* Badges */}
           {userBadges.length > 0 && (
-            <div className="border-4 border-slate-700 bg-slate-900 p-4 lg:col-span-3 lg:col-start-10 lg:order-4">
+            <div className="h-fit self-start border-4 border-slate-700 bg-slate-900 p-4 lg:col-span-3 lg:col-start-10 lg:order-4">
               <h3 className="mb-2 border-b-2 border-slate-800 pb-2 font-['Press_Start_2P'] text-[9px] text-amber-400">
                 🏅 INSÍGNIAS ({userBadges.length})
               </h3>
@@ -1204,8 +1252,10 @@ export default function DelugeRPGPage() {
       {/* SPRITES */}
       {showSprites && <SpritePackModal onClose={() => setShowSprites(false)} />}
 
-      {/* DESAFIO PvP DIRETO — popup central para o desafiado */}
-      {incomingChallenge && !pvpRoom && !pvpLobby && (
+      {/* DESAFIO PvP DIRETO — popup central para o desafiado.
+          Não some se o lobby PvP estiver aberto: o convite precisa ser
+          inconfundível (fundo escuro + z-80). */}
+      {incomingChallenge && !pvpRoom && (
         <PvpChallengeModal
           challenge={incomingChallenge}
           busy={challengeBusy}
@@ -1213,7 +1263,7 @@ export default function DelugeRPGPage() {
           onDecline={() => void respondToChallenge("decline_challenge", incomingChallenge)}
         />
       )}
-      {outgoingChallenge && !pvpRoom && !pvpLobby && (
+      {outgoingChallenge && !pvpRoom && (
         <PvpChallengeWaiting
           challenge={outgoingChallenge}
           busy={challengeBusy}
@@ -1269,6 +1319,16 @@ export default function DelugeRPGPage() {
           onClose={() => setPlayerMenu(null)}
           onMessage={openWhisper}
           onDuel={(p) => void handleDuel(p)}
+        />
+      )}
+
+      {showFriends && isLoggedIn && (
+        <FriendsPanel
+          currentMapId={currentMapId}
+          maps={maps.map((m) => ({ id: m.id, name: m.name }))}
+          onMessage={openWhisper}
+          onDuel={(p) => void handleDuel(p)}
+          onClose={() => setShowFriends(false)}
         />
       )}
 

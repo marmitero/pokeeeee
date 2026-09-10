@@ -1,6 +1,9 @@
-import { and, eq, gte, ne, or, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, ne, or } from "drizzle-orm";
 import { db } from "@/db";
 import { friendships, users } from "@/db/schema";
+import { PRESENCE_ONLINE_MS, isPresenceOnline } from "@/lib/presence-online";
+
+export { PRESENCE_ONLINE_MS, isPresenceOnline };
 
 /**
  * Presença multiplayer (8.9) — polling simples, sem WebSocket.
@@ -11,9 +14,6 @@ import { friendships, users } from "@/db/schema";
  * aba simplesmente para de bater o heartbeat e some do mapa de todo mundo —
  * o mesmo padrão preguiçoso, sem cron, usado no PvP e no boss.
  */
-
-/** Janela de "online": heartbeat mais recente que isto = visível no mapa. */
-export const PRESENCE_ONLINE_MS = 30_000;
 
 export interface NearbyPlayer {
   id: number;
@@ -33,6 +33,8 @@ export interface FriendView {
   elo: number;
   currentMapId: number;
   lastSeenAt: string | null;
+  /** Heartbeat recente: o cliente usa para o painel e para habilitar o duelo. */
+  online: boolean;
 }
 
 /** Grava a posição e renova o heartbeat de presença do jogador. */
@@ -106,7 +108,7 @@ export async function listFriends(userId: number): Promise<FriendView[]> {
       lastSeenAt: users.lastSeenAt,
     })
     .from(users)
-    .where(sql`${users.id} IN ${otherIds}`);
+    .where(inArray(users.id, otherIds));
 
   return friends
     .map((u) => ({
@@ -116,6 +118,7 @@ export async function listFriends(userId: number): Promise<FriendView[]> {
       elo: u.elo,
       currentMapId: u.currentMapId,
       lastSeenAt: u.lastSeenAt?.toISOString() ?? null,
+      online: isPresenceOnline(u.lastSeenAt),
     }))
     .sort((a, b) => a.username.localeCompare(b.username));
 }

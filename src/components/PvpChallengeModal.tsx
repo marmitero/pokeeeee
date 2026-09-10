@@ -30,8 +30,8 @@ export function PvpChallengeModal({
   busy?: boolean;
 }) {
   return (
-    <div className="pointer-events-none fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <div className="pointer-events-auto w-full max-w-md border-4 border-rose-400 bg-slate-900 shadow-[0_0_0_4px_#000,0_12px_40px_rgba(0,0,0,0.8)]">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/80 p-4">
+      <div className="w-full max-w-md border-4 border-rose-400 bg-slate-900 shadow-[0_0_0_4px_#000,0_12px_40px_rgba(0,0,0,0.8)]">
         <div className="flex items-center justify-between border-b-4 border-slate-700 bg-gradient-to-r from-slate-950 via-rose-900/50 to-slate-950 px-4 py-3">
           <div className="flex items-center gap-2">
             <Swords className="h-5 w-5 text-rose-300" />
@@ -82,8 +82,8 @@ export function PvpChallengeWaiting({
   busy?: boolean;
 }) {
   return (
-    <div className="pointer-events-none fixed inset-0 z-[65] flex items-center justify-center p-4">
-      <div className="pointer-events-auto w-full max-w-sm border-4 border-amber-400 bg-slate-900 p-5 text-center shadow-[0_0_0_4px_#000,0_12px_40px_rgba(0,0,0,0.8)]">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4">
+      <div className="w-full max-w-sm border-4 border-amber-400 bg-slate-900 p-5 text-center shadow-[0_0_0_4px_#000,0_12px_40px_rgba(0,0,0,0.8)]">
         <Clock3 className="mx-auto mb-3 h-8 w-8 animate-pulse text-amber-300" />
         <h2 className="font-['Press_Start_2P'] text-[10px] text-amber-300">AGUARDANDO RESPOSTA</h2>
         <p className="mt-3 font-['VT323'] text-xl text-slate-300">

@@ -14,7 +14,7 @@ import { addFriend, listFriends, removeFriend } from "@/lib/presence";
  * POST `{ action: "add" | "remove", username }`:
  *  - `add`    → cria a amizade (idempotente; par canônico, sem pedido/aceite);
  *  - `remove` → apaga a amizade.
- * GET devolve a lista de amigos (para o futuro painel).
+ * GET devolve a lista de amigos (painel AMIGOS no HUD).
  */
 export async function GET(req: Request) {
   try {
