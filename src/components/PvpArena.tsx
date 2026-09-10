@@ -9,9 +9,9 @@ import { StatusTag } from "@/components/battle/StatusTag";
 /**
  * Arena PvP (Fase 4).
  *
- * Modelo assíncrono por polling: cada lado trava a ação às cegas e o servidor
- * resolve quando ambos travaram. O cliente consulta o estado a cada
- * `POLL_MS` e redesenha.
+ * Modelo assíncrono por polling adaptativo: cada lado trava a ação às cegas e
+ * o servidor resolve quando ambos travaram. A arena ativa consulta em ~300 ms,
+ * a espera em ~750 ms e recua temporariamente em falhas de rede.
  *
  * Regra de segurança refletida aqui: o estado devolve apenas
  * `opponentCommitted: boolean` — **nunca** qual golpe o oponente escolheu.
@@ -53,7 +53,14 @@ interface BattleView {
   party: Array<{ id: number; name: string; pokedexId: number; level: number; hp: number; maxHp: number }>;
 }
 
-const POLL_MS = 2500;
+/**
+ * A resolução continua autoritativa no servidor, mas a tela não precisa
+ * esperar 2,5 s para descobrir que o rival travou a ação. O polling rápido só
+ * ocorre enquanto a arena está ativa; a fila de espera usa menos consultas.
+ */
+const ACTIVE_POLL_MS = 300;
+const WAITING_POLL_MS = 750;
+const RETRY_POLL_MS = 1200;
 
 const hpColor = (hp: number, maxHp: number) =>
   hp / maxHp > 0.5 ? "bg-emerald-500" : hp / maxHp > 0.2 ? "bg-amber-400" : "bg-rose-600";
@@ -70,8 +77,10 @@ export function PvpArena({
   const [view, setView] = useState<BattleView | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectionState, setConnectionState] = useState<"online" | "reconnecting">("online");
   const [picking, setPicking] = useState(false);
   const versionRef = useRef(0);
+  const viewRef = useRef<BattleView | null>(null);
   const finishedRef = useRef(false);
   // Ranqueada na espera: sair sem cancelar deixaria uma "sala fantasma" na fila.
   const waitingRankedRef = useRef(false);
@@ -80,44 +89,66 @@ export function PvpArena({
     async (
       apply: (v: BattleView) => void,
       fail: (msg: string) => void
-    ) => {
-      // Os setters entram por PARÂMETRO, como em `loadArenaChat` do
-      // BattleArenaModal: é o formato que react-hooks/set-state-in-effect aceita
-      // para carregamento disparado dentro de um effect.
-      const res = await api(`/api/pvp?roomCode=${encodeURIComponent(roomCode)}`, {
-        credentials: "same-origin",
-      }).catch(() => null);
+    ): Promise<boolean> => {
+      // Um poll por vez: além de reduzir carga, isso impede uma resposta lenta
+      // antiga de sobrescrever uma resolução mais nova.
+      try {
+        const res = await api(`/api/pvp?roomCode=${encodeURIComponent(roomCode)}`, {
+          credentials: "same-origin",
+        });
+        const data = await res.json().catch(() => ({}));
 
-      if (!res) {
+        if (!res.ok) {
+          fail(data.error ?? "Sala indisponível.");
+          return false;
+        }
+
+        const next = data.battle as BattleView;
+        if (next.version < versionRef.current) return true;
+
+        versionRef.current = next.version;
+        viewRef.current = next;
+        finishedRef.current = next.status === "FINISHED" || next.status === "ABANDONED";
+        setConnectionState("online");
+        setError(null);
+        apply(next);
+        return true;
+      } catch {
         fail("Falha de rede ao consultar a sala.");
-        return;
+        return false;
       }
-
-      const data = await res.json();
-      if (!res.ok) {
-        fail(data.error ?? "Sala indisponível.");
-        return;
-      }
-
-      const next = data.battle as BattleView;
-      versionRef.current = next.version;
-      finishedRef.current = next.status === "FINISHED" || next.status === "ABANDONED";
-      setError(null);
-      apply(next);
     },
     [roomCode]
   );
 
   useEffect(() => {
-    const tick = () =>
-      void load(setView, (message) => {
-        // A tela final já tem estado suficiente; uma falha transitória de poll
-        // não deve substituir vitória/derrota por "Erro ao carregar arena".
-        if (!finishedRef.current) setError(message);
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const tick = async () => {
+      if (disposed) return;
+      const ok = await load(setView, () => {
+        // Falha transitória conserva o último estado desenhado. Em vez de
+        // transformar uma oscilação de rede em "Erro ao carregar arena", o HUD
+        // mostra apenas que está reconectando e tenta novamente.
+        if (!finishedRef.current) setConnectionState("reconnecting");
       });
-    tick();
-    const timer = setInterval(tick, POLL_MS);
-    return () => clearInterval(timer);
+
+      if (disposed || finishedRef.current) return;
+      const current = viewRef.current;
+      const delay = ok
+        ? current?.status === "WAITING"
+          ? WAITING_POLL_MS
+          : ACTIVE_POLL_MS
+        : RETRY_POLL_MS;
+      timer = setTimeout(tick, delay);
+    };
+
+    void tick();
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+    };
   }, [load]);
 
   useEffect(() => {
@@ -167,10 +198,12 @@ export function PvpArena({
         return;
       }
       if (data.user) onStateChange(data.user);
-      if (data.battle) {
+      if (data.battle && data.battle.version >= versionRef.current) {
         versionRef.current = data.battle.version;
+        viewRef.current = data.battle;
         finishedRef.current =
           data.battle.status === "FINISHED" || data.battle.status === "ABANDONED";
+        setConnectionState("online");
         setView(data.battle);
       }
     } catch {
@@ -228,6 +261,11 @@ export function PvpArena({
         {error && (
           <div className="border-b-2 border-rose-600 bg-rose-950/70 px-5 py-1.5 font-['VT323'] text-lg text-rose-300">
             {error}
+          </div>
+        )}
+        {connectionState === "reconnecting" && !finished && (
+          <div className="border-b-2 border-amber-600/60 bg-amber-950/60 px-5 py-1 font-['VT323'] text-base text-amber-300">
+            ◌ Conexão instável — mantendo o último estado e tentando reconectar...
           </div>
         )}
 

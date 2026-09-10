@@ -8,14 +8,19 @@ import { pvpActionSchema } from "@/lib/validation";
 import { parse, publicUser, routeError } from "@/lib/api";
 import { hashIp } from "@/lib/elo";
 import {
+  acceptChallenge,
+  cancelChallenge,
   createRoom,
+  declineChallenge,
   forfeit,
+  getChallengeState,
   getRanking,
   getState,
   joinRanked,
   joinRoom,
   leaveRanked,
   listWaitingRooms,
+  requestChallenge,
   requestRematch,
   submitTurn,
   switchPokemon,
@@ -47,6 +52,11 @@ export async function GET(req: Request) {
     if (roomCode) {
       const view = await getState(user.id, roomCode);
       return NextResponse.json({ battle: view });
+    }
+
+    // Convites diretos do mapa (8.9): um recebido + o último enviado.
+    if (searchParams.get("challenges") === "1") {
+      return NextResponse.json({ challenges: await getChallengeState(user.id) });
     }
 
     // Ranking global da Arena ranqueada (8.5): top 50 + posição do jogador.
@@ -96,6 +106,23 @@ export async function POST(req: Request) {
         .limit(30);
 
       return NextResponse.json({ chatMessages: chats.reverse() });
+    }
+
+    // ── DESAFIOS DIRETOS NO MAPA ────────────────────────────────────────
+    if (input.action === "challenge") {
+      return NextResponse.json({ challenge: await requestChallenge(user.id, input.targetUserId) });
+    }
+
+    if (input.action === "accept_challenge") {
+      return NextResponse.json(await acceptChallenge(user.id, input.challengeId));
+    }
+
+    if (input.action === "decline_challenge") {
+      return NextResponse.json(await declineChallenge(user.id, input.challengeId));
+    }
+
+    if (input.action === "cancel_challenge") {
+      return NextResponse.json(await cancelChallenge(user.id, input.challengeId));
     }
 
     // ── SALAS ────────────────────────────────────────────────────────────

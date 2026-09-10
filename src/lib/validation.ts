@@ -236,6 +236,12 @@ export const pvpActionSchema = z.discriminatedUnion("action", [
     action: z.literal("chat"),
     message: z.string().trim().min(1, "Mensagem vazia").max(200, "Máximo de 200 caracteres"),
   }),
+  // Desafio direto no mapa: o cliente informa apenas o alvo; o servidor
+  // valida a presença e monta o time atual no aceite.
+  z.object({ action: z.literal("challenge"), targetUserId: idSchema }),
+  z.object({ action: z.literal("accept_challenge"), challengeId: idSchema }),
+  z.object({ action: z.literal("decline_challenge"), challengeId: idSchema }),
+  z.object({ action: z.literal("cancel_challenge"), challengeId: idSchema }),
 
   /**
    * Fase 4: `pokemonId` substitui o antigo `player1Pokemon`.

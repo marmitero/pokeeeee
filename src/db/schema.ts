@@ -396,20 +396,40 @@ export const pvpBattles = pgTable("pvp_battles", {
   check("pvp_battles_players_distinct", sql`${table.player2Id} IS NULL OR ${table.player1Id} <> ${table.player2Id}`),
 ]);
 
+// ─── DESAFIOS PvP DIRETOS (8.9+) ──────────────────────────────────────────
+
+/**
+ * Convite direto entre jogadores que estão no mapa.
+ *
+ * Diferente de `pvp_battles`, o desafio só vira uma batalha depois que o
+ * destinatário aceita. O estado fica no banco para que os dois clientes possam
+ * acompanhar convite, recusa, expiração e aceite sem depender do chat.
+ */
+export const pvpChallenges = pgTable("pvp_challenges", {
+  id: serial("id").primaryKey(),
+  challengerId: integer("challenger_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  targetId: integer("target_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+  status: text("status").notNull().default("PENDING"),
+  battleId: integer("battle_id").references(() => pvpBattles.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  expiresAt: timestamp("expires_at").notNull(),
+  cooldownUntil: timestamp("cooldown_until"),
+}, (table) => [
+  index("pvp_challenges_target_status_idx").on(table.targetId, table.status),
+  index("pvp_challenges_challenger_status_idx").on(table.challengerId, table.status),
+  index("pvp_challenges_pair_created_idx").on(table.challengerId, table.targetId, table.createdAt),
+  check("pvp_challenges_status_check", sql`${table.status} IN ('PENDING', 'ACCEPTED', 'DECLINED', 'EXPIRED', 'CANCELLED')`),
+  check("pvp_challenges_players_distinct", sql`${table.challengerId} <> ${table.targetId}`),
+]);
+
 // ─── TEMPORADA PVP RANQUEADA (Etapa C, 8.5) ────────────────────────────────
 
 /**
  * Resultado da temporada semanal da Arena ranqueada.
  *
- * Fechamento **preguiçoso** (padrão do projeto, sem cron): na 1ª chamada da
- * semana nova (`GET /api/pvp?ranking=1` ou `join_ranked`), a semana anterior
- * é fechada — uma linha por jogador do top 10 (por ELO, entre quem tem ≥ 10
- * partidas ranqueadas), com o ELO final, a colocação e a recompensa entregue
- * na hora (Pk$ + Cura Total + Restaurador Total).
- *
- * - `weekId` = `YYYY-Www` ISO UTC (mesmo `weekIdOf` do boss);
- * - `eloFinal`/`rank` são o retrato da temporada (auditoria);
- * - `rewardClaimed` marca a entrega da recompensa (auto-grant no fechamento).
+ * Fechamento preguiçoso: na primeira chamada da semana nova, a semana
+ * anterior é fotografada aqui e as recompensas são entregues aos elegíveis.
  */
 export const pvpSeasons = pgTable("pvp_seasons", {
   id: serial("id").primaryKey(),
