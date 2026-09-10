@@ -46,7 +46,9 @@ describe("Presença multiplayer (8.9)", () => {
 
     const ra = await beat(a, 1, 5, 5);
     expect(ra.status, JSON.stringify(ra.body)).toBe(200);
-    expect(playersOf(ra)).toEqual([]); // ainda ninguém além de A
+    const namesA = playersOf(ra).map((p) => p.username);
+    expect(namesA).not.toContain(a.username); // nunca a si mesmo
+    expect(namesA).not.toContain(b.username); // B ainda não bateu o heartbeat
 
     const rb = await beat(b, 1, 6, 6);
     expect(rb.status).toBe(200);
@@ -143,9 +145,11 @@ describe("Amizade (8.9)", () => {
 
     const list = await a.c.call("/api/friends");
     expect(list.status).toBe(200);
-    const names = (list.body as { friends: Array<{ username: string }> }).friends.map((f) => f.username);
+    const listed = (list.body as { friends: Array<{ username: string; online: boolean }> }).friends;
+    const names = listed.map((f) => f.username);
     expect(names).toContain(b.username);
     expect(names).not.toContain(a.username);
+    expect(listed.find((f) => f.username === b.username)?.online).toBe(false);
   });
 
   it("valida: self 400 e alvo inexistente 404", async () => {

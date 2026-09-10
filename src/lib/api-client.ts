@@ -147,7 +147,15 @@ export async function api(path: string, init: RequestInit = {}): Promise<Respons
   }
 
   try {
-    const res = await fetch(path, { ...init, headers, credentials: "same-origin" });
+    const res = await fetch(path, {
+      ...init,
+      headers,
+      credentials: "same-origin",
+      // Convites e presença são GET/POST de polling: o CDN/navegador não pode
+      // devolver um `{ incoming: null }` cacheado enquanto o outro jogador já
+      // desafiou.
+      cache: init.cache ?? "no-store",
+    });
 
     // Guarda o token de qualquer resposta que traga um, em vez de depender de
     // cada tela lembrar de chamar `setToken`. Foi assim que a sessão se perdeu

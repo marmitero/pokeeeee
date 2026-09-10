@@ -4,6 +4,7 @@ import { enforceRateLimit } from "@/lib/rate-limit";
 import { presenceHeartbeatSchema } from "@/lib/validation";
 import { parse, routeError } from "@/lib/api";
 import { heartbeat, nearbyPlayers } from "@/lib/presence";
+import { getChallengeState } from "@/lib/pvp-service";
 
 /**
  * Presença multiplayer (8.9) — polling simples (2–3 s), sem WebSocket.
@@ -11,7 +12,9 @@ import { heartbeat, nearbyPlayers } from "@/lib/presence";
  * POST `{ currentMapId, playerX, playerY }`:
  *  1. grava a posição + renova `users.last_seen_at` (heartbeat);
  *  2. devolve os outros jogadores do MESMO mapa com heartbeat recente
- *     (id, username, avatar, x/y, elo, isFriend) para o cliente desenhá-los.
+ *     (id, username, avatar, x/y, elo, isFriend) para o cliente desenhá-los;
+ *  3. devolve também `{challenges}` (mesmo snapshot de GET /api/pvp?challenges=1)
+ *     para o popup de duelo não depender de uma segunda rota.
  *
  * O rate limit é folgado de propósito: cada cliente batendo a cada 2,5 s dá
  * 24 req/min — o teto (60/min) cobre dois clientes por IP sem barra.
@@ -27,7 +30,18 @@ export async function POST(req: Request) {
 
     const players = await nearbyPlayers(input.currentMapId, user.id);
 
-    return NextResponse.json({ players });
+    // O GET `/api/pvp?challenges=1` era a única via do popup e falhava em
+    // silêncio. O heartbeat já funciona — os dois se veem no mapa — então o
+    // convite viaja no mesmo POST. Se a tabela de desafios não existir, a
+    // presença continua de pé.
+    let challenges: Awaited<ReturnType<typeof getChallengeState>> | null = null;
+    try {
+      challenges = await getChallengeState(user.id);
+    } catch (err) {
+      console.error("[presence] challenges", err);
+    }
+
+    return NextResponse.json({ players, challenges });
   } catch (err: unknown) {
     return routeError(err, "presence", "Erro ao atualizar presença.");
   }

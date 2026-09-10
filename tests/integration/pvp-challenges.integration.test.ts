@@ -32,6 +32,22 @@ async function challenge(
 }
 
 describe("PvP — convite direto persistente", () => {
+  it("entrega o convite pendente no heartbeat de presença do alvo", async () => {
+    const a = await register(`pha${Date.now()}`);
+    const b = await register(`phb${Date.now()}`);
+
+    const sent = await challenge(a, b);
+    expect(sent.status, JSON.stringify(sent.body)).toBe(200);
+
+    const beat = await b.c.call("/api/presence", {
+      body: { currentMapId: 1, playerX: 8, playerY: 8 },
+    });
+    expect(beat.status, JSON.stringify(beat.body)).toBe(200);
+    expect(
+      (beat.body as { challenges: { incoming: { status: string; challengerId: number } | null } }).challenges.incoming
+    ).toMatchObject({ status: "PENDING", challengerId: a.userId });
+  });
+
   it("cria a batalha no aceite e transporta os dois para a mesma arena", async () => {
     const a = await register(`cha${Date.now()}`);
     const b = await register(`chb${Date.now()}`);

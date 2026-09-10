@@ -3621,3 +3621,60 @@ Foi formalizada a regra de processo solicitada pelo mantenedor e mantida a docum
 3. Aguardar Vercel `Ready`.
 4. Executar a sequência de validação online dos itens 6–14 acima.
 5. Atualizar a pendência no cabeçalho e nesta seção com os resultados observados, mantendo os itens não executados como pendentes.
+
+---
+
+### ✅ 2026-09-10 — Popup de desafio PvP, botão AMIGOS, painéis MAPAS/TIME no conteúdo (sessão `arena/01a08afc-pokeeeee`)
+
+#### 1. O que já existe no projeto
+
+A etapa fecha os três pedidos do mantenedor:
+
+- **Popup de desafio:** o alvo agora recebe o convite no mesmo `POST /api/presence` que já desenha os crachás (`{players, challenges}`), além do GET `/api/pvp?challenges=1`. Overlay `z-[80]` com fundo escuro (sem `pointer-events-none`). Expiração preguiçosa **sem** `FOR UPDATE`. `fetch` do cliente usa `cache: "no-store"`. O popup **não some** se o lobby PvP estiver aberto. Som + banner no primeiro `incoming.id`. Causa extra encontrada e corrigida: `pg_advisory_xact_lock(1::bigint, id::bigint)` **não existe** no Postgres (a sobrecarga de duas chaves é `int4,int4`) — o `POST challenge` 500ava e o popup nunca nascia.
+- **AMIGOS:** botão no HUD (desktop) e na barra inferior (mobile). `FriendsPanel` lista/adiciona/PM/duelo/remove; duelo só se online no mesmo mapa. `FriendView.online` via `isPresenceOnline` (`src/lib/presence-online.ts`).
+- **Painéis MAPAS/TIME:** `lg:items-start` + `h-fit self-start lg:max-h-[calc(100vh-7rem)]` — 3 mapas = painel de 3; 1 Pokémon = painel de 1.
+
+#### 2. O que falta implementar segundo o roadmap
+
+- [x] Popup de convite visível para o alvo (heartbeat + GET + overlay + lock Postgres).
+- [x] Botão AMIGOS organizado e responsivo.
+- [x] Painéis laterais encolhem ao conteúdo.
+- [ ] Aplicar o SQL 0014 no Supabase de produção **antes** do merge (tabela `pvp_challenges`); conferência `rls_on=true · runtime_privs=4 · runtime_policy=1 · indexes=3 · checks=2 · fks=3 · migration_0014=1`.
+- [ ] Deploy Vercel `Ready` e validação com 2 contas no mesmo mapa.
+- [ ] 8.6 NPCs de missão (próxima do roadmap).
+
+#### 3. Qual foi a última etapa aplicada
+
+Auditoria + correção do popup de desafio (presença piggyback, overlay, lock, cache) + painel AMIGOS + painéis MAPAS/TIME `h-fit`.
+
+#### 4. Qual o passo a passo de validação da última etapa aplicada
+
+> Comandos abaixo são do **sandbox do agente** (evidência), não tarefa do mantenedor.
+
+```text
+npm ci
+cp -n .env.example .env
+npm run lint            → 0 problemas
+npm run typecheck       → 0 erros
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5432/app_db npm test
+  → 31 arquivos · 382 testes (inclui presence-online.test.ts)
+npm run db:local && npm run db:migrate
+TEST_PG_URL=... DATABASE_URL=... npm run test:integration
+  → 16 arquivos · 156 testes
+     pvp-challenges.integration.test.ts 5/5 (heartbeat entrega o convite)
+     presence.integration.test.ts 7/7 (friends.online)
+```
+
+##### Passo a passo online para o mantenedor
+
+1. Abrir [docs/supabase-production-0014-runtime.sql](https://github.com/marmitero/pokeeeee/blob/arena/01a08afc-pokeeeee/docs/supabase-production-0014-runtime.sql), Copy raw, colar no SQL Editor do Supabase de produção. Conferência: `migration_0014=1` e `runtime_policy=1`. Sem isso o GET de desafios 500a; a presença continua (try/catch).
+2. Merge do PR desta branch.
+3. Aguardar Vercel `Ready`.
+4. Duas contas no mesmo mapa: desafiar pelo menu ou AMIGOS → o alvo deve ver o popup central escuro com ACEITAR/RECUSAR (mesmo com o lobby PVP aberto). Recusar → cooldown 10 s. Aceitar → os dois entram na mesma arena.
+5. HUD AMIGOS (desktop) e botão AMIGOS na barra inferior (mobile): adicionar por nome, PM, duelo só se ON no mesmo mapa, tirar.
+6. Desktop: painel MAPAS do tamanho da lista conectada; TIME do tamanho do time (1 Pokémon = 1 linha, sem vazio gigante).
+
+#### 5. Qual a próxima etapa a ser aplicada
+
+1. SQL 0014 em produção + merge + Vercel Ready + validação dos itens 4–6.
+2. Roadmap: **8.6 — NPCs de missão**.
