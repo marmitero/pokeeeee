@@ -1,6 +1,6 @@
-import { and, asc, eq, gte, isNotNull, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { pvpBattles, pvpSeasons, userPokemon, users } from "@/db/schema";
+import { pvpBattles, pvpChallenges, pvpSeasons, userPokemon, users } from "@/db/schema";
 import { getPokemonSpecies, getMoveByName } from "@/lib/pokedex";
 import { sideFromUserPokemon, type SideState } from "@/lib/engine/combatant";
 import { endOfTurn, performStrike } from "@/lib/engine/turn";
@@ -14,6 +14,8 @@ import {
   seasonRewardForRank,
 } from "@/lib/pvp-season";
 import { weekIdOf } from "@/lib/boss-rotation";
+import { PRESENCE_ONLINE_MS } from "@/lib/presence";
+import { CHALLENGE_COOLDOWN_MS, CHALLENGE_TTL_MS } from "@/lib/pvp-challenge";
 
 /**
  * PvP assíncrono por turnos (Fase 4).
@@ -91,6 +93,23 @@ export const RANKED_QUEUE_HEARTBEAT_MS = 10_000;
 /** Sem heartbeat por mais que isso = dono sumiu → sala fantasma (ABANDONED). */
 export const RANKED_QUEUE_STALE_MS = 45_000;
 
+// ─── Desafio direto no mapa (8.9+) ────────────────────────────────────────
+export type PvpChallengeStatus = "PENDING" | "ACCEPTED" | "DECLINED" | "EXPIRED" | "CANCELLED";
+export { CHALLENGE_COOLDOWN_MS, CHALLENGE_TTL_MS } from "@/lib/pvp-challenge";
+
+export interface PvpChallengeView {
+  id: number;
+  status: PvpChallengeStatus;
+  challengerId: number;
+  challengerUsername: string;
+  targetId: number;
+  targetUsername: string;
+  createdAt: string;
+  expiresAt: string;
+  cooldownUntil: string | null;
+  roomCode: string | null;
+}
+
 // ─── Visão pública ────────────────────────────────────────────────────────
 
 export interface PvpPublicView {
@@ -145,6 +164,32 @@ async function loadTeamSelection(userId: number, pokemonIds: number[]) {
   }
 
   return { ids, first: sideFromUserPokemon(team[0]!) };
+}
+
+/**
+ * Carrega o time inteiro no momento em que um desafio é aceito.
+ *
+ * O cliente não envia IDs nesse fluxo: o servidor lê todos os slots atuais,
+ * mantém a ordem do `partySlot` e começa pelo primeiro Pokémon vivo.
+ */
+async function loadCurrentTeam(tx: Tx, userId: number) {
+  const rows = await tx
+    .select()
+    .from(userPokemon)
+    .where(and(eq(userPokemon.userId, userId), isNotNull(userPokemon.partySlot)))
+    .orderBy(asc(userPokemon.partySlot));
+
+  const aliveRows = rows.filter((mon) => mon.hp > 0);
+  if (aliveRows.length === 0) {
+    throw badRequest("Você precisa ter ao menos um Pokémon vivo no time atual.");
+  }
+
+  return {
+    // O desafio não oferece seleção: o servidor congela todos os Pokémon
+    // vivos do time atual no instante do aceite, ignorando desmaiados.
+    ids: aliveRows.map((mon) => mon.id),
+    first: sideFromUserPokemon(aliveRows[0]),
+  };
 }
 
 async function loadParty(userId: number, teamPokemonIds?: number[]) {
@@ -241,6 +286,328 @@ async function roomCodeExists(roomCode: string): Promise<boolean> {
     .from(pvpBattles)
     .where(eq(pvpBattles.roomCode, roomCode));
   return rows.length > 0;
+}
+
+async function challengeView(row: typeof pvpChallenges.$inferSelect): Promise<PvpChallengeView> {
+  const people = await db
+    .select({ id: users.id, username: users.username })
+    .from(users)
+    .where(or(eq(users.id, row.challengerId), eq(users.id, row.targetId)));
+  const names = new Map(people.map((person) => [person.id, person.username]));
+
+  let roomCode: string | null = null;
+  if (row.battleId !== null) {
+    const [battle] = await db
+      .select({ roomCode: pvpBattles.roomCode })
+      .from(pvpBattles)
+      .where(eq(pvpBattles.id, row.battleId));
+    roomCode = battle?.roomCode ?? null;
+  }
+
+  return {
+    id: row.id,
+    status: row.status as PvpChallengeStatus,
+    challengerId: row.challengerId,
+    challengerUsername: names.get(row.challengerId) ?? "Treinador",
+    targetId: row.targetId,
+    targetUsername: names.get(row.targetId) ?? "Treinador",
+    createdAt: row.createdAt?.toISOString() ?? new Date(0).toISOString(),
+    expiresAt: row.expiresAt.toISOString(),
+    cooldownUntil: row.cooldownUntil?.toISOString() ?? null,
+    roomCode,
+  };
+}
+
+/** Cria um convite direto; não abre sala até o alvo aceitar. */
+export async function requestChallenge(challengerId: number, targetId: number) {
+  if (challengerId === targetId) throw badRequest("Você não pode desafiar a si mesmo.");
+
+  const [row] = await db.transaction(async (tx) => {
+    const people = await tx
+      .select({
+        id: users.id,
+        currentMapId: users.currentMapId,
+        lastSeenAt: users.lastSeenAt,
+      })
+      .from(users)
+      .where(or(eq(users.id, challengerId), eq(users.id, targetId)));
+    const challenger = people.find((person) => person.id === challengerId);
+    const target = people.find((person) => person.id === targetId);
+
+    if (!challenger) throw forbidden("Sua sessão não possui um jogador válido.");
+    if (!target) throw notFound("Jogador não encontrado.");
+    if (challenger.currentMapId !== target.currentMapId) {
+      throw badRequest("Esse jogador não está mais no mesmo mapa.");
+    }
+    const onlineSince = new Date(Date.now() - PRESENCE_ONLINE_MS);
+    if (!challenger.lastSeenAt || challenger.lastSeenAt < onlineSince || !target.lastSeenAt || target.lastSeenAt < onlineSince) {
+      throw badRequest("Esse jogador não está presente no mapa agora.");
+    }
+
+    // Não existe um índice UNIQUE parcial que cubra convites em sentidos e
+    // pares diferentes. Dois locks consultivos por usuário serializam A→B,
+    // B→A e também A→C, sem bloquear jogadores que não participam do par.
+    const lowId = Math.min(challengerId, targetId);
+    const highId = Math.max(challengerId, targetId);
+    for (const lockedUserId of [lowId, highId]) {
+      await tx.execute(sql`SELECT pg_advisory_xact_lock(1::bigint, ${lockedUserId}::bigint)`);
+    }
+
+    const now = new Date();
+    const related = await tx
+      .select()
+      .from(pvpChallenges)
+      .where(
+        or(
+          eq(pvpChallenges.challengerId, challengerId),
+          eq(pvpChallenges.targetId, challengerId),
+          eq(pvpChallenges.challengerId, targetId),
+          eq(pvpChallenges.targetId, targetId)
+        )
+      )
+      .orderBy(desc(pvpChallenges.createdAt))
+      .for("update");
+
+    for (const old of related) {
+      if (old.status === "PENDING" && old.expiresAt <= now) {
+        await tx
+          .update(pvpChallenges)
+          .set({ status: "EXPIRED", updatedAt: now })
+          .where(eq(pvpChallenges.id, old.id));
+      }
+    }
+
+    const currentSent = related.find(
+      (challenge) =>
+        challenge.challengerId === challengerId &&
+        challenge.status === "PENDING" &&
+        challenge.expiresAt > now
+    );
+    if (currentSent) throw badRequest("Você já tem um desafio aguardando resposta.");
+
+    const currentTarget = related.find(
+      (challenge) =>
+        challenge.targetId === targetId &&
+        challenge.status === "PENDING" &&
+        challenge.expiresAt > now
+    );
+    if (currentTarget) throw badRequest("Esse jogador já está respondendo a outro desafio.");
+
+    const cooldown = related.find(
+      (challenge) =>
+        challenge.status === "DECLINED" &&
+        challenge.challengerId !== challenge.targetId &&
+        ((challenge.challengerId === challengerId && challenge.targetId === targetId) ||
+          (challenge.challengerId === targetId && challenge.targetId === challengerId)) &&
+        challenge.cooldownUntil !== null &&
+        challenge.cooldownUntil > now
+    );
+    if (cooldown?.cooldownUntil) {
+      const seconds = Math.max(1, Math.ceil((cooldown.cooldownUntil.getTime() - now.getTime()) / 1000));
+      throw badRequest(`Aguarde ${seconds}s para desafiar essa pessoa novamente.`);
+    }
+
+    return tx
+      .insert(pvpChallenges)
+      .values({
+        challengerId,
+        targetId,
+        status: "PENDING",
+        expiresAt: new Date(now.getTime() + CHALLENGE_TTL_MS),
+      })
+      .returning();
+  });
+
+  return challengeView(row);
+}
+
+/** Lista o convite recebido e o último estado do convite enviado pelo jogador. */
+export async function getChallengeState(userId: number) {
+  const now = new Date();
+  await db.transaction(async (tx) => {
+    const pending = await tx
+      .select({ id: pvpChallenges.id, expiresAt: pvpChallenges.expiresAt })
+      .from(pvpChallenges)
+      .where(and(eq(pvpChallenges.status, "PENDING"), or(eq(pvpChallenges.targetId, userId), eq(pvpChallenges.challengerId, userId))))
+      .for("update");
+
+    for (const challenge of pending) {
+      if (challenge.expiresAt <= now) {
+        await tx
+          .update(pvpChallenges)
+          .set({ status: "EXPIRED", updatedAt: now })
+          .where(eq(pvpChallenges.id, challenge.id));
+      }
+    }
+  });
+
+  const rows = await db
+    .select()
+    .from(pvpChallenges)
+    .where(or(eq(pvpChallenges.targetId, userId), eq(pvpChallenges.challengerId, userId)))
+    .orderBy(desc(pvpChallenges.createdAt));
+
+  const incoming = rows.find((row) => row.targetId === userId && row.status === "PENDING") ?? null;
+  const outgoing = rows.find(
+    (row) =>
+      row.challengerId === userId &&
+      ["PENDING", "ACCEPTED", "DECLINED", "EXPIRED", "CANCELLED"].includes(row.status)
+  ) ?? null;
+
+  return {
+    incoming: incoming ? await challengeView(incoming) : null,
+    outgoing: outgoing ? await challengeView(outgoing) : null,
+  };
+}
+
+/** Aceita o convite e cria a batalha na mesma transação, sem sala intermediária. */
+export async function acceptChallenge(userId: number, challengeId: number) {
+  return db.transaction(async (tx) => {
+    const [challenge] = await tx
+      .select()
+      .from(pvpChallenges)
+      .where(eq(pvpChallenges.id, challengeId))
+      .for("update");
+
+    if (!challenge) throw notFound("Desafio não encontrado.");
+    if (challenge.targetId !== userId) throw forbidden("Esse desafio não é para você.");
+    if (challenge.status !== "PENDING") throw badRequest("Esse desafio já foi respondido.");
+
+    const now = new Date();
+    if (challenge.expiresAt <= now) {
+      await tx
+        .update(pvpChallenges)
+        .set({ status: "EXPIRED", updatedAt: now })
+        .where(eq(pvpChallenges.id, challenge.id));
+      throw badRequest("Esse desafio expirou.");
+    }
+
+    const people = await tx
+      .select({
+        id: users.id,
+        username: users.username,
+        currentMapId: users.currentMapId,
+        lastSeenAt: users.lastSeenAt,
+      })
+      .from(users)
+      .where(or(eq(users.id, challenge.challengerId), eq(users.id, challenge.targetId)));
+    const challenger = people.find((person) => person.id === challenge.challengerId);
+    const target = people.find((person) => person.id === challenge.targetId);
+    if (!challenger || !target) throw notFound("Jogador do desafio não encontrado.");
+    if (challenger.currentMapId !== target.currentMapId) {
+      throw badRequest("Os jogadores não estão mais no mesmo mapa.");
+    }
+    const onlineSince = new Date(Date.now() - PRESENCE_ONLINE_MS);
+    if (!challenger.lastSeenAt || challenger.lastSeenAt < onlineSince || !target.lastSeenAt || target.lastSeenAt < onlineSince) {
+      throw badRequest("Um dos jogadores não está mais presente no mapa.");
+    }
+
+    const challengerTeam = await loadCurrentTeam(tx, challenger.id);
+    const targetTeam = await loadCurrentTeam(tx, target.id);
+
+    let roomCode = generateRoomCode();
+    for (let tries = 0; tries < CODE_MAX_TRIES && (await roomCodeExistsIn(tx, roomCode)); tries++) {
+      roomCode = generateRoomCode();
+    }
+    if (await roomCodeExistsIn(tx, roomCode)) {
+      throw badRequest("Não foi possível abrir a arena. Tente novamente.");
+    }
+
+    const state: PvpState = {
+      turn: 1,
+      phase: "ACTION",
+      p1: {
+        userId: challenger.id,
+        username: challenger.username,
+        userPokemonId: challengerTeam.first.userPokemonId!,
+        teamPokemonIds: challengerTeam.ids,
+        snapshot: challengerTeam.first,
+        committed: null,
+        needsSwitch: false,
+        rematchRequested: false,
+      },
+      p2: {
+        userId: target.id,
+        username: target.username,
+        userPokemonId: targetTeam.first.userPokemonId!,
+        teamPokemonIds: targetTeam.ids,
+        snapshot: targetTeam.first,
+        committed: null,
+        needsSwitch: false,
+        rematchRequested: false,
+      },
+      log: [`⚔️ ${challenger.username} desafiou ${target.username}. A batalha começou!`],
+      version: 1,
+      turnStartedAt: now.toISOString(),
+    };
+
+    const [battle] = await tx
+      .insert(pvpBattles)
+      .values({
+        roomCode,
+        mode: "friendly",
+        player1Id: challenger.id,
+        player1Username: challenger.username,
+        player2Id: target.id,
+        player2Username: target.username,
+        status: "ACTIVE",
+        currentTurnPlayerId: challenger.id,
+        battleState: state as unknown as Record<string, unknown>,
+      })
+      .returning({ id: pvpBattles.id, roomCode: pvpBattles.roomCode });
+
+    await tx
+      .update(pvpChallenges)
+      .set({ status: "ACCEPTED", battleId: battle.id, updatedAt: now })
+      .where(eq(pvpChallenges.id, challenge.id));
+
+    return { challengeId: challenge.id, roomCode: battle.roomCode };
+  });
+}
+
+/** Recusa e grava o cooldown no servidor para impedir spam. */
+export async function declineChallenge(userId: number, challengeId: number) {
+  return db.transaction(async (tx) => {
+    const [challenge] = await tx
+      .select()
+      .from(pvpChallenges)
+      .where(eq(pvpChallenges.id, challengeId))
+      .for("update");
+
+    if (!challenge) throw notFound("Desafio não encontrado.");
+    if (challenge.targetId !== userId) throw forbidden("Esse desafio não é para você.");
+    if (challenge.status !== "PENDING") throw badRequest("Esse desafio já foi respondido.");
+
+    const now = new Date();
+    const cooldownUntil = new Date(now.getTime() + CHALLENGE_COOLDOWN_MS);
+    const [updated] = await tx
+      .update(pvpChallenges)
+      .set({ status: "DECLINED", cooldownUntil, updatedAt: now })
+      .where(eq(pvpChallenges.id, challenge.id))
+      .returning({ cooldownUntil: pvpChallenges.cooldownUntil });
+
+    return { challengeId: challenge.id, cooldownUntil: updated.cooldownUntil?.toISOString() ?? null };
+  });
+}
+
+/** Permite ao desafiante cancelar o convite antes da resposta. */
+export async function cancelChallenge(userId: number, challengeId: number) {
+  return db.transaction(async (tx) => {
+    const [challenge] = await tx
+      .select()
+      .from(pvpChallenges)
+      .where(eq(pvpChallenges.id, challengeId))
+      .for("update");
+    if (!challenge) throw notFound("Desafio não encontrado.");
+    if (challenge.challengerId !== userId) throw forbidden("Esse desafio não foi enviado por você.");
+    if (challenge.status !== "PENDING") throw badRequest("Esse desafio já foi respondido.");
+
+    await tx
+      .update(pvpChallenges)
+      .set({ status: "CANCELLED", updatedAt: new Date() })
+      .where(eq(pvpChallenges.id, challenge.id));
+    return { challengeId: challenge.id, cancelled: true };
+  });
 }
 
 export async function createRoom(

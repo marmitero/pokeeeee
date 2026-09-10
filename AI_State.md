@@ -6,7 +6,13 @@
 >    antes de abrir qualquer outro arquivo do projeto ou escrever qualquer código.
 >
 > **2. NO FINAL de toda etapa:** este arquivo deve ser **ATUALIZADO**,
->    obrigatoriamente preenchendo as 5 seções abaixo:
+>    obrigatoriamente preenchendo as 5 seções abaixo.
+>
+> **3. AO FINAL de toda etapa:** a resposta ao mantenedor deve trazer o
+>    passo a passo de **implementação e validação** da etapa, com a ordem de
+>    execução, os arquivos/ações envolvidos, o resultado esperado e o que
+>    ainda estiver pendente. O passo a passo humano deve respeitar a regra
+>    online abaixo (GitHub, Actions, Vercel e Supabase; sem terminal).
 >
 > | # | Seção obrigatória |
 > |---|---|
@@ -3482,3 +3488,136 @@ não está em produção).
 > reunidos em `6496bff`. O código nunca foi afetado, e o push para o GitHub é o
 > que preserva o histórico. Por isso a memória do projeto vive **neste
 > arquivo**, não no git.
+
+---
+
+### ✅ 2026-09-10 — Convite PvP persistente + arena responsiva + navegação conectada (sessão `arena/01a08aa0-pokeeeee`)
+
+#### 1. O que já existe no projeto
+
+A etapa de convite direto agora está implementada no servidor e na UI:
+
+- `pvp_challenges` foi adicionada ao schema e à migration `drizzle/0014_clever_kid_colt.sql`, com os estados `PENDING`, `ACCEPTED`, `DECLINED`, `EXPIRED` e `CANCELLED`, FKs para `users`/`pvp_battles`, índices, checks de status e de jogadores distintos.
+- `docs/supabase-production-0014-runtime.sql` é o companheiro pronto para o SQL Editor: DDL idempotente, FKs, índices, checks, RLS, revogação para `anon`/`authenticated`, grants/policies de `catchbound_runtime` e `catchbound_backup` quando existente, journal Drizzle e uma única consulta final de conferência.
+- `src/lib/pvp-service.ts` implementa convite, consulta, aceite, recusa e cancelamento. O aceite é transacional, cria uma batalha `friendly` diretamente e congela todos os Pokémon vivos dos times atuais, sem IDs escolhidos pelo cliente. A recusa grava cooldown de 10 s; o convite expira em 60 s.
+- Requests concorrentes do mesmo usuário/par são serializadas por locks consultivos PostgreSQL; o aceite trava a linha do desafio, portanto duas aceitações não criam duas batalhas.
+- `src/app/api/pvp/route.ts` e `src/lib/validation.ts` expõem/validam as quatro ações novas e `GET /api/pvp?challenges=1`.
+- `src/components/PvpChallengeModal.tsx` mostra popup central com nome do desafiante e botões `ACEITAR`/`RECUSAR`; o desafiante vê espera/cancelamento. `src/app/page.tsx` usa polling serial de 750 ms e abre a arena para os dois assim que o estado compartilhado informa o `roomCode`.
+- `src/components/PvpArena.tsx` usa polling adaptativo serial (~300 ms ativo, ~750 ms aguardando, retry 1,2 s), ignora versões antigas e mostra “Conexão instável” mantendo o último estado, em vez de substituir a arena por erro transitório.
+- `src/lib/map-navigation.ts` restringe a lista ao mapa atual e aos destinos diretos dos portais. O desktop agora usa a ordem mapas → jogo → time; no mobile o jogo vem primeiro e `MAPAS`/`TIME` abrem drawers independentes, mantendo HUD e `ChatWidget`.
+- Testes novos: `src/lib/pvp-challenge.test.ts`, `src/lib/map-navigation.test.ts` e `tests/integration/pvp-challenges.integration.test.ts` cobrem TTL/cooldown, mapas não conectados, fluxo de arena, expiração, recusa e concorrência.
+
+#### 2. O que falta implementar segundo o roadmap
+
+- [x] Convite PvP persistente, aceite/recusa/cancelamento, TTL/cooldown e composição automática do time vivo.
+- [x] Resolução concorrente no servidor e transporte compartilhado por polling.
+- [x] Redução dos estados de travamento percebidos na arena com polling serial, versão monotônica e backoff transitório.
+- [x] Lista visível de mapas limitada às conexões diretas e layout responsivo solicitado.
+- [ ] Aplicar o SQL 0014 no Supabase de produção antes do deploy; conferir a linha final `rls_on=true · runtime_privs=4 · runtime_policy=1 · indexes=3 · checks=2 · fks=3 · migration_0014=1`.
+- [ ] Deploy pela Vercel e validação manual com duas contas no mesmo mapa: desafio, popup, recusa + cooldown, aceite + arena simultânea, expiração e concorrência.
+- [ ] A integração real contra PostgreSQL ainda não foi executada nesta sessão porque não havia PostgreSQL ouvindo em `127.0.0.1:5432`; os testes foram adicionados e o typecheck os compilou.
+- [ ] Troca de itens/Pokémon permanece fora desta rodada, conforme decisão do mantenedor.
+
+#### 3. Qual foi a última etapa aplicada
+
+Apliquei a entrega completa do fluxo solicitado nesta sessão, incluindo o endurecimento final de presença (alvo precisa estar no mesmo mapa e com heartbeat recente), locks consultivos para evitar convites duplicados em corrida, composição apenas com Pokémon vivos, migration/SQL de produção, adaptação de latência da arena, filtro de mapas e layout mobile/desktop.
+
+#### 4. Qual foi o passo a passo de validação da última etapa aplicada
+
+Comandos executados no sandbox do agente e resultados observados:
+
+```text
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pokeeeee npm run db:generate
+→ [✓] drizzle/0014_clever_kid_colt.sql; schema reportou 16 tabelas e pvp_challenges com 9 colunas, 3 índices e 3 FKs
+sha256sum drizzle/0014_clever_kid_colt.sql
+→ dcd6afde5c5fae5b7f752ca733227031ab8fca4d7ba3d6173f7bd789fc7b0a9c
+npm run typecheck
+→ exit 0
+npm run lint
+→ exit 0
+npm test -- --reporter=dot
+→ 30 arquivos · 380 testes passando
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/pokeeeee npm run build
+→ Compilado; TypeScript, páginas estáticas e 17 rotas concluídos
+
+git diff --check
+→ sem whitespace inválido
+npm run test:integration
+→ não executável neste sandbox: ECONNREFUSED 127.0.0.1:5432 durante o global setup; nenhum banco local estava disponível
+```
+
+Uma execução unitária anterior teve timeout isolado de 5 s em `world-expansion.test.ts`; a repetição direcionada com `--testTimeout=15000` passou (14/14), e a suíte completa seguinte passou com 380/380. O arquivo de integração novo foi mantido para execução no CI/banco PostgreSQL, mas não foi falsamente declarado verde.
+
+#### 5. Qual a próxima etapa a ser aplicada
+
+1. Pelo GitHub, abrir `docs/supabase-production-0014-runtime.sql`, copiar o arquivo inteiro e colar no SQL Editor do projeto Supabase de produção; executar e guardar a única linha de conferência. Não publicar a aplicação antes de `runtime_policy=1` e `migration_0014=1`.
+2. Aguardar o deploy `Ready` na Vercel após o merge/branch desta sessão.
+3. No navegador de produção, usar duas contas com heartbeat no mesmo mapa: desafiar pelo menu do player; confirmar popup central; recusar e testar bloqueio por 10 s; enviar novo convite e aceitar; confirmar que os dois abrem a mesma sala `friendly`; deixar outro convite expirar; repetir aceite concorrente se possível.
+4. Conferir em desktop a ordem `MAPAS | JOGO | TIME`; em viewport mobile conferir jogo prioritário, botões independentes `MAPAS`/`TIME`, ChatWidget e navegação apenas para portais diretos.
+5. Só depois registrar a validação online nesta memória e fechar a pendência correspondente do roadmap.
+
+---
+
+### ✅ 2026-09-10 — Regra reforçada: toda etapa termina com passo a passo de implementação e validação
+
+#### 1. O que já existe no projeto
+
+A regra já existia no protocolo inicial deste arquivo: ler `AI_State.md` antes de cada etapa, atualizá-lo no final com as cinco seções obrigatórias e não considerar a etapa concluída sem evidência real. A regra foi agora explicitada de forma adicional: a resposta ao mantenedor também deve terminar com o passo a passo de implementação e validação, separando claramente evidência do sandbox e ações online do mantenedor.
+
+A implementação atualmente registrada é a do convite PvP persistente, arena adaptativa, filtro de mapas conectados e layout responsivo, entregue no commit `2ad035d` e no PR #20:
+https://github.com/marmitero/pokeeeee/pull/20
+
+#### 2. O que falta implementar segundo o roadmap
+
+- [x] Registrar como regra obrigatória o passo a passo de implementação/validação ao final de toda etapa.
+- [x] Manter as cinco seções obrigatórias do `AI_State.md` no encerramento de cada etapa.
+- [ ] Aplicar e conferir o SQL 0014 em produção.
+- [ ] Fazer o deploy `Ready` na Vercel.
+- [ ] Validar com duas contas o convite, recusa, cooldown, expiração, aceite simultâneo, concorrência e arena.
+- [ ] Fazer a passada visual desktop/mobile e conferir latência/request duplicada.
+- [ ] Reexecutar a integração contra PostgreSQL real/CI; o sandbox desta etapa não tinha PostgreSQL ouvindo em `127.0.0.1:5432`.
+
+#### 3. Qual foi a última etapa aplicada
+
+Foi formalizada a regra de processo solicitada pelo mantenedor e mantida a documentação operacional da última entrega. A regra passa a ser:
+
+> **Ao final de toda etapa, além de atualizar o `AI_State.md` nas cinco seções obrigatórias, a resposta deve apresentar o passo a passo de implementação e validação, com ordem, arquivos/ações, resultado esperado e pendências. Ações humanas devem ser executáveis pela interface do GitHub, GitHub Actions, Vercel ou Supabase, sem depender de terminal.**
+
+#### 4. Qual o passo a passo de validação da última etapa aplicada
+
+##### Evidência já executada pelo agente no sandbox
+
+1. Migration gerada e conferida: `drizzle/0014_clever_kid_colt.sql`; schema reportou 16 tabelas, 9 colunas da tabela `pvp_challenges`, 3 índices e 3 FKs.
+2. `npm run typecheck` → exit 0.
+3. `npm run lint` → exit 0.
+4. `npm test -- --reporter=dot` → 30 arquivos e 380 testes passando.
+5. Build com `DATABASE_URL` sintético → compilação, TypeScript, páginas estáticas e 17 rotas concluídos.
+6. `git diff --check` → sem whitespace inválido.
+7. `npm run test:integration` → bloqueado antes da execução dos testes por `ECONNREFUSED 127.0.0.1:5432`; portanto integração real permanece pendente.
+8. Commit e push confirmados na branch `arena/01a08aa0-pokeeeee`; PR #20 aberto.
+
+##### Passo a passo online para o mantenedor
+
+1. **Revisar no GitHub** o PR #20 e confirmar os arquivos principais: `src/lib/pvp-service.ts`, `src/app/api/pvp/route.ts`, `src/components/PvpChallengeModal.tsx`, `src/components/PvpArena.tsx`, `src/app/page.tsx`, `drizzle/0014_clever_kid_colt.sql` e `docs/supabase-production-0014-runtime.sql`.
+2. **Aplicar o banco antes do merge:** abrir o arquivo [SQL 0014 no GitHub](https://github.com/marmitero/pokeeeee/blob/arena/01a08aa0-pokeeeee/docs/supabase-production-0014-runtime.sql), usar `Copy raw`, colar o arquivo inteiro no SQL Editor do Supabase de produção e executar uma vez. O último resultado deve confirmar: `rls_on=true`, `runtime_privs=4`, `runtime_policy=1`, `indexes=3`, `checks=2`, `fks=3`, `migration_0014=1`.
+3. Se a conferência do SQL não bater, **não fazer merge**; registrar o resultado/erro no PR e corrigir o banco pela interface do Supabase.
+4. Depois da conferência verde, fazer o **Merge** do PR #20 pelo GitHub.
+5. Abrir a Vercel vinculada ao repositório e aguardar o deployment correspondente ficar `Ready`. Se ficar `Error`, consultar os logs do deployment e não validar o fluxo como concluído.
+6. Abrir a aplicação de produção com **duas contas em janelas/perfis separados**, no mesmo mapa. Aguardar os crachás de presença aparecerem e conferir que ambos têm heartbeat recente.
+7. Com a conta A, clicar na conta B, abrir o menu de interação e selecionar `DESAFIAR`. Resultado esperado: A mostra estado de espera; B recebe modal central com o nome de A e os botões `ACEITAR` e `RECUSAR`.
+8. Testar **recusa**: B clicar `RECUSAR`. Resultado esperado: o modal fecha, B recebe feedback, A deixa imediatamente de aguardar e o mesmo par não consegue criar novo convite durante 10 segundos. Após o cooldown, um novo convite deve ser aceito normalmente.
+9. Testar **aceite**: A desafiar novamente e B clicar `ACEITAR`. Resultado esperado: os dois clientes abrem a mesma batalha `friendly`, sem seleção de Pokémon pelo cliente, usando automaticamente os times atuais e somente Pokémon vivos; os dois devem deixar o mapa para a arena sem um deles ficar preso na espera.
+10. Testar **expiração**: criar um convite e não responder por aproximadamente 60 segundos. Resultado esperado: o convite desaparece/é marcado expirado para os dois lados e A sai do estado de espera.
+11. Testar **concorrência** com uma terceira conta C: enquanto B tem um convite pendente, C tentar desafiar B; repetir duas ações de desafio/aceite rapidamente se possível. Resultado esperado: não existirem dois convites pendentes incompatíveis para o mesmo alvo/par e uma aceitação concorrente criar no máximo uma batalha.
+12. Testar **latência e polling** abrindo o painel Network do navegador: as consultas de desafio/arena devem ocorrer de forma serial, sem uma nova consulta concorrente antes da anterior terminar; durante falha transitória a arena deve preservar o último estado e mostrar reconexão, sem resetar para uma tela vazia.
+13. Testar **mapas**: no desktop conferir a ordem visual `MAPAS | JOGO | TIME`; clicar no mapa atual e em cada portal direto deve funcionar; mapas sem ligação direta não devem aparecer como destinos disponíveis.
+14. Reduzir a viewport para mobile: o jogo deve permanecer prioritário; `MAPAS`, `TIME` e chat devem abrir por controles independentes; fechar um painel não deve fechar os demais nem quebrar o mapa.
+15. Registrar no PR ou nesta memória cada resultado com data: SQL, deployment, fluxo PvP, expiração/concorrência, Network, desktop e mobile. A etapa só pode ser marcada como validada após os itens pendentes terem evidência correspondente.
+
+#### 5. Qual a próxima etapa a ser aplicada
+
+1. Aguardar a execução humana do SQL 0014 e guardar a linha única de conferência.
+2. Fazer merge pelo GitHub somente após a conferência do Supabase.
+3. Aguardar Vercel `Ready`.
+4. Executar a sequência de validação online dos itens 6–14 acima.
+5. Atualizar a pendência no cabeçalho e nesta seção com os resultados observados, mantendo os itens não executados como pendentes.

@@ -12,7 +12,7 @@ import { api } from "@/lib/api-client";
  * em cima de outro player). Opções aprovadas nesta rodada:
  *  - ➕/➖ amigo (tabela `friendships`, idempotente);
  *  - 💬 PM (reusa o whisper da 8.8 via ChatWidget);
- *  - ⚔️ desafiar (reusa o PvP amistoso: cria a sala e sussurra o código).
+ *  - ⚔️ desafiar (cria um convite persistente; a sala nasce apenas no aceite).
  */
 
 export interface MenuPlayer {
@@ -33,7 +33,7 @@ export function PlayerMenu({
   onClose: () => void;
   /** Abre o whisper com este treinador (ChatWidget). */
   onMessage: (username: string) => void;
-  /** Cria a sala PvP e sussurra o código do desafio. */
+  /** Envia o convite persistente; o servidor abre a sala no aceite. */
   onDuel: (player: MenuPlayer) => void;
 }) {
   const [busy, setBusy] = useState(false);
